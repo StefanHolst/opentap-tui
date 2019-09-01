@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "OpenTAP.TUI": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject>OpenTAP.TUI.TUI</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Window.xml" />
+    <None Remove="WindowHost.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="WindowHost.xml" />
+    <EmbeddedResource Include="Window.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTAP" Version="9.2.3" />
+    <PackageReference Include="Terminal.Gui" Version="0.24.0" />
+  </ItemGroup>
+
+</Project>
