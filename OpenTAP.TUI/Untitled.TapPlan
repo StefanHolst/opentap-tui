@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TestPlan type="OpenTap.TestPlan" Locked="false">
   <Steps>
+    <TestStep type="OpenTap.Plugins.BasicSteps.DelayStep" Version="9.2.3+e4c507a4" Id="5f51b963-e15b-44fb-b26a-866280843f0f">
+      <DelaySecs>0.1</DelaySecs>
+      <Enabled>true</Enabled>
+      <Name>Delay</Name>
+      <ChildTestSteps />
+    </TestStep>
     <TestStep type="OpenTap.Plugins.BasicSteps.RepeatStep" Version="9.2.3+e4c507a4" Id="1f829c20-1829-44aa-8336-5552a7a33e39">
       <Action>Fixed_Count</Action>
       <TargetVerdict>Fail</TargetVerdict>
@@ -26,6 +32,13 @@
               <DelaySecs>0.1</DelaySecs>
               <Enabled>true</Enabled>
               <Name>Delay (2)</Name>
+              <ChildTestSteps />
+            </TestStep>
+            <TestStep type="OpenTap.Plugins.BasicSteps.LogStep" Version="9.2.3+e4c507a4" Id="1c57c0f1-3ef2-46c7-8341-40c14f20ad6d">
+              <LogMessage></LogMessage>
+              <Severity>Info</Severity>
+              <Enabled>true</Enabled>
+              <Name>Log Output</Name>
               <ChildTestSteps />
             </TestStep>
             <TestStep type="OpenTap.Plugins.BasicSteps.DelayStep" Version="9.2.3+e4c507a4" Id="4f6e5e37-4020-453e-9ab5-5a1ec38e7f80">

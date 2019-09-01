@@ -1,13 +1,17 @@
 ﻿using NStack;
 using OpenTap;
+using OpenTap.Diagnostic;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI
@@ -86,7 +90,7 @@ namespace OpenTAP.TUI
         public StepSettingsView(ITestStep step) : base("Step Settings", 1)
         {
             Step = step;
-            StepProperties = step.GetType().GetProperties().Where(p => p.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false).ToList();
+            StepProperties = step.GetType().GetProperties().Where(p => p.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false && p.SetMethod?.IsPublic == true && p.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToList();
 
             listView = new ListView(StepProperties.Select(p => $"{p.Name}: {p.GetValue(Step)?.ToString()}").ToList());
             Add(listView);
@@ -161,7 +165,6 @@ namespace OpenTAP.TUI
         public TestPlanView()
         {
             CanFocus = true;
-
             Plan = TestPlan.Load(@"../../../Untitled.TapPlan");
             Update();
         }
@@ -187,27 +190,39 @@ namespace OpenTAP.TUI
             Plan = new TestPlan();
             Update();
         }
-        public void SaveTestPlan()
+        public void SaveTestPlan(string path)
         {
-            Plan.Save(Plan.Path);
+            Plan.Save(path ?? Plan.Path);
         }
         public void AddNewStep(Type type)
         {
-            var step = FlattenPlan()[SelectedItem];
+            var index = SelectedItem;
+            Plan.ChildTestSteps.Add(Activator.CreateInstance(type) as ITestStep);
+            Update();
+            SelectedItem = index;
+        }
+        public void InsertNewStep(Type type)
+        {
+            var flatplan = FlattenPlan();
+            var step = flatplan[SelectedItem];
             var index = step.Parent.ChildTestSteps.IndexOf(step);
+            var flatIndex = flatplan.IndexOf(step);
 
             step.Parent.ChildTestSteps.Insert(index, Activator.CreateInstance(type) as ITestStep);
             Update();
+            SelectedItem = flatIndex;
         }
 
         public override bool ProcessKey(KeyEvent kb)
         {
             if (kb.Key == Key.Enter)
             {
+                var index = SelectedItem;
                 var step = FlattenPlan()[SelectedItem];
                 var settings = new StepSettingsView(step);
                 Application.Run(settings);
                 Update();
+                SelectedItem = index;
             }
             if (kb.Key == Key.DeleteChar)
             {
@@ -327,24 +342,26 @@ namespace OpenTAP.TUI
             Application.Init();
             var top = Application.Top;
 
-            // Creates the top-level window to show
             var win = new Window("OpenTAP TUI")
             {
                 X = 0,
-                Y = 1, // Leave one row for the toplevel menu
-
-                // By using Dim.Fill(), it will automatically resize without manual intervention
+                Y = 1,
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
             };
             top.Add(win);
 
-            // Creates a menubar, the item "New" has a help menu.
             var menu = new MenuBar(new MenuBarItem[] {
                 new MenuBarItem ("_File", new MenuItem [] {
                     new MenuItem ("_New", "", TestPlanView.NewTestPlan),
                     new MenuItem ("_Open", "", TestPlanView.LoadTestPlan),
-                    new MenuItem ("_Save", "", TestPlanView.SaveTestPlan),
+                    new MenuItem ("_Save", "", () => TestPlanView.SaveTestPlan(null)),
+                    new MenuItem ("_Save As", "", () =>
+                    {
+                        var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
+                        Application.Run(dialog);
+                        TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
+                    }),
                     new MenuItem ("_Quit", "", () => top.Running = false)
                 }),
                 new MenuBarItem ("_Edit", new MenuItem [] {
@@ -353,6 +370,12 @@ namespace OpenTAP.TUI
                         var newStep = new NewStepView();
                         Application.Run(newStep);
                         TestPlanView.AddNewStep(newStep.Step);
+                    }),
+                    new MenuItem ("_Insert New Step", "", () =>
+                    {
+                        var newStep = new NewStepView();
+                        Application.Run(newStep);
+                        TestPlanView.InsertNewStep(newStep.Step);
                     })
                 })
             });
