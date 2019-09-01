@@ -120,6 +120,8 @@ namespace OpenTAP.TUI
     public class TestPlanView : ListView
     {
         private int moveIndex = -1;
+        public TestPlan Plan { get; set; } = new TestPlan();
+
         private List<string> ExpandItems()
         {
             List<string> _ExpandItem(TestStepList steps, int level = 0)
@@ -162,17 +164,12 @@ namespace OpenTAP.TUI
         public TestPlanView()
         {
             CanFocus = true;
-            Plan = TestPlan.Load(@"../../../Untitled.TapPlan");
-            Update();
         }
 
-        private void Update()
+        public void Update()
         {
             Source = new ListWrapper(ExpandItems());
         }
-
-        public TestPlan Plan { get; set; } = new TestPlan();
-
         public void LoadTestPlan()
         {
             var dialog = new OpenDialog("Open a TestPlan", "Open");
@@ -349,26 +346,38 @@ namespace OpenTAP.TUI
             top.Add(win);
 
             var menu = new MenuBar(new MenuBarItem[] {
-                new MenuBarItem ("_File", new MenuItem [] {
-                    new MenuItem ("_New", "", TestPlanView.NewTestPlan),
-                    new MenuItem ("_Open", "", TestPlanView.LoadTestPlan),
-                    new MenuItem ("_Save", "", () => TestPlanView.SaveTestPlan(null)),
-                    new MenuItem ("_Save As", "", () =>
+                new MenuBarItem("_File", new MenuItem [] {
+                    new MenuItem("_New", "", TestPlanView.NewTestPlan),
+                    new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
+                    new MenuItem("_Save", "", () => 
+                    {
+                        if (TestPlanView.Plan.Path != null)
+                            TestPlanView.SaveTestPlan(null);
+                        else
+                        {
+                            var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
+                            Application.Run(dialog);
+                            if (dialog.FileName != null)
+                                TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
+                        }
+                    }),
+                    new MenuItem("_Save As", "", () =>
                     {
                         var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
                         Application.Run(dialog);
-                        TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
+                        if (dialog.FileName != null)
+                            TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
                     }),
-                    new MenuItem ("_Quit", "", () => top.Running = false)
+                    new MenuItem("_Quit", "", () => top.Running = false)
                 }),
-                new MenuBarItem ("_Edit", new MenuItem [] {
-                    new MenuItem ("_Add New Step", "", () =>
+                new MenuBarItem("_Edit", new MenuItem [] {
+                    new MenuItem("_Add New Step", "", () =>
                     {
                         var newStep = new NewStepView();
                         Application.Run(newStep);
                         TestPlanView.AddNewStep(newStep.Step);
                     }),
-                    new MenuItem ("_Insert New Step", "", () =>
+                    new MenuItem("_Insert New Step", "", () =>
                     {
                         var newStep = new NewStepView();
                         Application.Run(newStep);
@@ -379,6 +388,12 @@ namespace OpenTAP.TUI
             top.Add(menu);
 
             win.Add(TestPlanView);
+
+            if (args.Any())
+            {
+                TestPlanView.Plan = TestPlan.Load(args[0]);
+                TestPlanView.Update();
+            }
             Application.Run();
         }
     }
