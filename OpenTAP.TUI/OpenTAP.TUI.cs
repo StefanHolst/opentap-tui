@@ -1,5 +1,6 @@
 ﻿using NStack;
 using OpenTap;
+using OpenTap.Cli;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Xml.Serialization;
 using Terminal.Gui;
 
@@ -363,11 +365,14 @@ namespace OpenTAP.TUI
     }
 
     [Display("tui")]
-    public class TUI
+    public class TUI : ICliAction
     {
-        public static TestPlanView TestPlanView { get; set; } = new TestPlanView();
+        [UnnamedCommandLineArgument("plan")]
+        public string path { get; set; }
 
-        public static void Main(string[] args)
+        public TestPlanView TestPlanView { get; set; } = new TestPlanView();
+
+        public int Execute(CancellationToken cancellationToken)
         {
             Application.Init();
             var top = Application.Top;
@@ -427,17 +432,15 @@ namespace OpenTAP.TUI
 
             win.Add(TestPlanView);
 
-            if (args.Any())
+            if (path != null)
             {
-                TestPlanView.Plan = TestPlan.Load(args[0]);
+                TestPlanView.Plan = TestPlan.Load(path);
                 TestPlanView.Update();
-
-                TestPlanView.Plan.PropertyChanged += (s, e) => 
-                {
-
-                };
             }
+
             Application.Run();
+
+            return 0;
         }
     }
 }

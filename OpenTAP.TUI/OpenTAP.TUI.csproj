@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <ApplicationIcon />
-    <OutputType>Exe</OutputType>
-    <StartupObject>OpenTAP.TUI.TUI</StartupObject>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NStack.Core" Version="0.12.0" />
     <PackageReference Include="OpenTAP" Version="9.2.3" />
     <PackageReference Include="Terminal.Gui" Version="0.24.0" />
   </ItemGroup>
