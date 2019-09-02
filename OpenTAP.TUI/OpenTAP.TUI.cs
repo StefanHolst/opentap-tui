@@ -120,6 +120,7 @@ namespace OpenTAP.TUI
     public class TestPlanView : ListView
     {
         private int moveIndex = -1;
+        private bool injectStep = false;
         public TestPlan Plan { get; set; } = new TestPlan();
 
         private List<string> ExpandItems()
@@ -138,9 +139,9 @@ namespace OpenTAP.TUI
 
             var allsteps = _ExpandItem(Plan.ChildTestSteps);
             if (moveIndex > -1)
-            {
                 allsteps[moveIndex] += " *";
-            }
+            if (injectStep)
+                allsteps[SelectedItem] += " >";
 
             return allsteps;
         }
@@ -176,8 +177,11 @@ namespace OpenTAP.TUI
             Application.Run(dialog);
 
             var path = dialog.FilePaths.FirstOrDefault();
-            Plan = TestPlan.Load(path);
-            Update();
+            if (path != null)
+            {
+                Plan = TestPlan.Load(path);
+                Update();
+            }
         }
         public void NewTestPlan()
         {
@@ -229,6 +233,20 @@ namespace OpenTAP.TUI
                 if (steps.Count > 0)
                     SelectedItem = index > steps.Count - 1 ? steps.Count - 1 : index;
             }
+            if (kb.Key == Key.CursorRight && moveIndex > -1 && FlattenPlan()[SelectedItem].GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
+            {
+                injectStep = true;
+                var index = SelectedItem;
+                Update();
+                SelectedItem = index;
+            }
+            if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
+            {
+                injectStep = false;
+                var index = SelectedItem;
+                Update();
+                SelectedItem = index;
+            }
             if (kb.Key == Key.Space)
             {
                 if (moveIndex == -1)
@@ -243,14 +261,21 @@ namespace OpenTAP.TUI
 
                     var fromItem = flatPlan[moveIndex];
                     var toItem = flatPlan[SelectedItem];
-                    
+
                     var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem);
                     var flatIndex = flatPlan.IndexOf(toItem);
 
-                    fromItem.Parent.ChildTestSteps.Remove(fromItem);
+                    if (IsParent(toItem, fromItem) == false)
+                    {
+                        fromItem.Parent.ChildTestSteps.Remove(fromItem);
 
-                    toItem.Parent.ChildTestSteps.Insert(toIndex, fromItem);
+                        if (injectStep)
+                            toItem.ChildTestSteps.Add(fromItem);
+                        else
+                            toItem.Parent.ChildTestSteps.Insert(toIndex, fromItem);
+                    }
 
+                    injectStep = false;
                     moveIndex = -1;
                     Update();
                     SelectedItem = flatIndex;
@@ -258,6 +283,17 @@ namespace OpenTAP.TUI
             }
 
             return base.ProcessKey(kb);
+        }
+
+        private bool IsParent(ITestStep step, ITestStep parent)
+        {
+            if (step == parent)
+                return true;
+
+            if (step.Parent != null && step.Parent is ITestStep)
+                return IsParent(step.Parent as ITestStep, parent);
+
+            return false;
         }
 
         class ListWrapper : IListDataSource
@@ -375,13 +411,15 @@ namespace OpenTAP.TUI
                     {
                         var newStep = new NewStepView();
                         Application.Run(newStep);
-                        TestPlanView.AddNewStep(newStep.Step);
+                        if (newStep.Step != null)
+                            TestPlanView.AddNewStep(newStep.Step);
                     }),
                     new MenuItem("_Insert New Step", "", () =>
                     {
                         var newStep = new NewStepView();
                         Application.Run(newStep);
-                        TestPlanView.InsertNewStep(newStep.Step);
+                        if (newStep.Step != null)
+                            TestPlanView.InsertNewStep(newStep.Step);
                     })
                 })
             });
@@ -393,6 +431,11 @@ namespace OpenTAP.TUI
             {
                 TestPlanView.Plan = TestPlan.Load(args[0]);
                 TestPlanView.Update();
+
+                TestPlanView.Plan.PropertyChanged += (s, e) => 
+                {
+
+                };
             }
             Application.Run();
         }
