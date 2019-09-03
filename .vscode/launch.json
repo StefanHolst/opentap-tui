@@ -5,13 +5,26 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "OpenTAP",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/OpenTAP.TUI/bin/Debug/tap.exe",
             "args": ["tui", "../../Untitled.TapPlan"],
+            "cwd": "${workspaceFolder}/OpenTAP.TUI/bin/Debug",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "externalTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "dotnet",
+            "args": ["${workspaceFolder}/OpenTAP.TUI/bin/Debug/OpenTAP.TUI.dll", "../../Untitled.TapPlan"],
             "cwd": "${workspaceFolder}/OpenTAP.TUI/bin/Debug",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "externalTerminal",

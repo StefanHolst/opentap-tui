@@ -2,7 +2,6 @@
 using OpenTap;
 using OpenTap.Cli;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -80,29 +79,28 @@ namespace OpenTAP.TUI
         }
     }
 
-    public class StepSettingsView : Window
+    public class StepSettingsView : View
     {
         public ITestStep Step { get; set; }
         public List<PropertyInfo> StepProperties { get; set; }
-        public ListView listView { get; set; }
+        public ListView listView { get; set; } = new ListView();
 
-        public StepSettingsView(ITestStep step) : base("Step Settings", 1)
+        public StepSettingsView()
+        {
+            listView.CanFocus = true;
+            Add(listView);
+        }
+
+        public void LoadSetting(ITestStep step)
         {
             Step = step;
             StepProperties = step.GetType().GetProperties().Where(p => p.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false && p.SetMethod?.IsPublic == true && p.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToList();
 
-            listView = new ListView(StepProperties.Select(p => $"{p.Name}: {p.GetValue(Step)?.ToString()}").ToList());
-            Add(listView);
+            listView.SetSource(StepProperties.Select(p => $"{p.Name}: {p.GetValue(Step)?.ToString()}").ToList());
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Esc)
-            {
-                Running = false;
-                return true;
-            }
-
             if (keyEvent.Key == Key.Enter)
             {
                 var index = listView.SelectedItem;
@@ -114,6 +112,9 @@ namespace OpenTAP.TUI
 
                 listView.SetSource(StepProperties.Select(p => $"{p.Name}: {p.GetValue(Step)?.ToString()}").ToList());
             }
+
+            if (keyEvent.Key == Key.CursorRight)
+                return true;
 
             return base.ProcessKey(keyEvent);
         }
@@ -164,6 +165,14 @@ namespace OpenTAP.TUI
             return _FlattenSteps(Plan.ChildTestSteps);
         }
 
+        public ITestStep SelectedStep 
+        { 
+            get
+            {
+                return FlattenPlan()[SelectedItem];
+            }
+        }
+
         public TestPlanView()
         {
             CanFocus = true;
@@ -171,7 +180,10 @@ namespace OpenTAP.TUI
 
         public void Update()
         {
-            Source = new ListWrapper(ExpandItems());
+            var index = SelectedItem;
+            SetSource(ExpandItems());
+            if (Source.Count > 0)
+                SelectedItem = (index > Source.Count - 1 ? Source.Count - 1 : index);
         }
         public void LoadTestPlan()
         {
@@ -196,10 +208,8 @@ namespace OpenTAP.TUI
         }
         public void AddNewStep(Type type)
         {
-            var index = SelectedItem;
             Plan.ChildTestSteps.Add(Activator.CreateInstance(type) as ITestStep);
             Update();
-            SelectedItem = index;
         }
         public void InsertNewStep(Type type)
         {
@@ -215,39 +225,26 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (kb.Key == Key.Enter)
-            {
-                var index = SelectedItem;
-                var step = FlattenPlan()[SelectedItem];
-                var settings = new StepSettingsView(step);
-                Application.Run(settings);
-                Update();
-                SelectedItem = index;
-            }
             if (kb.Key == Key.DeleteChar)
             {
                 var index = SelectedItem;
                 var steps = FlattenPlan();
-                var step = steps[index];
-                step.Parent.ChildTestSteps.Remove(step);
-                Update();
-                steps = FlattenPlan();
-                if (steps.Count > 0)
-                    SelectedItem = index > steps.Count - 1 ? steps.Count - 1 : index;
+                if (steps.Any())
+                {
+                    var step = steps[index];
+                    step.Parent.ChildTestSteps.Remove(step);
+                    Update();
+                }
             }
             if (kb.Key == Key.CursorRight && moveIndex > -1 && FlattenPlan()[SelectedItem].GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
-                var index = SelectedItem;
                 Update();
-                SelectedItem = index;
             }
             if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
             {
                 injectStep = false;
-                var index = SelectedItem;
                 Update();
-                SelectedItem = index;
             }
             if (kb.Key == Key.Space)
             {
@@ -255,7 +252,6 @@ namespace OpenTAP.TUI
                 {
                     moveIndex = SelectedItem;
                     Update();
-                    SelectedItem = moveIndex;
                 }
                 else
                 {
@@ -284,6 +280,9 @@ namespace OpenTAP.TUI
                 }
             }
 
+            if (kb.Key == Key.CursorRight)
+                return true;
+
             return base.ProcessKey(kb);
         }
 
@@ -297,71 +296,6 @@ namespace OpenTAP.TUI
 
             return false;
         }
-
-        class ListWrapper : IListDataSource
-        {
-            IList src;
-            BitArray marks;
-            int count;
-
-            public ListWrapper(IList source)
-            {
-                count = source.Count;
-                marks = new BitArray(count);
-                this.src = source;
-            }
-
-            public int Count => src.Count;
-
-            void RenderUstr(ConsoleDriver driver, ustring ustr, int col, int line, int width)
-            {
-                int byteLen = ustr.Length;
-                int used = 0;
-                for (int i = 0; i < byteLen;)
-                {
-                    (var rune, var size) = Utf8.DecodeRune(ustr, i, i - byteLen);
-                    var count = Rune.ColumnWidth(rune);
-                    if (used + count >= width)
-                        break;
-                    driver.AddRune(rune);
-                    used += count;
-                    i += size;
-                }
-                for (; used < width; used++)
-                {
-                    driver.AddRune(' ');
-                }
-            }
-
-            public void Render(ListView container, ConsoleDriver driver, bool marked, int item, int col, int line, int width)
-            {
-                container.Move(col, line);
-                var t = src[item];
-                if (t is ustring)
-                {
-                    RenderUstr(driver, (ustring)t, col, line, width);
-                }
-                else if (t is string)
-                {
-                    RenderUstr(driver, (string)t, col, line, width);
-                }
-                else
-                    RenderUstr(driver, t.ToString(), col, line, width);
-            }
-
-            public bool IsMarked(int item)
-            {
-                if (item >= 0 && item < count)
-                    return marks[item];
-                return false;
-            }
-
-            public void SetMark(int item, bool value)
-            {
-                if (item >= 0 && item < count)
-                    marks[item] = value;
-            }
-        }
     }
 
     [Display("tui")]
@@ -371,20 +305,12 @@ namespace OpenTAP.TUI
         public string path { get; set; }
 
         public TestPlanView TestPlanView { get; set; } = new TestPlanView();
+        public StepSettingsView StepSettingsView { get; set; } = new StepSettingsView();
 
         public int Execute(CancellationToken cancellationToken)
         {
             Application.Init();
             var top = Application.Top;
-
-            var win = new Window("OpenTAP TUI")
-            {
-                X = 0,
-                Y = 1,
-                Width = Dim.Fill(),
-                Height = Dim.Fill()
-            };
-            top.Add(win);
 
             var menu = new MenuBar(new MenuBarItem[] {
                 new MenuBarItem("_File", new MenuItem [] {
@@ -430,17 +356,51 @@ namespace OpenTAP.TUI
             });
             top.Add(menu);
 
-            win.Add(TestPlanView);
+            var win = new Window("OpenTAP TUI")
+            {
+                X = 0,
+                Y = 1,
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
+            top.Add(win);
 
+            var frame = new FrameView("TestPlan"){
+                Width = Dim.Percent(75),
+                Height = Dim.Fill()
+            };
+            frame.Add(TestPlanView);
+            win.Add(frame);
+
+            var frame2 = new FrameView("Settings")
+            {
+                X = Pos.Percent(75),
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
+            frame2.Add(StepSettingsView);
+            win.Add(frame2);
+
+            // Update step settings
+            TestPlanView.SelectedChanged += () => { StepSettingsView.LoadSetting(TestPlanView.SelectedStep); };
+
+            // Load plan from args
             if (path != null)
             {
                 TestPlanView.Plan = TestPlan.Load(path);
                 TestPlanView.Update();
+                StepSettingsView.LoadSetting(TestPlanView.SelectedStep);
             }
 
+            // Run application
             Application.Run();
 
             return 0;
+        }
+    
+        public static void Main(string[] args)
+        {
+            new TUI(){ path = args.FirstOrDefault() }.Execute(new CancellationToken());
         }
     }
 }
