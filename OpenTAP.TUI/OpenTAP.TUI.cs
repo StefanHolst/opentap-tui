@@ -70,7 +70,11 @@ namespace OpenTAP.TUI
 
             if (keyEvent.Key == Key.Enter)
             {
-                Value = TypeDescriptor.GetConverter(Input).ConvertFrom(textField.Text.ToString());
+                try
+                {
+                    Value = TypeDescriptor.GetConverter(Input).ConvertFrom(textField.Text.ToString());
+                }
+                catch {}
                 Running = false;
                 return true;
             }
@@ -298,6 +302,22 @@ namespace OpenTAP.TUI
         }
     }
 
+    public class MainWindow : Window
+    {
+        public MainWindow(string title) : base(title)
+        {
+            
+        }
+
+        public override bool ProcessKey(KeyEvent keyEvent)
+        {
+            if (keyEvent.Key == Key.ControlX)
+                Environment.Exit(0);
+
+            return base.ProcessKey(keyEvent);
+        }
+    }
+
     [Display("tui")]
     public class TUI : ICliAction
     {
@@ -356,7 +376,7 @@ namespace OpenTAP.TUI
             });
             top.Add(menu);
 
-            var win = new Window("OpenTAP TUI")
+            var win = new MainWindow("OpenTAP TUI")
             {
                 X = 0,
                 Y = 1,
