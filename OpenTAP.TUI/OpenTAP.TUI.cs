@@ -101,17 +101,17 @@ namespace OpenTAP.TUI
                 new MenuBarItem("_Resources", new MenuItem[]{
                     new MenuItem("_DUTs", "", () =>
                     {
-                        var settingsView = new ResourceSettingsView(DutSettings.Current.Cast<IResource>().ToList(), typeof(IDut), "DUTs");
+                        var settingsView = new ResourceSettingsView<IDut>("DUTs");
                         Application.Run(settingsView);
                     }),
                     new MenuItem("_Instrumentss", "", () =>
                     {
-                        var settingsView = new ResourceSettingsView(InstrumentSettings.Current.Cast<IResource>().ToList(), typeof(IInstrument), "Instruments");
+                        var settingsView = new ResourceSettingsView<IInstrument>("Instruments");
                         Application.Run(settingsView);
                     }),
                     new MenuItem("_Result Listeners", "", () =>
                     {
-                        var settingsView = new ResourceSettingsView(ResultSettings.Current.Cast<IResource>().ToList(), typeof(ResultListener), "Result Listeners");
+                        var settingsView = new ResourceSettingsView<IResultListener>("Result Listeners");
                         Application.Run(settingsView);
                     })
                 })

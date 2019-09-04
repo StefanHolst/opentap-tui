@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,18 +9,16 @@ using System.Xml.Serialization;
 using OpenTap;
 using Terminal.Gui;
 
-public class ResourceSettingsView : Window
+public class ResourceSettingsView<T> : Window where T : IResource
 {
-    private List<IResource> resources { get; set; }
-    private Type resourceType { get; set; }
+    public IList Resources { get; set; }
     private List<string> list { get; set; }
     private ListView listView { get; set; }
     private PropertiesView detailsView { get; set; } = new PropertiesView();
 
-    public ResourceSettingsView(List<IResource> resources, Type resourceType, string title) : base(null)
+    public ResourceSettingsView(string title) : base(null)
     {
-        this.resources = resources;
-        this.resourceType = resourceType;
+        Resources = ComponentSettingsList.GetContainer(typeof(T));
 
         // list frame
         var frame = new FrameView(title)
@@ -29,15 +28,15 @@ public class ResourceSettingsView : Window
         };
 
         // resource list
-        list = resources.Select(r => r.Name).ToList();
+        list = Resources.Cast<IResource>().Select(r => r.Name).ToList();
         listView = new ListView(list)
         {
             Height = Dim.Fill(1)
         };
         listView.SelectedChanged += () => 
         {
-            var test = resources[listView.SelectedItem];
-            detailsView.LoadProperties(test);
+            var resource = Resources[listView.SelectedItem];
+            detailsView.LoadProperties(resource);
         };
         frame.Add(listView);
 
@@ -49,12 +48,15 @@ public class ResourceSettingsView : Window
         };
         button.Clicked += () => 
         {
-            var newPlugin = new NewPluginView(resourceType, title);
+            var newPlugin = new NewPluginView(typeof(T), title);
             Application.Run(newPlugin);
             if (newPlugin.PluginType != null)
             {
-                resources.Add(Activator.CreateInstance(newPlugin.PluginType) as IResource);
-                listView.SetSource(resources.Select(r => r.Name).ToList());
+                var resource = Activator.CreateInstance(newPlugin.PluginType);
+                Resources.Add(resource);
+                listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
+                if (Resources.Count == 1)
+                    detailsView.LoadProperties(resource);
             }
         };
         frame.Add(button);
@@ -67,6 +69,8 @@ public class ResourceSettingsView : Window
             Height = Dim.Fill()
         };
         detailFrame.Add(detailsView);
+        if (Resources.Count > 0)
+            detailsView.LoadProperties(Resources[0]);
 
         Add(frame);
         Add(detailFrame);
@@ -74,8 +78,22 @@ public class ResourceSettingsView : Window
 
     public override bool ProcessKey(KeyEvent keyEvent)
     {
+        if (keyEvent.Key == Key.DeleteChar)
+        {
+            var index = listView.SelectedItem;
+            Resources.RemoveAt(listView.SelectedItem);
+            listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
+            
+            if (Resources.Count > 0)
+            {
+                listView.SelectedItem = (index > Resources.Count - 1 ? Resources.Count - 1 : index);            
+                detailsView.LoadProperties(Resources[listView.SelectedItem]);
+            }
+        }
+
         if (keyEvent.Key == Key.Esc)
         {
+            ComponentSettings.SaveAllCurrentSettings();
             Running = false;
             return true;
         }
