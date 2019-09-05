@@ -9,95 +9,98 @@ using System.Xml.Serialization;
 using OpenTap;
 using Terminal.Gui;
 
-public class ResourceSettingsWindow<T> : Window where T : IResource
+namespace OpenTAP.TUI
 {
-    public IList Resources { get; set; }
-    private List<string> list { get; set; }
-    private ListView listView { get; set; }
-    private PropertiesView detailsView { get; set; } = new PropertiesView();
-
-    public ResourceSettingsWindow(string title) : base(null)
+    public class ResourceSettingsWindow<T> : Window where T : IResource
     {
-        Resources = ComponentSettingsList.GetContainer(typeof(T));
+        public IList Resources { get; set; }
+        private List<string> list { get; set; }
+        private ListView listView { get; set; }
+        private PropertiesView detailsView { get; set; } = new PropertiesView();
 
-        // list frame
-        var frame = new FrameView(title)
+        public ResourceSettingsWindow(string title) : base(null)
         {
-            Width = Dim.Percent(25),    
-            Height = Dim.Fill()
-        };
+            Resources = ComponentSettingsList.GetContainer(typeof(T));
 
-        // resource list
-        list = Resources.Cast<IResource>().Select(r => r.Name).ToList();
-        listView = new ListView(list)
-        {
-            Height = Dim.Fill(1)
-        };
-        listView.SelectedChanged += () => 
-        {
-            var resource = Resources[listView.SelectedItem];
-            detailsView.LoadProperties(resource);
-        };
-        frame.Add(listView);
-
-        // add resource button
-        var button = new Button("+")
-        {
-            Width = Dim.Fill(),
-            Y = Pos.Bottom(listView)
-        };
-        button.Clicked += () => 
-        {
-            var newPlugin = new NewPluginWindow(typeof(T), title);
-            Application.Run(newPlugin);
-            if (newPlugin.PluginType != null)
+            // list frame
+            var frame = new FrameView(title)
             {
-                var resource = Activator.CreateInstance(newPlugin.PluginType);
-                Resources.Add(resource);
-                listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
-                if (Resources.Count == 1)
-                    detailsView.LoadProperties(resource);
-            }
-        };
-        frame.Add(button);
+                Width = Dim.Percent(25),
+                Height = Dim.Fill()
+            };
 
-        // details frame
-        var detailFrame = new FrameView("Details")
-        {
-            X = Pos.Percent(25),
-            Width = Dim.Fill(),
-            Height = Dim.Fill()
-        };
-        detailFrame.Add(detailsView);
-        if (Resources.Count > 0)
-            detailsView.LoadProperties(Resources[0]);
+            // resource list
+            list = Resources.Cast<IResource>().Select(r => r.Name).ToList();
+            listView = new ListView(list)
+            {
+                Height = Dim.Fill(1)
+            };
+            listView.SelectedChanged += () =>
+            {
+                var resource = Resources[listView.SelectedItem];
+                detailsView.LoadProperties(resource);
+            };
+            frame.Add(listView);
 
-        Add(frame);
-        Add(detailFrame);
-    }
+            // add resource button
+            var button = new Button("+")
+            {
+                Width = Dim.Fill(),
+                Y = Pos.Bottom(listView)
+            };
+            button.Clicked += () =>
+            {
+                var newPlugin = new NewPluginWindow(typeof(T), title);
+                Application.Run(newPlugin);
+                if (newPlugin.PluginType != null)
+                {
+                    var resource = Activator.CreateInstance(newPlugin.PluginType);
+                    Resources.Add(resource);
+                    listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
+                    if (Resources.Count == 1)
+                        detailsView.LoadProperties(resource);
+                }
+            };
+            frame.Add(button);
 
-    public override bool ProcessKey(KeyEvent keyEvent)
-    {
-        if (keyEvent.Key == Key.DeleteChar)
-        {
-            var index = listView.SelectedItem;
-            Resources.RemoveAt(listView.SelectedItem);
-            listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
-            
+            // details frame
+            var detailFrame = new FrameView("Details")
+            {
+                X = Pos.Percent(25),
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
+            detailFrame.Add(detailsView);
             if (Resources.Count > 0)
-            {
-                listView.SelectedItem = (index > Resources.Count - 1 ? Resources.Count - 1 : index);            
-                detailsView.LoadProperties(Resources[listView.SelectedItem]);
-            }
+                detailsView.LoadProperties(Resources[0]);
+
+            Add(frame);
+            Add(detailFrame);
         }
 
-        if (keyEvent.Key == Key.Esc)
+        public override bool ProcessKey(KeyEvent keyEvent)
         {
-            ComponentSettings.SaveAllCurrentSettings();
-            Running = false;
-            return true;
-        }
+            if (keyEvent.Key == Key.DeleteChar)
+            {
+                var index = listView.SelectedItem;
+                Resources.RemoveAt(listView.SelectedItem);
+                listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
 
-        return base.ProcessKey(keyEvent);
+                if (Resources.Count > 0)
+                {
+                    listView.SelectedItem = (index > Resources.Count - 1 ? Resources.Count - 1 : index);
+                    detailsView.LoadProperties(Resources[listView.SelectedItem]);
+                }
+            }
+
+            if (keyEvent.Key == Key.Esc)
+            {
+                ComponentSettings.SaveAllCurrentSettings();
+                Running = false;
+                return true;
+            }
+
+            return base.ProcessKey(keyEvent);
+        }
     }
 }

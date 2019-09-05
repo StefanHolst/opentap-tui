@@ -3,36 +3,39 @@ using System.Collections.ObjectModel;
 using OpenTap;
 using Terminal.Gui;
 
-public class NewPluginWindow : Window
+namespace OpenTAP.TUI
 {
-    private ReadOnlyCollection<Type> Plugins { get; set; }
-    private ListView listView { get; set; }
-    public Type PluginType { get; set; }
-
-    public NewPluginWindow(Type type, string title) : base(title)
+    public class NewPluginWindow : Window
     {
-        Plugins = PluginManager.GetPlugins(type);
-        listView = new ListView(Plugins);
-        Add(listView);
-    }
+        private ReadOnlyCollection<Type> Plugins { get; set; }
+        private ListView listView { get; set; }
+        public Type PluginType { get; set; }
 
-    public override bool ProcessKey(KeyEvent keyEvent)
-    {
-        if (keyEvent.Key == Key.Esc)
+        public NewPluginWindow(Type type, string title) : base(title)
         {
-            Running = false;
-            return true;
+            Plugins = PluginManager.GetPlugins(type);
+            listView = new ListView(Plugins);
+            Add(listView);
         }
 
-        if (keyEvent.Key == Key.Enter)
+        public override bool ProcessKey(KeyEvent keyEvent)
         {
-            var index = listView.SelectedItem;
-            if (Plugins.Count > 0)
-                PluginType = Plugins[index];
-            Running = false;
-            return true;
-        }
+            if (keyEvent.Key == Key.Esc)
+            {
+                Running = false;
+                return true;
+            }
 
-        return base.ProcessKey(keyEvent);
+            if (keyEvent.Key == Key.Enter)
+            {
+                var index = listView.SelectedItem;
+                if (Plugins.Count > 0)
+                    PluginType = Plugins[index];
+                Running = false;
+                return true;
+            }
+
+            return base.ProcessKey(keyEvent);
+        }
     }
 }

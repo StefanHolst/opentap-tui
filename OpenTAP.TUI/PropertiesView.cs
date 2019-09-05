@@ -6,9 +6,11 @@ using System.Xml.Serialization;
 using OpenTap;
 using Terminal.Gui;
 
-public class PropertiesView : View
+namespace OpenTAP.TUI
+{
+    public class PropertiesView : View
     {
-        public object Value { get; set; }
+        public object obj { get; set; }
         public List<PropertyInfo> properties { get; set; }
         public ListView listView { get; set; } = new ListView();
 
@@ -20,10 +22,14 @@ public class PropertiesView : View
 
         public void LoadProperties(object obj)
         {
-            Value = obj;
+            this.obj = obj;
             properties = obj.GetType().GetProperties().Where(p => p.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false && p.SetMethod?.IsPublic == true && p.GetCustomAttribute<XmlIgnoreAttribute>() == null).ToList();
+            UpdateProperties();
+        }
 
-            listView.SetSource(properties.Select(p => $"{p.Name}: {p.GetValue(Value)?.ToString()}").ToList());
+        private void UpdateProperties()
+        {
+            listView.SetSource(properties.Select(p => $"{p.Name}: {p.GetValue(obj)?.ToString()}").ToList());
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -32,12 +38,11 @@ public class PropertiesView : View
             {
                 var index = listView.SelectedItem;
                 var prop = properties[index];
-                var setting = new PropEditWindow(prop, prop.GetValue(Value));
-                Application.Run(setting);
-                if (setting.Value != null)
-                    prop.SetValue(Value, setting.Value);
 
-                listView.SetSource(properties.Select(p => $"{p.Name}: {p.GetValue(Value)?.ToString()}").ToList());
+                var propEditor = PropEditProvider.GetProvider(prop);
+                propEditor.Edit(prop, obj);
+
+                UpdateProperties();
             }
 
             if (keyEvent.Key == Key.CursorRight)
@@ -46,3 +51,4 @@ public class PropertiesView : View
             return base.ProcessKey(keyEvent);
         }
     }
+}

@@ -1,50 +1,55 @@
+using OpenTap;
+using OpenTAP.TUI.PropEditProviders;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using Terminal.Gui;
 
-public class PropEditWindow : Window
+
+namespace OpenTAP.TUI
 {
-    public object Value { get; set; }
-    private TextField textField { get; set; }
-    private object Input { get; set; }
-
-    public PropEditWindow(PropertyInfo prop, object input) : base(prop.Name)
+    public static class PropEditProvider
     {
-        Input = input;
+        public static IPropEditProvider GetProvider(PropertyInfo prop)
+        {
+            var editProviders = PluginManager.GetPlugins<IPropEditProvider>().Select(p => Activator.CreateInstance(p) as IPropEditProvider).OrderBy(p => p.Order).ToList();
 
-        // 
+            foreach (var item in editProviders)
+            {
+                if (item.CanEdit(prop))
+                    return item;
+            }
 
-        // switch (Type.GetTypeCode(prop.PropertyType))
-        // {
-        //     case TypeCode.Boolean:
-        //         break;
-        //     default:
-        // }
-
-        textField = new TextField(input.ToString());
-        Add(textField);
+            return null;
+        }
     }
 
-    public override bool ProcessKey(KeyEvent keyEvent)
+    public class EditWindow : Window
     {
-        if (keyEvent.Key == Key.Esc)
+        public bool Edited { get; set; }
+
+        public EditWindow(string title) : base(title)
         {
-            Running = false;
-            return true;
+
         }
 
-        if (keyEvent.Key == Key.Enter)
+        public override bool ProcessKey(KeyEvent keyEvent)
         {
-            try
+            if (keyEvent.Key == Key.Esc)
             {
-                Value = TypeDescriptor.GetConverter(Input).ConvertFrom(textField.Text.ToString());
+                Edited = false;
+                Running = false;
+                return true;
             }
-            catch { }
-            Running = false;
-            return true;
-        }
+            if (keyEvent.Key == Key.Enter)
+            {
+                Edited = true;
+                Running = false;
+                return true;
+            }
 
-        return base.ProcessKey(keyEvent);
+            return base.ProcessKey(keyEvent);
+        }
     }
 }

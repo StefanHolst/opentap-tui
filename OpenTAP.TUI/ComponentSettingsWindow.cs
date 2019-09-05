@@ -8,27 +8,31 @@ using System.Xml.Serialization;
 using OpenTap;
 using Terminal.Gui;
 
-public class ComponentSettingsWindow : Window
+
+namespace OpenTAP.TUI
 {
-    private ComponentSettings setting { get; set; }
-
-    public ComponentSettingsWindow(ComponentSettings setting) : base(setting.GetType().GetCustomAttribute<DisplayAttribute>().Name)
+    public class ComponentSettingsWindow : Window
     {
-        this.setting = setting;
-        var propView = new PropertiesView();
-        propView.LoadProperties(setting);
-        Add(propView);
-    }
+        private ComponentSettings setting { get; set; }
 
-    public override bool ProcessKey(KeyEvent keyEvent)
-    {
-        if (keyEvent.Key == Key.Esc)
+        public ComponentSettingsWindow(ComponentSettings setting) : base(setting.GetType().GetCustomAttribute<DisplayAttribute>().Name)
         {
-            setting.Save();
-            Running = false;
-            return true;
+            this.setting = setting;
+            var propView = new PropertiesView();
+            propView.LoadProperties(setting);
+            Add(propView);
         }
 
-        return base.ProcessKey(keyEvent);
+        public override bool ProcessKey(KeyEvent keyEvent)
+        {
+            if (keyEvent.Key == Key.Esc)
+            {
+                setting.Save();
+                Running = false;
+                return true;
+            }
+
+            return base.ProcessKey(keyEvent);
+        }
     }
 }
