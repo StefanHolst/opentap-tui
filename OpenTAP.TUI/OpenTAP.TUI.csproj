@@ -1,16 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="NStack.Core" Version="0.12.0" />
     <PackageReference Include="OpenTAP" Version="9.2.3" />
     <PackageReference Include="Terminal.Gui" Version="0.24.0" />
+    
+    <Reference Include="OpenTap.Plugins.BasicSteps">
+      <HintPath>bin/Debug/Packages/OpenTAP/OpenTap.Plugins.BasicSteps.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

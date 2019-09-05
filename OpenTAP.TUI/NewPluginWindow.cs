@@ -3,13 +3,13 @@ using System.Collections.ObjectModel;
 using OpenTap;
 using Terminal.Gui;
 
-public class NewPluginView : Window
+public class NewPluginWindow : Window
 {
     private ReadOnlyCollection<Type> Plugins { get; set; }
     private ListView listView { get; set; }
     public Type PluginType { get; set; }
 
-    public NewPluginView(Type type, string title) : base(title)
+    public NewPluginWindow(Type type, string title) : base(title)
     {
         Plugins = PluginManager.GetPlugins(type);
         listView = new ListView(Plugins);

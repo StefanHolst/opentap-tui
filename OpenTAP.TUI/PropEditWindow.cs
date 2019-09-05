@@ -1,16 +1,27 @@
+using System;
 using System.ComponentModel;
 using System.Reflection;
 using Terminal.Gui;
 
-public class PropEditView : Window
+public class PropEditWindow : Window
 {
     public object Value { get; set; }
     private TextField textField { get; set; }
     private object Input { get; set; }
 
-    public PropEditView(PropertyInfo prop, object input) : base(prop.Name)
+    public PropEditWindow(PropertyInfo prop, object input) : base(prop.Name)
     {
         Input = input;
+
+        // 
+
+        // switch (Type.GetTypeCode(prop.PropertyType))
+        // {
+        //     case TypeCode.Boolean:
+        //         break;
+        //     default:
+        // }
+
         textField = new TextField(input.ToString());
         Add(textField);
     }

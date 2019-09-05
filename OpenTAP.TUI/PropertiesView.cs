@@ -32,7 +32,7 @@ public class PropertiesView : View
             {
                 var index = listView.SelectedItem;
                 var prop = properties[index];
-                var setting = new PropEditView(prop, prop.GetValue(Value));
+                var setting = new PropEditWindow(prop, prop.GetValue(Value));
                 Application.Run(setting);
                 if (setting.Value != null)
                     prop.SetValue(Value, setting.Value);

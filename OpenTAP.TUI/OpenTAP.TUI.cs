@@ -26,6 +26,12 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.ControlX)
                 Environment.Exit(0);
 
+            if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView)
+            {
+                FocusNext();
+                return true;
+            }
+
             return base.ProcessKey(keyEvent);
         }
     }
@@ -72,7 +78,7 @@ namespace OpenTAP.TUI
                 new MenuBarItem("_Edit", new MenuItem [] {
                     new MenuItem("_Add New Step", "", () =>
                     {
-                        var newStep = new NewPluginView(typeof(ITestStep), "Add New Step");
+                        var newStep = new NewPluginWindow(typeof(ITestStep), "Add New Step");
                         Application.Run(newStep);
                         if (newStep.PluginType != null)
                         {
@@ -82,7 +88,7 @@ namespace OpenTAP.TUI
                     }),
                     new MenuItem("_Insert New Step", "", () =>
                     {
-                        var newStep = new NewPluginView(typeof(ITestStep), "Insert New Step");
+                        var newStep = new NewPluginWindow(typeof(ITestStep), "Insert New Step");
                         Application.Run(newStep);
                         if (newStep.PluginType != null)
                         {
@@ -93,25 +99,24 @@ namespace OpenTAP.TUI
                 }),
                 new MenuBarItem("_Settings", new MenuItem[]{
                     new MenuItem("Engine", "", () => {
-                        var settingsView = new ComponentSettingsView(EngineSettings.Current);
+                        var settingsView = new ComponentSettingsWindow(EngineSettings.Current);
                         Application.Run(settingsView);
-                    }),
-                    new MenuItem("Results", "", () => {})
+                    })
                 }),
                 new MenuBarItem("_Resources", new MenuItem[]{
                     new MenuItem("_DUTs", "", () =>
                     {
-                        var settingsView = new ResourceSettingsView<IDut>("DUTs");
+                        var settingsView = new ResourceSettingsWindow<IDut>("DUTs");
                         Application.Run(settingsView);
                     }),
                     new MenuItem("_Instrumentss", "", () =>
                     {
-                        var settingsView = new ResourceSettingsView<IInstrument>("Instruments");
+                        var settingsView = new ResourceSettingsWindow<IInstrument>("Instruments");
                         Application.Run(settingsView);
                     }),
                     new MenuItem("_Result Listeners", "", () =>
                     {
-                        var settingsView = new ResourceSettingsView<IResultListener>("Result Listeners");
+                        var settingsView = new ResourceSettingsWindow<IResultListener>("Result Listeners");
                         Application.Run(settingsView);
                     })
                 })

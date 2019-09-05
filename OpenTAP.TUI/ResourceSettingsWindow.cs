@@ -9,14 +9,14 @@ using System.Xml.Serialization;
 using OpenTap;
 using Terminal.Gui;
 
-public class ResourceSettingsView<T> : Window where T : IResource
+public class ResourceSettingsWindow<T> : Window where T : IResource
 {
     public IList Resources { get; set; }
     private List<string> list { get; set; }
     private ListView listView { get; set; }
     private PropertiesView detailsView { get; set; } = new PropertiesView();
 
-    public ResourceSettingsView(string title) : base(null)
+    public ResourceSettingsWindow(string title) : base(null)
     {
         Resources = ComponentSettingsList.GetContainer(typeof(T));
 
@@ -48,7 +48,7 @@ public class ResourceSettingsView<T> : Window where T : IResource
         };
         button.Clicked += () => 
         {
-            var newPlugin = new NewPluginView(typeof(T), title);
+            var newPlugin = new NewPluginWindow(typeof(T), title);
             Application.Run(newPlugin);
             if (newPlugin.PluginType != null)
             {
