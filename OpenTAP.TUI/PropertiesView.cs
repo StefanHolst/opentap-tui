@@ -40,7 +40,7 @@ namespace OpenTAP.TUI
             var description = members.ElementAtOrDefault(listView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
             
             if (description != null)
-                descriptionView.Text = Regex.Replace(description, $".{{{Bounds.Width}}}", "$0\n");
+                descriptionView.Text = Regex.Replace(description, $".{{{(descriptionView.Bounds.Width > 0 ? descriptionView.Bounds.Width : Application.Current.Bounds.Width / 4 - 6)}}}", "$0\n");
             else
                 descriptionView.Text = "";
         }
