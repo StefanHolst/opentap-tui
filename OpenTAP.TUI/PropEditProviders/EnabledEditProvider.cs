@@ -13,6 +13,8 @@ namespace OpenTAP.TUI.PropEditProviders
         public int Order { get; } = 5;
         public View Edit(AnnotationCollection annotation)
         {
+            return null;
+
             var members = annotation.Get<IMembersAnnotation>()?.Members.ToArray();
             if (members == null || members.Length != 2)
                 return null;

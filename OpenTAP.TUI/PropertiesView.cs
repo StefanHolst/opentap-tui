@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap;
 using Terminal.Gui;
@@ -37,7 +38,11 @@ namespace OpenTAP.TUI
         {
             var members = getMembers();
             var description = members.ElementAtOrDefault(listView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
-            descriptionView.Text = description ?? "";
+            
+            if (description != null)
+                descriptionView.Text = Regex.Replace(description, $".{{{Bounds.Width}}}", "$0\n");
+            else
+                descriptionView.Text = "";
         }
 
         public void LoadProperties(object obj)
@@ -45,6 +50,7 @@ namespace OpenTAP.TUI
             this.obj = obj;
             annotations = AnnotationCollection.Annotate(obj);
             UpdateProperties();
+            ListViewOnSelectedChanged();
         }
 
         AnnotationCollection[] getMembers()
