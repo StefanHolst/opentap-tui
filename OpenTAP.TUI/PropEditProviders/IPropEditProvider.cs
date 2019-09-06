@@ -11,7 +11,16 @@ namespace OpenTAP.TUI.PropEditProviders
     public interface IPropEditProvider
     {
         int Order { get; }
-        bool CanEdit(PropertyInfo prop);
-        void Edit(PropertyInfo prop, object obj);
+        /// <summary>
+        /// Create the view.
+        /// </summary>
+        /// <param name="annotation"></param>
+        /// <returns></returns>
+        View Edit(AnnotationCollection annotation);
+        /// <summary>
+        /// Commit changes to the view.
+        /// </summary>
+        /// <param name="view"></param>
+        void Commit(View view);
     }
 }

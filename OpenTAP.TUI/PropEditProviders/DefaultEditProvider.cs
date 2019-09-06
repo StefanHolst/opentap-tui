@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Text;
+using OpenTap;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -10,26 +11,19 @@ namespace OpenTAP.TUI.PropEditProviders
     public class DefaultEditProvider : IPropEditProvider
     {
         public int Order => 1000;
-
-        public bool CanEdit(PropertyInfo prop)
+        private IStringValueAnnotation Annotation;
+        public View Edit(AnnotationCollection annotation)
         {
-            return TypeDescriptor.GetConverter(prop.PropertyType).CanConvertFrom(typeof(string));
+            var stredit = annotation.Get<IStringValueAnnotation>();
+            if (stredit == null) return null;
+            var textField = new TextField(stredit.Value);
+            textField.Changed += (sender, args) => stredit.Value = textField.Text.ToString();
+            return textField;
         }
 
-        public void Edit(PropertyInfo prop, object obj)
+        public void Commit(View view)
         {
-            var win = new EditWindow(prop.Name);
-            var textField = new TextField(prop.GetValue(obj).ToString());
-
-            win.Add(textField);
-
-            Application.Run(win);
-
-            if (win.Edited)
-            {
-                var value = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFrom(textField.Text.ToString());
-                prop.SetValue(obj, value);
-            }
+            
         }
     }
 }
