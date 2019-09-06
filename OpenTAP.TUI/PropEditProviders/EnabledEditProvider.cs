@@ -20,7 +20,7 @@ namespace OpenTAP.TUI.PropEditProviders
             
             var enabled = members[enabledIndex];
             var value = members[enabledIndex == 0 ? 1 : 0];
-            var check = new Terminal.Gui.CheckBox("", (bool)enabled.Get<IObjectValueAnnotation>().Value);
+            var check = new CheckBox("", (bool)enabled.Get<IObjectValueAnnotation>().Value);
             check.Toggled += (sender, args) => enabled.Get<IObjectValueAnnotation>().Value = check.Checked;
             var viewbox = new View();
             
@@ -30,11 +30,6 @@ namespace OpenTAP.TUI.PropEditProviders
             valuebox.X = Pos.Right(check);
             viewbox.Add(valuebox);
             return viewbox;
-        }
-
-        public void Commit(View view)
-        {
-            
         }
     }
 }

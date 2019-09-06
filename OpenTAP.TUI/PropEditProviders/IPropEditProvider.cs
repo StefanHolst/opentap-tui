@@ -17,10 +17,5 @@ namespace OpenTAP.TUI.PropEditProviders
         /// <param name="annotation"></param>
         /// <returns></returns>
         View Edit(AnnotationCollection annotation);
-        /// <summary>
-        /// Commit changes to the view.
-        /// </summary>
-        /// <param name="view"></param>
-        void Commit(View view);
     }
 }

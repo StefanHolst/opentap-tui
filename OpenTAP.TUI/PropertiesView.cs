@@ -10,64 +10,76 @@ namespace OpenTAP.TUI
 {
     public class PropertiesView : View
     {
-        public object obj { get; set; }
-        public AnnotationCollection Annotation { get; set; }
-        public ListView listView { get; set; } = new ListView();
-        public TextView DescriptionView { get; set; } = new TextView();
+        private object obj { get; set; }
+        private AnnotationCollection annotations { get; set; }
+        private ListView listView { get; set; } = new ListView();
+        private TextView descriptionView { get; set; } = new TextView() { CanFocus = false };
 
         public PropertiesView()
         {
             listView.CanFocus = true;
-            Add(listView);
             listView.Height = Dim.Percent(80);
             listView.SelectedChanged += ListViewOnSelectedChanged;
+            Add(listView);
 
-            DescriptionView.Y = Pos.Bottom(listView);
-            Add(DescriptionView);
-            DescriptionView.Text = "Description..";
+            // Description
+            var descriptionFrame = new FrameView("Description")
+            {
+                Y = Pos.Bottom(listView),
+                Height = Dim.Sized(6),
+                CanFocus = false
+            };
+            descriptionFrame.Add(descriptionView);
+            Add(descriptionFrame);
         }
 
         private void ListViewOnSelectedChanged()
         {
             var members = getMembers();
             var description = members.ElementAtOrDefault(listView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
-            DescriptionView.Text = description ?? "";
+            descriptionView.Text = description ?? "";
         }
 
         public void LoadProperties(object obj)
         {
             this.obj = obj;
-            Annotation = AnnotationCollection.Annotate(obj);
+            annotations = AnnotationCollection.Annotate(obj);
             UpdateProperties();
         }
 
         AnnotationCollection[] getMembers()
         {
-            return Annotation.Get<IMembersAnnotation>().Members
+            return annotations.Get<IMembersAnnotation>().Members
                 .Where(x => x.Get<IAccessAnnotation>()?.IsVisible ?? false)
                 .ToArray();
         }
         private void UpdateProperties()
         {
-            listView.SetSource(getMembers().Select(x => x.Get<DisplayAttribute>().Name).ToArray());
+            listView.SetSource(getMembers().Select(x => $"{x.Get<DisplayAttribute>().Name}: {x.Get<IStringValueAnnotation>()?.Value ?? "..."}").ToArray());
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter)
             {
-                var index = listView.SelectedItem;
-                var prop = getMembers();
+                var members = getMembers();
 
-                var propEditor = PropEditProvider.GetProvider(prop[index], out var provider);
-                var win = new EditWindow(Annotation.ToString());
+                // Find edit provider
+                var propEditor = PropEditProvider.GetProvider(members[listView.SelectedItem], out var provider);
                 if (propEditor == null)
-                    propEditor = new TextView() {Text = "Unable to edit."};
-                win.Add(propEditor);
-                Application.Run(win);
-                if(provider != null) provider.Commit(propEditor);
-                Annotation.Write();
-                Annotation.Read();
+                    MessageBox.Query(40, 6, "Unable to edit", $"Cannot edit properties of type:\n{members[listView.SelectedItem].Get<IMemberAnnotation>().ReflectionInfo.Name}");
+                else
+                {
+                    var win = new EditWindow(annotations.ToString());
+                    win.Add(propEditor);
+                    Application.Run(win);
+                }
+
+                // Save values to reference object
+                annotations.Write();
+                annotations.Read();
+
+                // Load new values
                 UpdateProperties();
             }
 

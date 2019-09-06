@@ -13,36 +13,20 @@ namespace OpenTAP.TUI.PropEditProviders
         public int Order => 10;
         public View Edit(AnnotationCollection annotation)
         {
-            var avail = annotation.Get<IAvailableValuesAnnotationProxy>();
-            if (avail == null) return null;
-            var avalues = avail.AvailableValues.ToArray();
-            var listView = new ListView(avalues.Select(p => p.Get<IStringReadOnlyValueAnnotation>()?.Value).ToList());
-            listView.SelectedItem = Array.IndexOf(avalues, avail.SelectedValue);
-            if(listView.SelectedItem != -1)
-                listView.TopItem = 0;
-            listView.SelectedChanged += () => avail.SelectedValue = avalues[listView.SelectedItem];
+            var availableValue = annotation.Get<IAvailableValuesAnnotationProxy>();
+            if (availableValue == null)
+                return null;
+
+            var availableValues = availableValue.AvailableValues.ToArray();
+
+            var listView = new ListView(availableValues.Select(p => p.Get<IStringReadOnlyValueAnnotation>()?.Value).ToList());
+            listView.SelectedChanged += () => availableValue.SelectedValue = availableValues[listView.SelectedItem];
+
+            var index = Array.IndexOf(availableValues, availableValue.SelectedValue);
+            listView.SelectedItem = index != -1 ? index : 0;
+            listView.TopItem = Math.Max(0, index - Application.Current.Bounds.Height);
+
             return listView;
-        }
-
-        public void Commit(View view)
-        {
-            
-        }
-
-
-        public void Edit(PropertyInfo prop, object obj)
-        {
-            
-            var availableValues = Enum.GetValues(prop.PropertyType);
-
-            var win = new EditWindow(prop.Name);
-            var listView = new ListView(availableValues);
-            win.Add(listView);
-
-            Application.Run(win);
-
-            if (win.Edited && availableValues.Length > 0)
-                prop.SetValue(obj, availableValues.GetValue(listView.SelectedItem));
         }
     }
 
@@ -74,11 +58,6 @@ namespace OpenTAP.TUI.PropEditProviders
             view.AllowsMarking = true;
             
             return new ViewWrapper(view, annotation);
-        }
-
-        public void Commit(View view)
-        {
-            
         }
     }
 

@@ -11,7 +11,6 @@ namespace OpenTAP.TUI.PropEditProviders
     public class DefaultEditProvider : IPropEditProvider
     {
         public int Order => 1000;
-        private IStringValueAnnotation Annotation;
         public View Edit(AnnotationCollection annotation)
         {
             var stredit = annotation.Get<IStringValueAnnotation>();
@@ -19,11 +18,6 @@ namespace OpenTAP.TUI.PropEditProviders
             var textField = new TextField(stredit.Value);
             textField.Changed += (sender, args) => stredit.Value = textField.Text.ToString();
             return textField;
-        }
-
-        public void Commit(View view)
-        {
-            
         }
     }
 }
