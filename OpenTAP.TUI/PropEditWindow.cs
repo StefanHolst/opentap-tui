@@ -47,13 +47,13 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.Esc)
             {
                 Edited = false;
-                Running = false;
+                Application.RequestStop();
                 return true;
             }
             if (keyEvent.Key == Key.Enter)
             {
                 Edited = true;
-                Running = false;
+                Application.RequestStop();
                 return true;
             }
 

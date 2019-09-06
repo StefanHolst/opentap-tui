@@ -28,7 +28,7 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.Esc)
             {
                 setting.Save();
-                Running = false;
+                Application.RequestStop();
                 return true;
             }
 

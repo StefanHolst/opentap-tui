@@ -22,7 +22,7 @@ namespace OpenTAP.TUI
         {
             if (keyEvent.Key == Key.Esc)
             {
-                Running = false;
+                Application.RequestStop();
                 return true;
             }
 
@@ -31,7 +31,7 @@ namespace OpenTAP.TUI
                 var index = listView.SelectedItem;
                 if (Plugins.Count > 0)
                     PluginType = Plugins[index];
-                Running = false;
+                Application.RequestStop();
                 return true;
             }
 

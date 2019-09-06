@@ -1,6 +1,7 @@
 ﻿using NStack;
 using OpenTap;
 using OpenTap.Cli;
+using OpenTap.Diagnostic;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -42,6 +43,8 @@ namespace OpenTAP.TUI
         [UnnamedCommandLineArgument("plan")]
         public string path { get; set; }
 
+        public static TraceSource Log = OpenTap.Log.CreateSource("TUI");
+
         public TestPlanView TestPlanView { get; set; } = new TestPlanView();
         public PropertiesView StepSettingsView { get; set; } = new PropertiesView();
 
@@ -73,7 +76,7 @@ namespace OpenTAP.TUI
                         if (dialog.FileName != null)
                             TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
                     }),
-                    new MenuItem("_Quit", "", () => top.Running = false)
+                    new MenuItem("_Quit", "", () => Application.RequestStop())
                 }),
                 new MenuBarItem("_Edit", new MenuItem [] {
                     new MenuItem("_Add New Step", "", () =>
@@ -132,22 +135,32 @@ namespace OpenTAP.TUI
             };
             top.Add(win);
 
-            var frame = new FrameView("TestPlan")
+            var testPlanFrame = new ExtendedFrameView("Test Plan")
             {
                 Width = Dim.Percent(75),
-                Height = Dim.Fill()
+                Height = Dim.Percent(75)
             };
-            frame.Add(TestPlanView);
-            win.Add(frame);
+            testPlanFrame.Add(TestPlanView);
+            win.Add(testPlanFrame);
 
-            var frame2 = new FrameView("Settings")
+            var settingsFrame = new ExtendedFrameView("Settings")
             {
                 X = Pos.Percent(75),
                 Width = Dim.Fill(),
+                Height = Dim.Percent(75)
+            };
+            settingsFrame.Add(StepSettingsView);
+            win.Add(settingsFrame);
+
+
+            var logFrame = new ExtendedFrameView("Log Panel")
+            {
+                Y = Pos.Percent(75),
+                Width = Dim.Fill(),
                 Height = Dim.Fill()
             };
-            frame2.Add(StepSettingsView);
-            win.Add(frame2);
+            logFrame.Add(new LogPanelView());
+            win.Add(logFrame);
 
             // Update step settings
             TestPlanView.SelectedChanged += () => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
@@ -159,7 +172,7 @@ namespace OpenTAP.TUI
                 TestPlanView.Update();
                 StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
             }
-
+            
             // Run application
             Application.Run();
 

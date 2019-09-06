@@ -13,34 +13,40 @@ namespace OpenTAP.TUI
     {
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
-        private ListView listView { get; set; } = new ListView();
+        private ExtendedListView listView { get; set; } = new ExtendedListView();
         private TextView descriptionView { get; set; } = new TextView() { CanFocus = false };
 
         public PropertiesView()
         {
             listView.CanFocus = true;
-            listView.Height = Dim.Percent(80);
+            listView.Height = Dim.Percent(75);
             listView.SelectedChanged += ListViewOnSelectedChanged;
             Add(listView);
 
             // Description
-            var descriptionFrame = new FrameView("Description")
+            var descriptionFrame = new ExtendedFrameView("Description")
             {
                 Y = Pos.Bottom(listView),
-                Height = Dim.Sized(6),
+                Height = Dim.Fill(),
+                Width = Dim.Fill(),
                 CanFocus = false
             };
             descriptionFrame.Add(descriptionView);
             Add(descriptionFrame);
+
+            listView.OnRedraw += (s, e) =>
+            {
+                ListViewOnSelectedChanged();
+            };
         }
 
         private void ListViewOnSelectedChanged()
         {
             var members = getMembers();
-            var description = members.ElementAtOrDefault(listView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
+            var description = members?.ElementAtOrDefault(listView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
             
             if (description != null)
-                descriptionView.Text = Regex.Replace(description, $".{{{(descriptionView.Bounds.Width > 0 ? descriptionView.Bounds.Width : Application.Current.Bounds.Width / 4 - 6)}}}", "$0\n");
+                descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
             else
                 descriptionView.Text = "";
         }
@@ -55,13 +61,15 @@ namespace OpenTAP.TUI
 
         AnnotationCollection[] getMembers()
         {
-            return annotations.Get<IMembersAnnotation>().Members
+            return annotations?.Get<IMembersAnnotation>().Members
                 .Where(x => x.Get<IAccessAnnotation>()?.IsVisible ?? false)
                 .ToArray();
         }
         private void UpdateProperties()
         {
+            var index = listView.SelectedItem;
             listView.SetSource(getMembers().Select(x => $"{x.Get<DisplayAttribute>().Name}: {x.Get<IStringValueAnnotation>()?.Value ?? "..."}").ToArray());
+            listView.SelectedItem = index >= listView.Source.Count ? listView.Source.Count : index;
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -73,7 +81,7 @@ namespace OpenTAP.TUI
                 // Find edit provider
                 var propEditor = PropEditProvider.GetProvider(members[listView.SelectedItem], out var provider);
                 if (propEditor == null)
-                    MessageBox.Query(40, 6, "Unable to edit", $"Cannot edit properties of type:\n{members[listView.SelectedItem].Get<IMemberAnnotation>().ReflectionInfo.Name}");
+                    TUI.Log.Warning($"Cannot edit properties of type: {members[listView.SelectedItem].Get<IMemberAnnotation>().ReflectionInfo.Name}");
                 else
                 {
                     var win = new EditWindow(annotations.ToString());
