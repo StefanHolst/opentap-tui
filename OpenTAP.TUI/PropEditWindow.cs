@@ -11,14 +11,22 @@ namespace OpenTAP.TUI
 {
     public static class PropEditProvider
     {
-        public static IPropEditProvider GetProvider(PropertyInfo prop)
+        public static View GetProvider(AnnotationCollection annotation, out IPropEditProvider provider)
         {
-            var editProviders = PluginManager.GetPlugins<IPropEditProvider>().Select(p => Activator.CreateInstance(p) as IPropEditProvider).OrderBy(p => p.Order).ToList();
+            provider = null;
+            var editProviders = TypeData.FromType(typeof(IPropEditProvider)).DerivedTypes
+                .Where(p => p.CanCreateInstance)
+                .Select(p => p.CreateInstance(Array.Empty<object>()))
+                .Cast<IPropEditProvider>().OrderBy(p => p.Order).ToArray();
 
             foreach (var item in editProviders)
             {
-                if (item.CanEdit(prop))
-                    return item;
+                View view = item.Edit(annotation);
+                if (view != null)
+                {
+                    provider = item;
+                    return view;
+                }
             }
 
             return null;
