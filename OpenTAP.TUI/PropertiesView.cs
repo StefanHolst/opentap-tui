@@ -34,10 +34,7 @@ namespace OpenTAP.TUI
             descriptionFrame.Add(descriptionView);
             Add(descriptionFrame);
 
-            listView.OnRedraw += (s, e) =>
-            {
-                ListViewOnSelectedChanged();
-            };
+            listView.OnFirstDraw += ListViewOnSelectedChanged;
         }
 
         private void ListViewOnSelectedChanged()

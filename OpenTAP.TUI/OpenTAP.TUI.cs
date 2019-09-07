@@ -98,6 +98,10 @@ namespace OpenTAP.TUI
                             TestPlanView.InsertNewStep(newStep.PluginType);
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
+                    }),
+                    new MenuItem("_Run", "", () =>
+                    {
+                        TestPlanView.Plan.Execute();
                     })
                 }),
                 new MenuBarItem("_Settings", new MenuItem[]{

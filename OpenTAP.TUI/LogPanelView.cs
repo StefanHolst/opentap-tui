@@ -17,10 +17,7 @@ namespace OpenTAP.TUI
             Log.AddListener(this);
             CanFocus = true;
 
-            OnRedraw += (s, e) =>
-            {
-                Update();
-            };
+            OnFirstDraw += Update;
         }
 
         private void Update()

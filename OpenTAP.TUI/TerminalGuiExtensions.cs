@@ -8,12 +8,22 @@ namespace OpenTAP.TUI
 {
     public class ExtendedListView : ListView
     {
-        public event EventHandler<EventArgs> OnRedraw;
+        public delegate void DrawEventHandler();
 
+        public event DrawEventHandler OnFirstDraw;
+        public event DrawEventHandler OnRedraw;
+
+        bool drawed = false;
         public override void Redraw(Rect region)
         {
             base.Redraw(region);
-            OnRedraw?.Invoke(this, null);
+
+            if (drawed == false)
+            {
+                OnFirstDraw?.Invoke();
+                drawed = true;
+            }
+            OnRedraw?.Invoke();
         }
     }
 
