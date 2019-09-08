@@ -9,12 +9,9 @@ namespace OpenTAP.TUI.PropEditProviders
 {
     public class EnabledEditProvider : IPropEditProvider
     {
-        
-        public int Order { get; } = 5;
+        public int Order => 5;
         public View Edit(AnnotationCollection annotation)
         {
-            return null;
-
             var members = annotation.Get<IMembersAnnotation>()?.Members.ToArray();
             if (members == null || members.Length != 2)
                 return null;
@@ -30,6 +27,7 @@ namespace OpenTAP.TUI.PropEditProviders
             if (valuebox == null) return null;
             viewbox.Add(check);
             valuebox.X = Pos.Right(check);
+            valuebox.Width = Dim.Fill();
             viewbox.Add(valuebox);
             return viewbox;
         }
