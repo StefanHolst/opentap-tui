@@ -26,7 +26,7 @@ namespace OpenTAP.TUI
 
             if (messages.Any())
             {
-                TopItem = messages.Count - Bounds.Height;
+                TopItem = Math.Max(0, messages.Count - Bounds.Height);
                 SelectedItem = messages.Count - 1;
             }
         }

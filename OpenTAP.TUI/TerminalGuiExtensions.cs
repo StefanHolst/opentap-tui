@@ -31,8 +31,8 @@ namespace OpenTAP.TUI
     {
         public ExtendedFrameView(ustring title) : base(title)
         {
-            Subviews[0].Width = Dim.Fill(1);
-            Subviews[0].Height = Dim.Fill(1);
+            //Subviews[0].Width = Dim.Fill(1);
+            //Subviews[0].Height = Dim.Fill(1);
         }
 
         public ExtendedFrameView(Rect frame, ustring title) : base(frame, title)
