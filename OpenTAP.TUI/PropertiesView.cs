@@ -60,6 +60,14 @@ namespace OpenTAP.TUI
         {
             return annotations?.Get<IMembersAnnotation>().Members
                 .Where(x => x.Get<IAccessAnnotation>()?.IsVisible ?? false)
+                .Where(x => 
+                {
+                    var member = x.Get<IMemberAnnotation>()?.Member;
+                    if (member != null)
+                        return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
+                    else
+                        return true;
+                })
                 .ToArray();
         }
         private void UpdateProperties()
