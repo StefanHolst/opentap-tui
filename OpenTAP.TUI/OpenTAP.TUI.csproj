@@ -10,6 +10,9 @@
   <ItemGroup>
     <PackageReference Include="NStack.Core" Version="0.12.0" />
     <PackageReference Include="OpenTAP" Version="9.2.3" />
-    <PackageReference Include="Terminal.Gui" Version="0.24.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Terminal.Gui\Terminal.Gui.csproj" />
   </ItemGroup>
 </Project>
