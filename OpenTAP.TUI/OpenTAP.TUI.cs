@@ -24,9 +24,6 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.ControlX)
-                Environment.Exit(0);
-
             if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView)
             {
                 FocusNext();
@@ -45,15 +42,25 @@ namespace OpenTAP.TUI
 
         public static TraceSource Log = OpenTap.Log.CreateSource("TUI");
 
-        public TestPlanView TestPlanView { get; set; } = new TestPlanView();
-        public PropertiesView StepSettingsView { get; set; } = new PropertiesView();
+        public TestPlanView TestPlanView { get; set; }
+        public PropertiesView StepSettingsView { get; set; }
 
         public int Execute(CancellationToken cancellationToken)
         {
+            Console.TreatControlCAsInput = false;
+            Console.CancelKeyPress += (s, e) =>
+            {
+                Environment.Exit(0);
+                e.Cancel = true;
+            };
+
             try
             {
                 Application.Init();
                 var top = Application.Top;
+
+                TestPlanView = new TestPlanView();
+                StepSettingsView = new PropertiesView();
 
                 var menu = new MenuBar(new MenuBarItem[] {
                     new MenuBarItem("_File", new MenuItem [] {
@@ -137,7 +144,7 @@ namespace OpenTAP.TUI
                 };
                 top.Add(win);
 
-                var testPlanFrame = new ExtendedFrameView("Test Plan")
+                var testPlanFrame = new FrameView("Test Plan")
                 {
                     Width = Dim.Percent(75),
                     Height = Dim.Percent(75)
@@ -145,7 +152,7 @@ namespace OpenTAP.TUI
                 testPlanFrame.Add(TestPlanView);
                 win.Add(testPlanFrame);
 
-                var settingsFrame = new ExtendedFrameView("Settings")
+                var settingsFrame = new FrameView("Settings")
                 {
                     X = Pos.Percent(75),
                     Width = Dim.Fill(),
@@ -155,7 +162,7 @@ namespace OpenTAP.TUI
                 win.Add(settingsFrame);
 
 
-                var logFrame = new ExtendedFrameView("Log Panel")
+                var logFrame = new FrameView("Log Panel")
                 {
                     Y = Pos.Percent(75),
                     Width = Dim.Fill(),
@@ -174,7 +181,7 @@ namespace OpenTAP.TUI
                     TestPlanView.Update();
                     StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                 }
-                
+
                 // Run application
                 Application.Run();
             }

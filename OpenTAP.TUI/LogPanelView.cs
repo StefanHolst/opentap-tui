@@ -8,7 +8,7 @@ using Terminal.Gui;
 
 namespace OpenTAP.TUI
 {
-    public class LogPanelView : ExtendedListView, ILogListener
+    public class LogPanelView : ListView, ILogListener
     {
         private List<string> messages = new List<string>();
 
@@ -17,7 +17,13 @@ namespace OpenTAP.TUI
             Log.AddListener(this);
             CanFocus = true;
 
-            OnFirstDraw += Update;
+            PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(ListView.Frame))
+                {
+                    Update();
+                }
+            };
         }
 
         private void Update()

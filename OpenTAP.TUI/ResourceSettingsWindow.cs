@@ -23,7 +23,7 @@ namespace OpenTAP.TUI
             Resources = ComponentSettingsList.GetContainer(typeof(T));
 
             // list frame
-            var frame = new ExtendedFrameView(title)
+            var frame = new FrameView(title)
             {
                 Width = Dim.Percent(25),
                 Height = Dim.Fill()
@@ -64,7 +64,7 @@ namespace OpenTAP.TUI
             frame.Add(button);
 
             // details frame
-            var detailFrame = new ExtendedFrameView("Details")
+            var detailFrame = new FrameView("Details")
             {
                 X = Pos.Percent(25),
                 Width = Dim.Fill(),

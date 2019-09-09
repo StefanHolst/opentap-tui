@@ -13,7 +13,7 @@ namespace OpenTAP.TUI
     {
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
-        private ExtendedListView listView { get; set; } = new ExtendedListView();
+        private ListView listView { get; set; } = new ListView();
         private TextView descriptionView { get; set; } = new TextView() { CanFocus = false };
 
         public PropertiesView()
@@ -24,7 +24,7 @@ namespace OpenTAP.TUI
             Add(listView);
 
             // Description
-            var descriptionFrame = new ExtendedFrameView("Description")
+            var descriptionFrame = new FrameView("Description")
             {
                 Y = Pos.Bottom(listView),
                 Height = Dim.Fill(),
@@ -34,7 +34,13 @@ namespace OpenTAP.TUI
             descriptionFrame.Add(descriptionView);
             Add(descriptionFrame);
 
-            listView.OnFirstDraw += ListViewOnSelectedChanged;
+            descriptionView.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(ListView.Frame))
+                {
+                    ListViewOnSelectedChanged();
+                }
+            };
         }
 
         private void ListViewOnSelectedChanged()
