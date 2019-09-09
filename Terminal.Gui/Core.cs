@@ -245,7 +245,12 @@ namespace Terminal.Gui {
 		/// </summary>
 		public static ConsoleDriver Driver = Application.Driver;
 
-		static IList<View> empty = new List<View> (0).AsReadOnly ();
+        /// <summary>
+        /// Called when a property changes. For now only <see cref="Frame"/>.
+        /// </summary>
+        public event EventHandler<PropertyChangedEventArgs> PropertyChanged;
+
+        static IList<View> empty = new List<View> (0).AsReadOnly ();
 		List<View> subviews;
 
 		/// <summary>
@@ -289,6 +294,8 @@ namespace Terminal.Gui {
 
 				SetNeedsLayout ();
 				SetNeedsDisplay (frame);
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Frame)));
             }
 		}
 
