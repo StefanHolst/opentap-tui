@@ -278,7 +278,9 @@ namespace Terminal.Gui {
 		TextField dirEntry, nameEntry;
 		internal DirListView dirListView;
 
-		public FileDialog (ustring title, ustring prompt, ustring nameFieldLabel, ustring message) : base (title, Driver.Cols - 20, Driver.Rows - 5, null)
+        public event EventHandler<ustring> SelectionChanged;
+
+        public FileDialog (ustring title, ustring prompt, ustring nameFieldLabel, ustring message) : base (title, Driver.Cols - 20, Driver.Rows - 5, null)
 		{
 			this.message = new Label (Rect.Empty, "MESSAGE" + message);
 			var msgLines = Label.MeasureLines (message, Driver.Cols - 20);
@@ -295,7 +297,7 @@ namespace Terminal.Gui {
 			};
 			Add (dirLabel, dirEntry);
 
-			this.nameFieldLabel = new Label ("Open: ") {
+			this.nameFieldLabel = new Label (nameFieldLabel + ": ") {
 				X = 6,
 				Y = 3 + msgLines,
 			};
@@ -317,7 +319,8 @@ namespace Terminal.Gui {
 			dirListView.DirectoryChanged = (dir) => dirEntry.Text = dir;
 			dirListView.FileChanged = (file) => {
 				nameEntry.Text = file;
-			};
+                SelectionChanged?.Invoke(this, nameEntry.Text);
+            };
 
 			this.cancel = new Button ("Cancel");
 			this.cancel.Clicked += () => {
@@ -330,6 +333,7 @@ namespace Terminal.Gui {
 				IsDefault = true,
 			};
 			this.prompt.Clicked += () => {
+                SelectionChanged?.Invoke(this, nameEntry.Text);
 				canceled = false;
 				Application.RequestStop ();
 			};
@@ -347,11 +351,19 @@ namespace Terminal.Gui {
 			//SetFocus (nameEntry);
 		}
 
-		/// <summary>
-		/// Gets or sets the prompt label for the button displayed to the user
-		/// </summary>
-		/// <value>The prompt.</value>
-		public ustring Prompt {
+        public override bool ProcessKey(KeyEvent kb)
+        {
+            if (kb.Key == Key.Enter)
+                SelectionChanged?.Invoke(this, nameEntry.Text);
+
+            return base.ProcessKey(kb);
+        }
+
+        /// <summary>
+        /// Gets or sets the prompt label for the button displayed to the user
+        /// </summary>
+        /// <value>The prompt.</value>
+        public ustring Prompt {
 			get => prompt.Text;
 			set {
 				prompt.Text = value;
