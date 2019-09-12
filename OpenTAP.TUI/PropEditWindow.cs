@@ -44,20 +44,22 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
+            var handled = base.ProcessKey(keyEvent);
+
             if (keyEvent.Key == Key.Esc)
             {
                 Edited = false;
                 Application.RequestStop();
                 return true;
             }
-            if (keyEvent.Key == Key.Enter)
+            if (keyEvent.Key == Key.Enter && handled != true)
             {
                 Edited = true;
                 Application.RequestStop();
                 return true;
             }
 
-            return base.ProcessKey(keyEvent);
+            return handled;
         }
     }
 }
