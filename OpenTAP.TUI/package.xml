@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package Name="TUI" xmlns="http://keysight.com/schemas/TAP/Package" Version="1.0.0" OS="Windows,Linux">
+  <Description>Something.</Description>
+  <Dependencies>
+  </Dependencies>
+  <Files>
+    <File Path="bin/Release/OpenTAP.TUI.dll" Obfuscate="false">
+      <SetAssemblyInfo Attributes="Version"/>
+    </File>
+  </Files>
+</Package>
