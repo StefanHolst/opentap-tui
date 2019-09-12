@@ -182,6 +182,8 @@ namespace OpenTAP.TUI
                     StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                 }
 
+                Application.Run(new DatagridView((p, v) => {return null;}));
+
                 // Run application
                 Application.Run();
             }
