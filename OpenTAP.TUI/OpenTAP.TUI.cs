@@ -133,7 +133,7 @@ namespace OpenTAP.TUI
                         })
                     })
                 });
-                top.Add(menu);
+                //top.Add(menu);
 
                 var win = new MainWindow("OpenTAP TUI")
                 {
@@ -142,7 +142,7 @@ namespace OpenTAP.TUI
                     Width = Dim.Fill(),
                     Height = Dim.Fill()
                 };
-                top.Add(win);
+                //top.Add(win);
 
                 var testPlanFrame = new FrameView("Test Plan")
                 {
@@ -182,7 +182,11 @@ namespace OpenTAP.TUI
                     StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                 }
 
-                Application.Run(new DatagridView((p, v) => {return null;}));
+                var win2 = new DatagridView("Sweep Loop", new[] { "key", "value" }, (x, y) => 
+                {
+                    return new TextField("hej" + x + y);
+                });
+                top.Add(win2);
 
                 // Run application
                 Application.Run();

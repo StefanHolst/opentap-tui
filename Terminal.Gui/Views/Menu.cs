@@ -363,7 +363,8 @@ namespace Terminal.Gui {
 
 			openMenu = new Menu (this, pos, 1, Menus [index]);
 
-			SuperView.Add (openMenu);
+            previousFocused = SuperView.Focused;
+            SuperView.Add (openMenu);
 			SuperView.SetFocus (openMenu);
 		}
 
@@ -375,7 +376,6 @@ namespace Terminal.Gui {
 			selected = 0;
 			SetNeedsDisplay ();
 
-			previousFocused = SuperView.Focused;
 			OpenMenu (selected);
 		}
 
