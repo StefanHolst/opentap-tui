@@ -76,5 +76,10 @@ namespace OpenTAP.TUI.PropEditProviders
         {
             
         }
+
+        public override string ToString()
+        {
+            return new Random().Next().ToString();
+        }
     }
 }

@@ -5,6 +5,7 @@ using Terminal.Gui;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
+using NStack;
 
 namespace OpenTAP.TUI
 {
@@ -13,12 +14,12 @@ namespace OpenTAP.TUI
         public int Rows { get; private set; }
         public int Columns { get { return columns.Count; } }
 
-        Func<int, int, View> CellProvider;
-        List<(View header, View column)> columns = new List<(View header, View column)>();
-        Dictionary<(int, int), View> cells = new Dictionary<(int, int), View>();
+        Func<int, int, AnnotationCollection> CellProvider;
+        List<(View header, FramedListView column)> columns = new List<(View header, FramedListView column)>();
+        Dictionary<(int, int), AnnotationCollection> cells = new Dictionary<(int, int), AnnotationCollection>();
         MenuBar menu;
 
-        public DatagridView(string title, string[] headers, Func<int, int, View> CellProvider) : base(title)
+        public DatagridView(string title, string[] headers, Func<int, int, AnnotationCollection> CellProvider) : base(title)
         {
             this.CellProvider = CellProvider;
 
@@ -31,35 +32,7 @@ namespace OpenTAP.TUI
             });
             Add(menu);
 
-
-            var cFrame = new Rect(1, 1, 20, 20);
-
-            var list = new List<View>();
-            for (int i = 0; i < 1; i++)
-            {
-                list.Add(new TextField("hej" + i) { Y = i });
-                list.Add(new Label("hej" + i) { Y = i });
-            }
-
-            var scroll = new ListView(new MyListWrapper(list))
-            {
-                //Height = Dim.Fill(),
-                //Width = Dim.Fill()
-                Y = 1,
-                //X = 1
-            };
-            Add(scroll);
-
-            
-
-            //SetColumns(headers);
-            //SetFocus(columns[0].column);
-
-            //// testing
-            //for (int i = 0; i < 50; i++)
-            //{
-            //    AddRow();
-            //}
+            SetColumns(headers);
         }
 
         public void AddRow()
@@ -71,17 +44,17 @@ namespace OpenTAP.TUI
                 if (cells.ContainsKey((i, Rows - 1)) == false)
                     cells[(i, Rows - 1)] = CellProvider.Invoke(i, Rows - 1);
 
-                var cell = cells[(i, Rows - 1)];
+                var list = new List<string>();
+                for (int j = 0; j < Rows; j++)
+                {
+                    list.Add(cells[(i, j)].Get<IObjectValueAnnotation>().Value.ToString());
+                }
 
                 var column = columns[i].column;
-                cell.Y = Rows - 1;
-                cell.Width = Dim.Fill();
-                cell.Height = 1;
-
-                column.Add(cell);
+                column.SetSource(list);
             }
 
-            SetFocus(cells[(0, Rows - 1)]);
+            SetFocus(columns[0].column);
             LayoutSubviews();
         }
 
@@ -105,7 +78,7 @@ namespace OpenTAP.TUI
                 Add(headerFrame);
 
                 // Add cells frame
-                var columnFrame = new FrameView(null)
+                var columnFrame = new FramedListView(null)
                 {
                     Y = Pos.Bottom(headerFrame),
                     X = preColumn == null ? 0 : Pos.Right(preColumn),
@@ -113,6 +86,8 @@ namespace OpenTAP.TUI
                     Width = preColumn == null ? Dim.Percent((float)100 / headers.Length) : Dim.Width(preColumn),
                     CanFocus = true
                 };
+
+                columnFrame.Source.SelectedChanged += () => Scroll(columnFrame);
 
                 Add(columnFrame);
                 columns.Add((headerFrame, columnFrame));
@@ -129,8 +104,14 @@ namespace OpenTAP.TUI
             Rows = 0;
         }
 
-        /// TODO: 
-        /// Scroll
+        public void Scroll(FramedListView list)
+        {
+            foreach (var column in columns)
+            {
+                if (list != column.column)
+                    column.column.Source.TopItem = list.Source.TopItem;
+            }
+        }
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
@@ -148,6 +129,24 @@ namespace OpenTAP.TUI
             }
 
             return base.ProcessKey(keyEvent);
+        }
+    }
+
+    public class FramedListView : FrameView
+    {
+        public ListView Source { get; set; }
+
+        public FramedListView(ustring title) : base(title)
+        {
+            Source = new ListView();
+            Source.CanFocus = true;
+
+            Add(Source);
+        }
+
+        public void SetSource(IList source)
+        {
+            Source.SetSource(source);
         }
     }
 
