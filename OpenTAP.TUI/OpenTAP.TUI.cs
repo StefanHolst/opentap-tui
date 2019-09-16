@@ -184,7 +184,7 @@ namespace OpenTAP.TUI
 
                 var win2 = new DatagridView("Sweep Loop", new[] { "key", "value" }, (x, y) => 
                 {
-                    var test = AnnotationCollection.Annotate(new PropEditProviders.PropertiesTest());
+                    var test = AnnotationCollection.Annotate("hej");
 
                     return test;
                 });

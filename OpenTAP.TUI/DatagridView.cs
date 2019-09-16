@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
 using NStack;
+using System.Xml.Serialization;
 
 namespace OpenTAP.TUI
 {
@@ -44,14 +45,7 @@ namespace OpenTAP.TUI
                 if (cells.ContainsKey((i, Rows - 1)) == false)
                     cells[(i, Rows - 1)] = CellProvider.Invoke(i, Rows - 1);
 
-                var list = new List<string>();
-                for (int j = 0; j < Rows; j++)
-                {
-                    list.Add(cells[(i, j)].Get<IObjectValueAnnotation>().Value.ToString());
-                }
-
-                var column = columns[i].column;
-                column.SetSource(list);
+                UpdateColumn(i);
             }
 
             SetFocus(columns[0].column);
@@ -104,13 +98,25 @@ namespace OpenTAP.TUI
             Rows = 0;
         }
 
-        public void Scroll(FramedListView list)
+        private void Scroll(FramedListView list)
         {
             foreach (var column in columns)
             {
                 if (list != column.column)
                     column.column.Source.TopItem = list.Source.TopItem;
             }
+        }
+
+        private void UpdateColumn(int i)
+        {
+            var list = new List<string>();
+            for (int j = 0; j < Rows; j++)
+            {
+                list.Add(cells[(i, j)].Get<IObjectValueAnnotation>().Value.ToString());
+            }
+
+            var column = columns[i].column;
+            column.SetSource(list);
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -128,11 +134,39 @@ namespace OpenTAP.TUI
                 }
             }
 
+            if (keyEvent.Key == Key.Enter && MostFocused is ListView listview)
+            {
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    if (columns[i].column.HasFocus)
+                    {
+                        var cell = cells[(i, listview.SelectedItem)];
+
+                        // Find edit provider
+                        var propEditor = PropEditProvider.GetProvider(cell, out var provider);
+                        if (propEditor == null)
+                            TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
+                        else
+                        {
+                            var win = new EditWindow(cell.ToString());
+                            win.Add(propEditor);
+                            Application.Run(win);
+                        }
+
+                        // Save values to reference object
+                        cell.Write();
+                        cell.Read();
+
+                        UpdateColumn(i);
+                    }
+                }
+            }
+
             return base.ProcessKey(keyEvent);
         }
     }
 
-    public class FramedListView : FrameView
+    class FramedListView : FrameView
     {
         public ListView Source { get; set; }
 
@@ -148,44 +182,5 @@ namespace OpenTAP.TUI
         {
             Source.SetSource(source);
         }
-    }
-
-    class MyListWrapper : IListDataSource
-    {
-        IList src;
-        int count;
-
-        public MyListWrapper(IList source)
-        {
-            count = source.Count;
-            this.src = source;
-        }
-
-        public int Count => src.Count;
-
-        public void Render(ListView container, ConsoleDriver driver, bool marked, int item, int col, int line, int width)
-        {
-            container.Move(col, line);
-            var t = src[item];
-
-            if (t is View v)
-            {
-                if (v.ColorScheme == null)
-                    v.ColorScheme = Colors.Base;
-
-                v.Frame = new Rect(col + container.Frame.X + 1, line + container.Frame.Y + 1, width, 1);
-                v.Redraw(new Rect(0, 0, width, 1));
-            }
-        }
-
-        public bool IsMarked(int item)
-        {
-            return false;
-        }
-
-        public void SetMark(int item, bool value)
-        {
-        }
-    }
-    
+    }    
 }
