@@ -52,6 +52,23 @@ namespace OpenTAP.TUI
             LayoutSubviews();
         }
 
+        public void RemoveRow(int index)
+        {
+            Rows--;
+            for (int i = 0; i < Columns; i++)
+            {
+                for (int j = index; j < Rows; j++)
+                {
+                    cells[(i, j)] = cells[(i, j + 1)];
+                }
+
+                cells.Remove((i, Rows + 1));
+                UpdateColumn(i);
+            }
+
+            LayoutSubviews();
+        }
+
         public void SetColumns(string[] headers)
         {
             ClearDatagrid();
@@ -134,31 +151,39 @@ namespace OpenTAP.TUI
                 }
             }
 
-            if (keyEvent.Key == Key.Enter && MostFocused is ListView listview)
+            if (MostFocused is ListView listview)
             {
-                for (int i = 0; i < columns.Count; i++)
+                if (keyEvent.Key == Key.Enter)
                 {
-                    if (columns[i].column.HasFocus)
+                    for (int i = 0; i < columns.Count; i++)
                     {
-                        var cell = cells[(i, listview.SelectedItem)];
-
-                        // Find edit provider
-                        var propEditor = PropEditProvider.GetProvider(cell, out var provider);
-                        if (propEditor == null)
-                            TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
-                        else
+                        if (columns[i].column.HasFocus)
                         {
-                            var win = new EditWindow(cell.ToString());
-                            win.Add(propEditor);
-                            Application.Run(win);
+                            var cell = cells[(i, listview.SelectedItem)];
+
+                            // Find edit provider
+                            var propEditor = PropEditProvider.GetProvider(cell, out var provider);
+                            if (propEditor == null)
+                                TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
+                            else
+                            {
+                                var win = new EditWindow(cell.ToString());
+                                win.Add(propEditor);
+                                Application.Run(win);
+                            }
+
+                            // Save values to reference object
+                            cell.Write();
+                            cell.Read();
+
+                            UpdateColumn(i);
                         }
-
-                        // Save values to reference object
-                        cell.Write();
-                        cell.Read();
-
-                        UpdateColumn(i);
                     }
+                }
+
+                if (keyEvent.Key == Key.DeleteChar)
+                {
+                    RemoveRow(listview.SelectedItem);
                 }
             }
 
