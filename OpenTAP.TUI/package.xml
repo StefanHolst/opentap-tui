@@ -4,7 +4,10 @@
   <Dependencies>
   </Dependencies>
   <Files>
-    <File Path="bin/Release/OpenTAP.TUI.dll" Obfuscate="false">
+    <File Path="Packages/TUI/OpenTap.Tui.dll">
+      <SetAssemblyInfo Attributes="Version"/>
+    </File>
+    <File Path="Packages/TUI/Terminal.Gui.dll">
       <SetAssemblyInfo Attributes="Version"/>
     </File>
   </Files>
