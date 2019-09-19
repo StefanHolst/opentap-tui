@@ -1,0 +1,14 @@
+stages:
+  - build
+
+Build:
+  stage: build
+  image: opentapio/opentap:beta-ubuntu18.04
+  tags: [ docker, gce ]
+  script:
+        - dotnet build -c Release
+        - cp OpenTAP.TUI/bin/Release/TUI*.TapPackage .
+  artifacts:
+    expire_in: 1 week
+    paths:
+       - "TUI*.TapPackage"
