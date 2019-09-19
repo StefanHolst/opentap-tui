@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Package Name="TUI" xmlns="http://keysight.com/schemas/TAP/Package" Version="1.0.0" OS="Windows,Linux">
-  <Description>Something.</Description>
+<Package Name="TUI" xmlns="http://keysight.com/schemas/TAP/Package" Version="$(GitVersion)" OS="Windows,Linux">
+  <Description>Terminal User Interface for creating TestPlans for OpenTAP.</Description>
   <Dependencies>
   </Dependencies>
   <Files>
