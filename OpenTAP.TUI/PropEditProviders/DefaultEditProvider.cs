@@ -16,7 +16,11 @@ namespace OpenTAP.TUI.PropEditProviders
             var stredit = annotation.Get<IStringValueAnnotation>();
             if (stredit == null) return null;
             var textField = new TextField(stredit.Value);
-            textField.Changed += (sender, args) => stredit.Value = textField.Text.ToString();
+            textField.Closing += (s, e) => 
+            {
+                if (e)
+                    stredit.Value = textField.Text.ToString();
+            };
             return textField;
         }
     }

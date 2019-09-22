@@ -250,6 +250,12 @@ namespace Terminal.Gui {
         /// </summary>
         public event EventHandler<PropertyChangedEventArgs> PropertyChanged;
 
+        public event EventHandler<bool> Closing;
+        public void InvokeClosing(object sender, bool edited)
+        {
+            Closing?.Invoke(sender, edited);
+        }
+
         static IList<View> empty = new List<View> (0).AsReadOnly ();
 		List<View> subviews;
 
