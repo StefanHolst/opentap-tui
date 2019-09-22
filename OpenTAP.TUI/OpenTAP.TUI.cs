@@ -19,6 +19,7 @@ namespace OpenTAP.TUI
     {
         public View StepSettingsView { get; set; }
         public View TestPlanView { get; set; }
+        public View LogFrame { get; set; }
 
         public MainWindow(string title) : base(title)
         {
@@ -43,6 +44,24 @@ namespace OpenTAP.TUI
                 return true;
             }
 
+            if (keyEvent.Key == Key.F1)
+            {
+                TestPlanView.FocusFirst();
+                return true;
+            }
+            if (keyEvent.Key == Key.F2)
+            {
+                StepSettingsView.FocusFirst();
+                return true;
+            }
+            if (keyEvent.Key == Key.F3)
+                StepSettingsView.ProcessKey(keyEvent);
+            if (keyEvent.Key == Key.F4)
+            {
+                LogFrame.FocusFirst();
+                return true;
+            }
+
             return base.ProcessKey(keyEvent);
         }
     }
@@ -57,6 +76,7 @@ namespace OpenTAP.TUI
 
         public TestPlanView TestPlanView { get; set; }
         public PropertiesView StepSettingsView { get; set; }
+        public FrameView LogFrame { get; set; }
 
         public int Execute(CancellationToken cancellationToken)
         {
@@ -180,15 +200,15 @@ namespace OpenTAP.TUI
                 settingsFrame.Add(StepSettingsView);
                 win.Add(settingsFrame);
 
-
-                var logFrame = new FrameView("Log Panel")
+                LogFrame = new FrameView("Log Panel")
                 {
                     Y = Pos.Percent(75),
                     Width = Dim.Fill(),
                     Height = Dim.Fill()
                 };
-                logFrame.Add(new LogPanelView());
-                win.Add(logFrame);
+                LogFrame.Add(new LogPanelView());
+                win.Add(LogFrame);
+                win.LogFrame = LogFrame;
 
                 // Update step settings
                 TestPlanView.SelectedChanged += () => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
@@ -209,7 +229,7 @@ namespace OpenTAP.TUI
                 Console.WriteLine(ex);
                 return Execute(cancellationToken);
             }
-            
+
             return 0;
         }
     }
