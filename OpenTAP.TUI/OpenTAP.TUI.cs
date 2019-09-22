@@ -34,6 +34,9 @@ namespace OpenTAP.TUI
                 return true;
             }
 
+            if (keyEvent.Key == Key.ControlX)
+                Environment.Exit(0);
+
             if (keyEvent.Key == Key.Tab)
             {
                 if (TestPlanView.HasFocus)
@@ -97,7 +100,11 @@ namespace OpenTAP.TUI
 
                 var menu = new MenuBar(new MenuBarItem[] {
                     new MenuBarItem("_File", new MenuItem [] {
-                        new MenuItem("_New", "", TestPlanView.NewTestPlan),
+                        new MenuItem("_New", "", () => 
+                        {
+                            TestPlanView.NewTestPlan();
+                            StepSettingsView.LoadProperties(null);
+                        }),
                         new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
                         new MenuItem("_Save", "", () =>
                         {
@@ -227,7 +234,7 @@ namespace OpenTAP.TUI
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return Execute(cancellationToken);
+                Execute(cancellationToken);
             }
 
             return 0;

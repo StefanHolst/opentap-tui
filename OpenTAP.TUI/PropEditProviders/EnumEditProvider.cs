@@ -60,8 +60,24 @@ namespace OpenTAP.TUI.PropEditProviders
             var avalues = avail.AvailableValues.ToArray();
   
             var view = new ListView(avalues.Select(x => x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? "?").ToArray());
-            
             view.AllowsMarking = true;
+
+            for (int i = 0; i < avalues.Length; i++)
+            {
+                if (multi.SelectedValues.Contains(avalues[i]))
+                    view.Source.SetMark(i, true);
+            }
+
+            view.Closing += (s, e) => 
+            {
+                var selectedValues = new List<AnnotationCollection>();
+                for (int i = 0; i < view.Source.Count; i++)
+                {
+                    if (view.Source.IsMarked(i))
+                        selectedValues.Add(avalues[i]);
+                }
+                multi.SelectedValues = selectedValues;
+            };
             
             return new ViewWrapper(view, annotation);
         }

@@ -30,7 +30,7 @@ namespace OpenTAP.TUI
         {
             SetSource(messages);
 
-            if (messages.Any())
+            if (messages.Any()) 
             {
                 TopItem = Math.Max(0, messages.Count - Bounds.Height);
                 SelectedItem = messages.Count - 1;
