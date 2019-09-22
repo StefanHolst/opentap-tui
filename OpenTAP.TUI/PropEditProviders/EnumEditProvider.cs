@@ -18,7 +18,7 @@ namespace OpenTAP.TUI.PropEditProviders
                 return null;
 
             var availableValues = availableValue.AvailableValues.ToArray();
-            var listView = new ListView(availableValues.Select(p => p.Get<IStringReadOnlyValueAnnotation>()?.Value).ToList());
+            var listView = new ListView(availableValues.Select(p => p.Get<IStringReadOnlyValueAnnotation>()?.Value ?? p.Get<IObjectValueAnnotation>().Value).ToList());
             listView.Closing += (s, e) =>
             {
                 if (availableValues.Any())
