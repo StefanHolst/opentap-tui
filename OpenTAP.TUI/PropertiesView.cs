@@ -81,6 +81,8 @@ namespace OpenTAP.TUI
         {
             var index = listView.SelectedItem;
             listView.SetSource(getMembers()?.Select(x => $"{x.Get<DisplayAttribute>().Name}: {x.Get<IStringValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value}").ToArray());
+            if (listView.Source?.Count == 0)
+                return;
             listView.SelectedItem = index >= listView.Source?.Count ? listView.Source.Count : index;
         }
 
