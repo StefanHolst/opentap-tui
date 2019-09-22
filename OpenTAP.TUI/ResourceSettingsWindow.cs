@@ -37,6 +37,9 @@ namespace OpenTAP.TUI
             };
             listView.SelectedChanged += () =>
             {
+                if (Resources.Count == 0)
+                    return;
+
                 var resource = Resources[listView.SelectedItem];
                 detailsView.LoadProperties(resource);
             };
@@ -83,6 +86,10 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.DeleteChar)
             {
                 var index = listView.SelectedItem;
+
+                if (Resources.Count == 0 || listView.SelectedItem == -1)
+                    return false;
+
                 Resources.RemoveAt(listView.SelectedItem);
                 listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
 

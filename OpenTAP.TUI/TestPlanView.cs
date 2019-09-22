@@ -57,7 +57,11 @@ namespace OpenTAP.TUI
         {
             get
             {
-                return FlattenPlan()[SelectedItem];
+                var plan = FlattenPlan();
+                if (plan.Any() == false)
+                    return null;
+
+                return plan[SelectedItem];
             }
         }
 

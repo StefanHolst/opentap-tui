@@ -5,7 +5,7 @@ using Terminal.Gui;
 
 namespace OpenTAP.TUI
 {
-    public class NewPluginWindow : Window
+    public class NewPluginWindow : EditWindow
     {
         private ReadOnlyCollection<Type> Plugins { get; set; }
         private ListView listView { get; set; }
@@ -20,19 +20,11 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Esc)
-            {
-                Application.RequestStop();
-                return true;
-            }
-
             if (keyEvent.Key == Key.Enter)
             {
                 var index = listView.SelectedItem;
                 if (Plugins.Count > 0)
                     PluginType = Plugins[index];
-                Application.RequestStop();
-                return true;
             }
 
             return base.ProcessKey(keyEvent);

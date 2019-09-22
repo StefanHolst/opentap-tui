@@ -18,13 +18,19 @@ namespace OpenTAP.TUI.PropEditProviders
                 return null;
 
             var availableValues = availableValue.AvailableValues.ToArray();
-
             var listView = new ListView(availableValues.Select(p => p.Get<IStringReadOnlyValueAnnotation>()?.Value).ToList());
-            listView.SelectedChanged += () => availableValue.SelectedValue = availableValues[listView.SelectedItem];
+            listView.Closing += (s, e) =>
+            {
+                if (availableValues.Any())
+                    availableValue.SelectedValue = availableValues[listView.SelectedItem];
+            };
 
             var index = Array.IndexOf(availableValues, availableValue.SelectedValue);
-            listView.SelectedItem = index != -1 ? index : 0;
-            listView.TopItem = Math.Max(0, index - Application.Current.Bounds.Height);
+            if (index != -1)
+            {
+                listView.SelectedItem = index;
+                listView.TopItem = Math.Max(0, index - Application.Current.Bounds.Height);
+            }
 
             return listView;
         }
