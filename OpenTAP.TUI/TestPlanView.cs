@@ -111,6 +111,12 @@ namespace OpenTAP.TUI
         public void InsertNewStep(Type type)
         {
             var flatplan = FlattenPlan();
+            if (flatplan.Count == 0)
+            {
+                AddNewStep(type);
+                return;
+            }
+
             var step = flatplan[SelectedItem];
             var index = step.Parent.ChildTestSteps.IndexOf(step);
             var flatIndex = flatplan.IndexOf(step);
