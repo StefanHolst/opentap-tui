@@ -15,7 +15,7 @@ namespace OpenTAP.TUI
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
         private ListView listView { get; set; } = new ListView();
-        private TextView descriptionView { get; set; } = new TextView() { CanFocus = false };
+        private TextView descriptionView { get; set; } = new TextView();
 
         public PropertiesView()
         {
@@ -111,7 +111,7 @@ namespace OpenTAP.TUI
                 UpdateProperties();
             }
 
-            if (keyEvent.Key == Key.CursorRight)
+            if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
                 return true;
 
             return base.ProcessKey(keyEvent);

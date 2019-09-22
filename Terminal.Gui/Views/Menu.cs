@@ -398,6 +398,7 @@ namespace Terminal.Gui {
 			SuperView.Remove (openMenu);
 			previousFocused?.SuperView?.SetFocus (previousFocused);
 			openMenu = null;
+            InvokeClosing(this, false);
 		}
 
 		internal void PreviousMenu ()

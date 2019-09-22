@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -172,8 +171,11 @@ namespace OpenTAP.TUI
                 }
             }
 
-            if (kb.Key == Key.CursorRight)
+            if (kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
                 return true;
+
+            if (kb.Key == Key.ControlS)
+                SaveTestPlan(null);
 
             return base.ProcessKey(kb);
         }

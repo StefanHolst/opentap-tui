@@ -15,7 +15,7 @@ namespace OpenTAP.TUI
         public LogPanelView()
         {
             Log.AddListener(this);
-            CanFocus = true;
+            // CanFocus = true;
 
             PropertyChanged += (s, e) =>
             {
