@@ -161,7 +161,7 @@ namespace OpenTAP.TUI
                             var settingsView = new ResourceSettingsWindow<IDut>("DUTs");
                             Application.Run(settingsView);
                         }),
-                        new MenuItem("_Instrumentss", "", () =>
+                        new MenuItem("_Instruments", "", () =>
                         {
                             var settingsView = new ResourceSettingsWindow<IInstrument>("Instruments");
                             Application.Run(settingsView);

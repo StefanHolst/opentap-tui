@@ -183,6 +183,8 @@ namespace Terminal.Gui {
 			else {
 				Source = MakeWrapper (source);
 			}
+			if (SelectedChanged != null)
+				SelectedChanged();
 		}
 
 		bool allowsMarking;
