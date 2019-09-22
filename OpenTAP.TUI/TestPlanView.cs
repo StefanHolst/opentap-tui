@@ -99,8 +99,14 @@ namespace OpenTAP.TUI
         }
         public void AddNewStep(Type type)
         {
-            Plan.ChildTestSteps.Add(Activator.CreateInstance(type) as ITestStep);
-            Update();
+            try
+            { 
+                Plan.ChildTestSteps.Add(Activator.CreateInstance(type) as ITestStep);
+                Update();
+            } catch(Exception ex)
+            {
+                TUI.Log.Error(ex);
+            }
         }
         public void InsertNewStep(Type type)
         {
