@@ -116,7 +116,7 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
                 return true;
 
-            if (keyEvent.Key == Key.F3)
+            if (keyEvent.Key == Key.F2)
             {
                 SetFocus(descriptionView);
                 return true;

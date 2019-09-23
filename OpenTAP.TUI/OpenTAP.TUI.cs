@@ -37,7 +37,7 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.ControlX)
                 Environment.Exit(0);
 
-            if (keyEvent.Key == Key.Tab)
+            if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
             {
                 if (TestPlanView.HasFocus)
                     StepSettingsView.FocusFirst();
@@ -58,7 +58,12 @@ namespace OpenTAP.TUI
                 return true;
             }
             if (keyEvent.Key == Key.F3)
-                StepSettingsView.ProcessKey(keyEvent);
+            {
+                var kevent = keyEvent;
+                kevent.Key = Key.F2;
+                StepSettingsView.ProcessKey(kevent);
+                return true;
+            }
             if (keyEvent.Key == Key.F4)
             {
                 LogFrame.FocusFirst();
@@ -170,6 +175,12 @@ namespace OpenTAP.TUI
                         {
                             var settingsView = new ResourceSettingsWindow<IResultListener>("Result Listeners");
                             Application.Run(settingsView);
+                        })
+                    }),
+                    new MenuBarItem("_Help", new MenuItem[]{
+                        new MenuItem("_Help", "", () => {
+                            var helpWin = new HelpWindow();
+                            Application.Run(helpWin);
                         })
                     })
                 });
