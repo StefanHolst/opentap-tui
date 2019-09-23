@@ -116,6 +116,11 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
                 return true;
 
+            if (keyEvent.Key == Key.F1)
+            {
+                listView.FocusFirst();
+                return true;
+            }
             if (keyEvent.Key == Key.F2)
             {
                 SetFocus(descriptionView);
