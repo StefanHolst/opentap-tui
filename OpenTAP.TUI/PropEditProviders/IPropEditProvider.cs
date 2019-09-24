@@ -10,6 +10,9 @@ namespace OpenTAP.TUI.PropEditProviders
 {
     public interface IPropEditProvider
     {
+        /// <summary>
+        /// Ranks the provider.
+        /// </summary>
         int Order { get; }
         /// <summary>
         /// Create the view.

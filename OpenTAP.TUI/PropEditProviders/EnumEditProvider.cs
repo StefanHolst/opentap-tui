@@ -18,13 +18,19 @@ namespace OpenTAP.TUI.PropEditProviders
                 return null;
 
             var availableValues = availableValue.AvailableValues.ToArray();
-
-            var listView = new ListView(availableValues.Select(p => p.Get<IStringReadOnlyValueAnnotation>()?.Value).ToList());
-            listView.SelectedChanged += () => availableValue.SelectedValue = availableValues[listView.SelectedItem];
+            var listView = new ListView(availableValues.Select(p => p.Get<IStringReadOnlyValueAnnotation>()?.Value ?? p.Get<IObjectValueAnnotation>().Value).ToList());
+            listView.Closing += (s, e) =>
+            {
+                if (availableValues.Any())
+                    availableValue.SelectedValue = availableValues[listView.SelectedItem];
+            };
 
             var index = Array.IndexOf(availableValues, availableValue.SelectedValue);
-            listView.SelectedItem = index != -1 ? index : 0;
-            listView.TopItem = Math.Max(0, index - Application.Current.Bounds.Height);
+            if (index != -1)
+            {
+                listView.SelectedItem = index;
+                listView.TopItem = Math.Max(0, index - Application.Current.Bounds.Height);
+            }
 
             return listView;
         }
@@ -54,8 +60,24 @@ namespace OpenTAP.TUI.PropEditProviders
             var avalues = avail.AvailableValues.ToArray();
   
             var view = new ListView(avalues.Select(x => x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? "?").ToArray());
-            
             view.AllowsMarking = true;
+
+            for (int i = 0; i < avalues.Length; i++)
+            {
+                if (multi.SelectedValues.Contains(avalues[i]))
+                    view.Source.SetMark(i, true);
+            }
+
+            view.Closing += (s, e) => 
+            {
+                var selectedValues = new List<AnnotationCollection>();
+                for (int i = 0; i < view.Source.Count; i++)
+                {
+                    if (view.Source.IsMarked(i))
+                        selectedValues.Add(avalues[i]);
+                }
+                multi.SelectedValues = selectedValues;
+            };
             
             return new ViewWrapper(view, annotation);
         }

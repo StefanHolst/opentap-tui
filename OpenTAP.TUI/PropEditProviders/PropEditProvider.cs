@@ -6,8 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Terminal.Gui;
 
-
-namespace OpenTAP.TUI
+namespace OpenTAP.TUI.PropEditProviders
 {
     public static class PropEditProvider
     {
@@ -30,36 +29,6 @@ namespace OpenTAP.TUI
             }
 
             return null;
-        }
-    }
-
-    public class EditWindow : Window
-    {
-        public bool Edited { get; set; }
-
-        public EditWindow(string title) : base(title)
-        {
-
-        }
-
-        public override bool ProcessKey(KeyEvent keyEvent)
-        {
-            var handled = base.ProcessKey(keyEvent);
-
-            if (keyEvent.Key == Key.Esc)
-            {
-                Edited = false;
-                Application.RequestStop();
-                return true;
-            }
-            if (keyEvent.Key == Key.Enter && handled != true)
-            {
-                Edited = true;
-                Application.RequestStop();
-                return true;
-            }
-
-            return handled;
         }
     }
 }

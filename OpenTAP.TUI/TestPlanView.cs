@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,7 +56,11 @@ namespace OpenTAP.TUI
         {
             get
             {
-                return FlattenPlan()[SelectedItem];
+                var plan = FlattenPlan();
+                if (plan.Any() == false)
+                    return null;
+
+                return plan[SelectedItem];
             }
         }
 
@@ -96,12 +99,24 @@ namespace OpenTAP.TUI
         }
         public void AddNewStep(Type type)
         {
-            Plan.ChildTestSteps.Add(Activator.CreateInstance(type) as ITestStep);
-            Update();
+            try
+            { 
+                Plan.ChildTestSteps.Add(Activator.CreateInstance(type) as ITestStep);
+                Update();
+            } catch(Exception ex)
+            {
+                TUI.Log.Error(ex);
+            }
         }
         public void InsertNewStep(Type type)
         {
             var flatplan = FlattenPlan();
+            if (flatplan.Count == 0)
+            {
+                AddNewStep(type);
+                return;
+            }
+
             var step = flatplan[SelectedItem];
             var index = step.Parent.ChildTestSteps.IndexOf(step);
             var flatIndex = flatplan.IndexOf(step);
@@ -168,8 +183,11 @@ namespace OpenTAP.TUI
                 }
             }
 
-            if (kb.Key == Key.CursorRight)
+            if (kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
                 return true;
+
+            if (kb.Key == Key.ControlS)
+                SaveTestPlan(null);
 
             return base.ProcessKey(kb);
         }

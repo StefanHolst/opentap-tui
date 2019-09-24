@@ -533,7 +533,7 @@ namespace Terminal.Gui {
 		}
 
 		public override bool CanFocus {
-			get => true;
+			get => base.CanFocus;
 			set { base.CanFocus = value; }
 		}
 

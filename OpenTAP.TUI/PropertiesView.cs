@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap;
+using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI
@@ -14,7 +15,7 @@ namespace OpenTAP.TUI
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
         private ListView listView { get; set; } = new ListView();
-        private TextView descriptionView { get; set; } = new TextView() { CanFocus = false };
+        private TextView descriptionView { get; set; } = new TextView();
 
         public PropertiesView()
         {
@@ -64,7 +65,7 @@ namespace OpenTAP.TUI
 
         AnnotationCollection[] getMembers()
         {
-            return annotations?.Get<IMembersAnnotation>().Members
+            return annotations?.Get<IMembersAnnotation>()?.Members
                 .Where(x => x.Get<IAccessAnnotation>()?.IsVisible ?? false)
                 .Where(x => 
                 {
@@ -79,8 +80,10 @@ namespace OpenTAP.TUI
         private void UpdateProperties()
         {
             var index = listView.SelectedItem;
-            listView.SetSource(getMembers().Select(x => $"{x.Get<DisplayAttribute>().Name}: {x.Get<IStringValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value}").ToArray());
-            listView.SelectedItem = index >= listView.Source.Count ? listView.Source.Count : index;
+            listView.SetSource(getMembers()?.Select(x => $"{x.Get<DisplayAttribute>().Name}: {x.Get<IStringValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value}").ToArray());
+            if (listView.Source?.Count == 0)
+                return;
+            listView.SelectedItem = index >= listView.Source?.Count ? listView.Source.Count : index;
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -88,6 +91,8 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.Enter)
             {
                 var members = getMembers();
+                if (members == null)
+                    return false;
 
                 // Find edit provider
                 var propEditor = PropEditProvider.GetProvider(members[listView.SelectedItem], out var provider);
@@ -108,8 +113,14 @@ namespace OpenTAP.TUI
                 UpdateProperties();
             }
 
-            if (keyEvent.Key == Key.CursorRight)
+            if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
                 return true;
+
+            if (keyEvent.Key == Key.F3)
+            {
+                SetFocus(descriptionView);
+                return true;
+            }
 
             return base.ProcessKey(keyEvent);
         }

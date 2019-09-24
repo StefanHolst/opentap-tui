@@ -37,6 +37,9 @@ namespace OpenTAP.TUI
             };
             listView.SelectedChanged += () =>
             {
+                if (Resources.Count == 0)
+                    return;
+
                 var resource = Resources[listView.SelectedItem];
                 detailsView.LoadProperties(resource);
             };
@@ -54,11 +57,19 @@ namespace OpenTAP.TUI
                 Application.Run(newPlugin);
                 if (newPlugin.PluginType != null)
                 {
-                    var resource = Activator.CreateInstance(newPlugin.PluginType);
-                    Resources.Add(resource);
-                    listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
-                    if (Resources.Count == 1)
-                        detailsView.LoadProperties(resource);
+                    try
+                    {
+                        var resource = Activator.CreateInstance(newPlugin.PluginType);
+                        Resources.Add(resource);
+                        listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
+                        if (Resources.Count == 1)
+                            detailsView.LoadProperties(resource);
+                    } catch (Exception ex)
+                    {
+                        ComponentSettings.SaveAllCurrentSettings();
+                        TUI.Log.Error(ex);
+                        Application.RequestStop();
+                    }
                 }
             };
             frame.Add(button);
@@ -83,6 +94,10 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.DeleteChar)
             {
                 var index = listView.SelectedItem;
+
+                if (Resources.Count == 0 || listView.SelectedItem == -1)
+                    return false;
+
                 Resources.RemoveAt(listView.SelectedItem);
                 listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
 

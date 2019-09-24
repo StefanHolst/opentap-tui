@@ -17,6 +17,10 @@ namespace OpenTAP.TUI
 {
     public class MainWindow : Window
     {
+        public View StepSettingsView { get; set; }
+        public View TestPlanView { get; set; }
+        public View LogFrame { get; set; }
+
         public MainWindow(string title) : base(title)
         {
 
@@ -27,6 +31,37 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView)
             {
                 FocusNext();
+                return true;
+            }
+
+            if (keyEvent.Key == Key.ControlX)
+                Environment.Exit(0);
+
+            if (keyEvent.Key == Key.Tab)
+            {
+                if (TestPlanView.HasFocus)
+                    StepSettingsView.FocusFirst();
+                else
+                    TestPlanView.FocusFirst();
+
+                return true;
+            }
+
+            if (keyEvent.Key == Key.F1)
+            {
+                TestPlanView.FocusFirst();
+                return true;
+            }
+            if (keyEvent.Key == Key.F2)
+            {
+                StepSettingsView.FocusFirst();
+                return true;
+            }
+            if (keyEvent.Key == Key.F3)
+                StepSettingsView.ProcessKey(keyEvent);
+            if (keyEvent.Key == Key.F4)
+            {
+                LogFrame.FocusFirst();
                 return true;
             }
 
@@ -44,6 +79,7 @@ namespace OpenTAP.TUI
 
         public TestPlanView TestPlanView { get; set; }
         public PropertiesView StepSettingsView { get; set; }
+        public FrameView LogFrame { get; set; }
 
         public int Execute(CancellationToken cancellationToken)
         {
@@ -64,7 +100,11 @@ namespace OpenTAP.TUI
 
                 var menu = new MenuBar(new MenuBarItem[] {
                     new MenuBarItem("_File", new MenuItem [] {
-                        new MenuItem("_New", "", TestPlanView.NewTestPlan),
+                        new MenuItem("_New", "", () => 
+                        {
+                            TestPlanView.NewTestPlan();
+                            StepSettingsView.LoadProperties(null);
+                        }),
                         new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
                         new MenuItem("_Save", "", () =>
                         {
@@ -121,7 +161,7 @@ namespace OpenTAP.TUI
                             var settingsView = new ResourceSettingsWindow<IDut>("DUTs");
                             Application.Run(settingsView);
                         }),
-                        new MenuItem("_Instrumentss", "", () =>
+                        new MenuItem("_Instruments", "", () =>
                         {
                             var settingsView = new ResourceSettingsWindow<IInstrument>("Instruments");
                             Application.Run(settingsView);
@@ -133,14 +173,20 @@ namespace OpenTAP.TUI
                         })
                     })
                 });
-                //top.Add(menu);
+                menu.Closing += (s, e) => 
+                {
+                    TestPlanView.FocusFirst();
+                };
+                top.Add(menu);
 
                 var win = new MainWindow("OpenTAP TUI")
                 {
                     X = 0,
                     Y = 1,
                     Width = Dim.Fill(),
-                    Height = Dim.Fill()
+                    Height = Dim.Fill(),
+                    StepSettingsView = StepSettingsView,
+                    TestPlanView = TestPlanView
                 };
                 //top.Add(win);
 
@@ -161,15 +207,15 @@ namespace OpenTAP.TUI
                 settingsFrame.Add(StepSettingsView);
                 win.Add(settingsFrame);
 
-
-                var logFrame = new FrameView("Log Panel")
+                LogFrame = new FrameView("Log Panel")
                 {
                     Y = Pos.Percent(75),
                     Width = Dim.Fill(),
                     Height = Dim.Fill()
                 };
-                logFrame.Add(new LogPanelView());
-                win.Add(logFrame);
+                LogFrame.Add(new LogPanelView());
+                win.Add(LogFrame);
+                win.LogFrame = LogFrame;
 
                 // Update step settings
                 TestPlanView.SelectedChanged += () => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
@@ -196,13 +242,10 @@ namespace OpenTAP.TUI
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+                Execute(cancellationToken);
             }
-            return 0;
-        }
 
-        public static void Main(string[] args)
-        {
-            new TUI() { path = args.FirstOrDefault() }.Execute(new CancellationToken());
+            return 0;
         }
     }
 }

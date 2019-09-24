@@ -183,6 +183,8 @@ namespace Terminal.Gui {
 			else {
 				Source = MakeWrapper (source);
 			}
+			if (SelectedChanged != null)
+				SelectedChanged();
 		}
 
 		bool allowsMarking;
@@ -237,6 +239,9 @@ namespace Terminal.Gui {
 					top = selected;
 				else if (selected >= top + Frame.Height)
 					top = selected;
+
+				if (SelectedChanged != null)
+					SelectedChanged();
 			}
 		}
 
