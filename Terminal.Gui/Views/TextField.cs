@@ -56,7 +56,7 @@ namespace Terminal.Gui {
 				text = "";
 
 			this.text = TextModel.ToRunes (text);
-			point = text.Length;
+			point = text.RuneCount;
 			CanFocus = true;
 		}
 
