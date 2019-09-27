@@ -80,10 +80,6 @@ namespace Terminal.Gui {
 		/// </summary>
 		ControlI,
 		/// <summary>
-		/// The key code for the user pressing the tab key (same as pressing Control-I).
-		/// </summary>
-		Tab = ControlI,
-		/// <summary>
 		/// The key code for the user pressing Control-J
 		/// </summary>
 		ControlJ,
@@ -151,11 +147,16 @@ namespace Terminal.Gui {
 		/// The key code for the user pressing Control-Z
 		/// </summary>
 		ControlZ,
-			
-		/// <summary>
-		/// The key code for the user pressing the escape key
-		/// </summary>
-		Esc = 27,
+
+        /// <summary>
+        /// The key code for the user pressing the tab key (same as pressing Control-I).
+        /// </summary>
+        Tab,
+
+        /// <summary>
+        /// The key code for the user pressing the escape key
+        /// </summary>
+        Esc = 27,
 
 		/// <summary>
 		/// The key code for the user pressing the return key.
