@@ -9,9 +9,9 @@ namespace OpenTap.Tui
 {
     public class TreeView : ListView
     {
-        private List<TreeViewItem> source { get; set; }
         private Func<object, string> getTitle;
         private Func<object, string[]> getGroup;
+        public List<TreeViewItem> source { get; set; }
         public TreeViewItem SelectedObject
         {
             get
@@ -19,14 +19,6 @@ namespace OpenTap.Tui
                 var index = SelectedItem;
                 return FindItem(source, ref index);
             }
-        }
-
-        public TreeView(List<TreeViewItem> source)
-        {
-            this.source = source;
-            CanFocus = true;
-
-            update();
         }
 
         public TreeView(Func<object, string> getTitle, Func<object, string[]> getGroup)
@@ -46,7 +38,7 @@ namespace OpenTap.Tui
             }
 
             source = list;
-            update();
+            UpdateListView();
         }
 
         void InsertInTree(List<TreeViewItem> tree, object item, string title, string[] group)
@@ -69,14 +61,14 @@ namespace OpenTap.Tui
             }
         }
 
-        void update()
+        public void UpdateListView()
         {
             List<string> displayList(List<TreeViewItem> items, int level = 0)
             {
                 var list = new List<string>();
                 foreach (var item in items)
                 {
-                    list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{item.Title}");
+                    list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{ (item.obj != null ? getTitle(item.obj) : item.Title)}");
                     if (item.IsExpanded)
                         list.AddRange(displayList(item.SubItems, level + 1));
                 }
@@ -111,7 +103,7 @@ namespace OpenTap.Tui
 
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (SelectedObject.SubItems.Count > 0 && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
+            if ((kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft) && SelectedObject?.SubItems?.Any() == true)
             {
                 if (SelectedObject != null)
                 {
@@ -123,7 +115,7 @@ namespace OpenTap.Tui
                         SelectedObject.IsExpanded = true;
                 }
 
-                update();
+                UpdateListView();
                 return true;
             }
 

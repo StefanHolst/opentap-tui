@@ -144,8 +144,11 @@ namespace OpenTAP.TUI
                 return true;
             }
 
-            if (keyEvent.Key == Key.CursorRight || keyEvent.Key == Key.CursorLeft)
+            if (keyEvent.Key == Key.Enter || keyEvent.Key == Key.CursorRight || keyEvent.Key == Key.CursorLeft)
+            {
+                detailsView.ProcessKey(keyEvent);
                 return true;
+            }
 
             if (keyEvent.Key == Key.F1)
             {
