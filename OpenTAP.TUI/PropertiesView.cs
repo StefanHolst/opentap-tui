@@ -70,7 +70,10 @@ namespace OpenTAP.TUI
         {
             this.obj = obj;
             annotations = AnnotationCollection.Annotate(obj);
-            treeView.SetTreeViewSource<AnnotationCollection>(getMembers().ToList());
+            var members = getMembers();
+            if (members == null)
+                members = new AnnotationCollection[0];
+            treeView.SetTreeViewSource<AnnotationCollection>(members.ToList());
             ListViewOnSelectedChanged();
         }
 

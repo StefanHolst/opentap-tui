@@ -81,7 +81,9 @@ namespace OpenTap.Tui
 
             var index = SelectedItem;
             SetSource(displayList(source));
-            SelectedItem = index;
+
+            if (source.Count > 0)
+                SelectedItem = index;
         }
 
         TreeViewItem FindItem(List<TreeViewItem> items, ref int index)
