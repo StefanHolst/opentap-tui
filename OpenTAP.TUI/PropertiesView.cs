@@ -95,7 +95,7 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter && treeView.SelectedObject.obj != null)
+            if (keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null)
             {
                 var members = getMembers();
                 if (members == null)

@@ -17,6 +17,9 @@ namespace OpenTap.Tui
             get
             {
                 var index = SelectedItem;
+                if (source == null)
+                    return null;
+
                 return FindItem(source, ref index);
             }
         }

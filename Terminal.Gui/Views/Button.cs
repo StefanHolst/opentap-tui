@@ -183,7 +183,8 @@ namespace Terminal.Gui {
 
 		public override bool ProcessColdKey (KeyEvent kb)
 		{
-			if (IsDefault && kb.KeyValue == '\n') {
+			if (IsDefault && kb.Key == Key.Enter)
+            {
 				if (Clicked != null)
 					Clicked ();
 				return true;
@@ -194,7 +195,8 @@ namespace Terminal.Gui {
 		public override bool ProcessKey (KeyEvent kb)
 		{
 			var c = kb.KeyValue;
-			if (c == '\n' || c == ' ' || Rune.ToUpper ((uint)c) == hot_key) {
+			if (c == '\n' || c == ' ' || Rune.ToUpper ((uint)c) == hot_key || kb.Key == Key.Enter)
+            {
 				if (Clicked != null)
 					Clicked ();
 				return true;
