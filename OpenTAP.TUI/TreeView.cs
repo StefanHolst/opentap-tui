@@ -40,9 +40,26 @@ namespace OpenTap.Tui
                 InsertInTree(list, item, getTitle(item), getGroup(item));
             }
 
+            if (source != null)
+                MatchExpansion(source, list);
+
             source = list;
             UpdateListView();
         }
+
+        void MatchExpansion(List<TreeViewItem> existingTree, List<TreeViewItem> tree)
+        {
+            foreach (var item in tree)
+            {
+                var existing = existingTree.FirstOrDefault(t => t.Title == item.Title);
+                if (existing != null && existing.IsExpanded)
+                {
+                    item.IsExpanded = true;
+                    MatchExpansion(existing.SubItems, item.SubItems);
+                }
+            }
+        }
+
 
         void InsertInTree(List<TreeViewItem> tree, object item, string title, string[] group)
         {

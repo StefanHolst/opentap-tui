@@ -91,10 +91,6 @@ namespace OpenTAP.TUI
                 })
                 .ToArray();
         }
-        private void UpdateProperties()
-        {
-            treeView.UpdateListView();
-        }
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
@@ -121,7 +117,7 @@ namespace OpenTAP.TUI
                 annotations.Read();
 
                 // Load new values
-                UpdateProperties();
+                LoadProperties(obj);
             }
 
             if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
