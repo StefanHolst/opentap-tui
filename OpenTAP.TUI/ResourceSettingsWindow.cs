@@ -146,6 +146,8 @@ namespace OpenTAP.TUI
 
             if (keyEvent.Key == Key.CursorRight || keyEvent.Key == Key.CursorLeft)
             {
+                if (detailsView.HasFocus)
+                    detailsView.ProcessKey(keyEvent);
                 return true;
             }
             
