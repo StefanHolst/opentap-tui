@@ -37,3 +37,8 @@ Either build it from source or install it from the OpenTAP package repository ([
 
 
 ![](doc/images/TUI2.jpg)
+
+## Known issues
+#### Running Linux builds in Windows terminals causes graphical glitches
+E.g. when running in an SSH session, or a linux build on WSL.
+Launching the TUI with mono instead of dotnet, e.g. `mono OpenTAP.TUI/bin/Debug/tap.dll tui`, seems to work.
