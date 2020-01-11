@@ -12,3 +12,19 @@ Build:
     expire_in: 1 week
     paths:
        - "TUI*.TapPackage"
+
+pages:
+  stage: build
+  image: node:9.11.1
+  only: 
+    - master
+  cache:
+    paths:
+    - node_modules/
+  script:
+  - cd doc
+  - npm install
+  - npm run build
+  artifacts:
+    paths:
+    - public
