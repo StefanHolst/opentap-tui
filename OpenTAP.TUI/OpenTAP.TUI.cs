@@ -34,8 +34,8 @@ namespace OpenTAP.TUI
                 return true;
             }
 
-            if (keyEvent.Key == Key.ControlX)
-                Environment.Exit(0);
+            if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC)
+                Application.RequestStop();
 
             if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
             {
@@ -91,7 +91,7 @@ namespace OpenTAP.TUI
             Console.TreatControlCAsInput = false;
             Console.CancelKeyPress += (s, e) =>
             {
-                Environment.Exit(0);
+                Application.RequestStop();
                 e.Cancel = true;
             };
 
