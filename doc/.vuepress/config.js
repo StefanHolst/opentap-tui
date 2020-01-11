@@ -2,8 +2,10 @@ module.exports = {
     title: 'OpenTAP TUI',
     description: 'Textual User Interface for OpenTAP',
     themeConfig: {
+        repo: 'https://gitlab.com/StefanHolst0/opentap-tui',
+        editLinks: true,
+        editLinkText: 'Help improve this page!',
         nav: [
-            { text: 'GitLab', link: 'https://gitlab.com/StefanHolst0/opentap-tui' },
             { text: 'OpenTAP', link: 'https://gitlab.com/opentap/opentap' },
             { text: 'OpenTAP Homepage', link: 'https://www.opentap.io' }
         ],
