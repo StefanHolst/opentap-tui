@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap;
+using OpenTap.Tui;
 using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 
@@ -14,20 +15,30 @@ namespace OpenTAP.TUI
     {
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
-        private ListView listView { get; set; } = new ListView();
+        private TreeView treeView { get; set; }
         private TextView descriptionView { get; set; } = new TextView();
 
         public PropertiesView()
         {
-            listView.CanFocus = true;
-            listView.Height = Dim.Percent(75);
-            listView.SelectedChanged += ListViewOnSelectedChanged;
-            Add(listView);
+            treeView = new TreeView(
+                (item) =>
+                {
+                    var x = item as AnnotationCollection;
+                    if (x == null)
+                        return "";
+                    return $"{x.Get<DisplayAttribute>().Name}: {x.Get<IStringValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value}";
+                }, 
+                (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
+
+            treeView.CanFocus = true;
+            treeView.Height = Dim.Percent(75);
+            treeView.SelectedChanged += ListViewOnSelectedChanged;
+            Add(treeView);
 
             // Description
             var descriptionFrame = new FrameView("Description")
             {
-                Y = Pos.Bottom(listView),
+                Y = Pos.Bottom(treeView),
                 Height = Dim.Fill(),
                 Width = Dim.Fill(),
                 CanFocus = false
@@ -47,7 +58,7 @@ namespace OpenTAP.TUI
         private void ListViewOnSelectedChanged()
         {
             var members = getMembers();
-            var description = members?.ElementAtOrDefault(listView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
+            var description = members?.ElementAtOrDefault(treeView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
             
             if (description != null)
                 descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
@@ -59,7 +70,10 @@ namespace OpenTAP.TUI
         {
             this.obj = obj;
             annotations = AnnotationCollection.Annotate(obj);
-            UpdateProperties();
+            var members = getMembers();
+            if (members == null)
+                members = new AnnotationCollection[0];
+            treeView.SetTreeViewSource<AnnotationCollection>(members.ToList());
             ListViewOnSelectedChanged();
         }
 
@@ -77,27 +91,20 @@ namespace OpenTAP.TUI
                 })
                 .ToArray();
         }
-        private void UpdateProperties()
-        {
-            var index = listView.SelectedItem;
-            listView.SetSource(getMembers()?.Select(x => $"{x.Get<DisplayAttribute>().Name}: {x.Get<IStringValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value}").ToArray());
-            if (listView.Source?.Count == 0)
-                return;
-            listView.SelectedItem = index >= listView.Source?.Count ? listView.Source.Count : index;
-        }
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter)
+            if (keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null)
             {
                 var members = getMembers();
                 if (members == null)
                     return false;
 
                 // Find edit provider
-                var propEditor = PropEditProvider.GetProvider(members[listView.SelectedItem], out var provider);
+                var member = treeView.SelectedObject.obj as AnnotationCollection;
+                var propEditor = PropEditProvider.GetProvider(member, out var provider);
                 if (propEditor == null)
-                    TUI.Log.Warning($"Cannot edit properties of type: {members[listView.SelectedItem].Get<IMemberAnnotation>().ReflectionInfo.Name}");
+                    TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
                 else
                 {
                     var win = new EditWindow(annotations.ToString());
@@ -110,15 +117,18 @@ namespace OpenTAP.TUI
                 annotations.Read();
 
                 // Load new values
-                UpdateProperties();
+                LoadProperties(obj);
             }
 
             if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
+            {
+                treeView.ProcessKey(keyEvent);
                 return true;
+            }
 
             if (keyEvent.Key == Key.F1)
             {
-                listView.FocusFirst();
+                treeView.FocusFirst();
                 return true;
             }
             if (keyEvent.Key == Key.F2)
