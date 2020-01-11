@@ -1,9 +1,7 @@
 {
   "profiles": {
     "OpenTAP.TUI": {
-      "commandName": "Executable",
-      "executablePath": "C:\\git\\opentap-tui\\OpenTAP.TUI\\bin\\Debug\\tap.exe",
-      "commandLineArgs": "tui"
+      "commandName": "Project",
     }
   }
 }

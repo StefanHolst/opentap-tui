@@ -156,12 +156,12 @@ namespace Terminal.Gui {
         /// <summary>
         /// The key code for the user pressing the escape key
         /// </summary>
-        Esc,
+        Esc = 27,
 
 		/// <summary>
 		/// The key code for the user pressing the return key.
 		/// </summary>
-		Enter,// = '\n',
+		Enter = '\n',
 
 		/// <summary>
 		/// The key code for the user pressing the space bar
