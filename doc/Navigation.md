@@ -18,4 +18,4 @@
 |ESC|Go back|
 
 
-![](images/TUI2.jpg)
+![](./images/TUI2.jpg)
