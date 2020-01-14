@@ -5,6 +5,8 @@ Build:
   stage: build
   image: opentapio/opentap:9.5-ubuntu18.04
   tags: [ docker, gce ]
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   script:
         - dotnet build -c Release
         - cp OpenTAP.TUI/bin/Release/TUI*.TapPackage .
