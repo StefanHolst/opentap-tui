@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Package Name="TUI" xmlns="http://keysight.com/schemas/TAP/Package" Version="$(GitVersion)" OS="Windows,Linux">
-  <Description>Textual User Interface for creating test plans for OpenTAP.</Description>
+<Package Name="TUI" xmlns="http://opentap.io/schemas/package" Version="$(GitVersion)" OS="Windows,Linux">
+  <Description>
+The OpenTAP TUI is a textual based user interface that can be used from a terminal. It gives you a graphical way to create OpenTAP test plans (.TapPlan). As well, as editing OpenTAP settings.
+
+It supports running in almost every terminal including in Docker containers.
+
+<Status>Active Development</Status>
+  </Description>
   <Dependencies>
   </Dependencies>
   <Owner>Stefan Holst</Owner>
+  <SourceUrl>https://gitlab.com/StefanHolst0/opentap-tui</SourceUrl>
   <Files>
     <File Path="Packages/TUI/OpenTap.Tui.dll">
       <SetAssemblyInfo Attributes="Version"/>
     </File>
     <File Path="Packages/TUI/Terminal.Gui.dll">
       <SetAssemblyInfo Attributes="Version"/>
+    </File>
+    <File Path="Packages/TUI/Terminal.png">
+      <PackageIcon/>
     </File>
   </Files>
 </Package>
