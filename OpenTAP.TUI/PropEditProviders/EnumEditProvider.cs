@@ -82,21 +82,4 @@ namespace OpenTAP.TUI.PropEditProviders
             return new ViewWrapper(view, annotation);
         }
     }
-
-    [Flags]
-    public enum FlagsTest
-    {
-        A = 1,
-        B = 2,
-        C = 4
-    }
-    public class PropertiesTest : TestStep
-    {
-        public FlagsTest FlagEnum { get; set; }
-        public Enabled<string> X { get; set; } = new Enabled<string>(){Value =  "5", IsEnabled = true};
-        public override void Run()
-        {
-            
-        }
-    }
 }
