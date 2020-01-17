@@ -6,11 +6,15 @@ The OpenTAP TUI is a textual based user interface that can be used from a termin
 It supports running in almost every terminal including in Docker containers.
 
 <Status>Active Development</Status>
+<Links>
+  <Link Description="Go to the GitLab repository" Name="GitLab Repository" Url="https://gitlab.com/OpenTAP/Plugins/opentap-tui/opentap-tui"/>
+  <Link Description="Go to the documentation" Name="Documentation" Url="https://opentap.gitlab.io/Plugins/opentap-tui/opentap-tui/"/>
+</Links>
   </Description>
   <Dependencies>
   </Dependencies>
   <Owner>Stefan Holst</Owner>
-  <SourceUrl>https://gitlab.com/StefanHolst0/opentap-tui</SourceUrl>
+  <SourceUrl>https://gitlab.com/OpenTAP/Plugins/opentap-tui/opentap-tui</SourceUrl>
   <Files>
     <File Path="Packages/TUI/OpenTap.Tui.dll">
       <SetAssemblyInfo Attributes="Version"/>
