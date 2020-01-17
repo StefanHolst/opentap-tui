@@ -1,4 +1,4 @@
-using NStack;
+﻿using NStack;
 using OpenTap;
 using OpenTap.Cli;
 using OpenTap.Diagnostic;
@@ -250,7 +250,8 @@ namespace OpenTAP.TUI
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Log.Error("Something went wrong in the TUI.");
+                Log.Debug(ex);
                 Execute(cancellationToken);
             }
 
