@@ -35,7 +35,10 @@ namespace OpenTAP.TUI
             }
 
             if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC)
-                Application.RequestStop();
+            {
+                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
+                    Application.RequestStop();
+            }
 
             if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
             {
@@ -91,8 +94,11 @@ namespace OpenTAP.TUI
             Console.TreatControlCAsInput = false;
             Console.CancelKeyPress += (s, e) =>
             {
-                Application.RequestStop();
-                e.Cancel = true;
+                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
+                {
+                    Application.RequestStop();
+                    e.Cancel = true;
+                }
             };
 
             try
@@ -244,7 +250,8 @@ namespace OpenTAP.TUI
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Log.Error("Something went wrong in the TUI.");
+                Log.Debug(ex);
                 Execute(cancellationToken);
             }
 

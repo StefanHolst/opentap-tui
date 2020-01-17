@@ -192,7 +192,7 @@ namespace OpenTAP.TUI
             if (kb.Key == Key.ControlO)
                 LoadTestPlan();
 
-            if (kb.Key == Key.ControlI)
+            if (kb.Key == Key.ControlT)
             {
                 var newStep = new NewPluginWindow(typeof(ITestStep), "Add New Step");
                 Application.Run(newStep);
