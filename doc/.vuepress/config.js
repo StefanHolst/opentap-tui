@@ -5,7 +5,7 @@ module.exports = {
         repo: 'https://gitlab.com/StefanHolst0/opentap-tui',
         editLinks: true,
         editLinkText: 'Help improve this page!',
-	docsDir: 'doc',
+        docsDir: 'doc',
         nav: [
             { text: 'OpenTAP', link: 'https://gitlab.com/opentap/opentap' },
             { text: 'OpenTAP Homepage', link: 'https://www.opentap.io' }
@@ -20,10 +20,9 @@ module.exports = {
                 ]
             },
             '/Navigation.md',
-            'KnownIssues.md'
+            '/KnownIssues.md'
         ]
     },
     dest: '../public',
-    base: '/opentap-tui/'
-
+    base: '/Plugins/opentap-tui/opentap-tui/'
 }

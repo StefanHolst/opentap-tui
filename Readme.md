@@ -18,7 +18,7 @@ Either build it from source or install it from the OpenTAP package repository ([
 
 
 ## Documentation
-More documentation is available [here](https://stefanholst0.gitlab.io/opentap-tui).
+More documentation is available [here](https://opentap.gitlab.io/Plugins/opentap-tui/opentap-tui/).
 
 
 ## Known Issues
