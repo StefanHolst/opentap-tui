@@ -16,6 +16,9 @@ namespace OpenTAP.TUI.PropEditProviders
             if (members == null || members.Length != 2)
                 return null;
             int enabledIndex = members[0].Get<IMemberAnnotation>().Member.Name == "IsEnabled" ? 0 : 1;
+
+            if (members[enabledIndex].Any(a => a.GetType().Name == "BooleanValueAnnotation") == false)
+                return null;
             
             var enabled = members[enabledIndex];
             var value = members[enabledIndex == 0 ? 1 : 0];
