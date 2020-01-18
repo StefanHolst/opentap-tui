@@ -27,8 +27,7 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    var stringValue = x.Get<IStringValueAnnotation>();
-                    return $"{x.Get<DisplayAttribute>().Name}: {(stringValue != null ? stringValue.Value ?? "" : "!")}";
+                    return $"{x.Get<DisplayAttribute>().Name}: {(x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value)}";
                 }, 
                 (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
 
