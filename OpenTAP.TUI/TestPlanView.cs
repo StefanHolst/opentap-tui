@@ -96,6 +96,7 @@ namespace OpenTAP.TUI
         public void SaveTestPlan(string path)
         {
             Plan.Save(path ?? Plan.Path);
+            TUI.Log.Info($"Saved test plan '{Plan.Path}'.");
         }
         public void AddNewStep(Type type)
         {
