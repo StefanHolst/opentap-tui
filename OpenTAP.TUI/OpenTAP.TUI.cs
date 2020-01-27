@@ -1,4 +1,4 @@
-﻿using NStack;
+using NStack;
 using OpenTap;
 using OpenTap.Cli;
 using OpenTap.Diagnostic;
@@ -117,25 +117,8 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(null);
                         }),
                         new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
-                        new MenuItem("_Save", "", () =>
-                        {
-                            if (TestPlanView.Plan.Path != null)
-                                TestPlanView.SaveTestPlan(null);
-                            else
-                            {
-                                var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
-                                Application.Run(dialog);
-                                if (dialog.FileName != null)
-                                    TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
-                            }
-                        }),
-                        new MenuItem("_Save As", "", () =>
-                        {
-                            var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
-                            Application.Run(dialog);
-                            if (dialog.FileName != null)
-                                TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
-                        }),
+                        new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
+                        new MenuItem("_Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
                         new MenuItem("_Quit", "", () => Application.RequestStop())
                     }),
                     new MenuBarItem("_Edit", new MenuItem [] {
