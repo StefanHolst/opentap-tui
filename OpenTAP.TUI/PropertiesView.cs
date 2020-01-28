@@ -78,6 +78,13 @@ namespace OpenTAP.TUI
             ListViewOnSelectedChanged();
         }
 
+        static public bool FilterMember(IMemberData member)
+        {
+            if (member.GetAttribute<BrowsableAttribute>()?.Browsable ?? false)
+                return true;
+            return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
+        }
+    
         AnnotationCollection[] getMembers()
         {
             return annotations?.Get<IMembersAnnotation>()?.Members
@@ -85,10 +92,8 @@ namespace OpenTAP.TUI
                 .Where(x => 
                 {
                     var member = x.Get<IMemberAnnotation>()?.Member;
-                    if (member != null)
-                        return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
-                    else
-                        return true;
+                    if (member == null) return false;
+                    return FilterMember(member);
                 })
                 .ToArray();
         }

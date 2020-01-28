@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Collections;
 using NStack;
 using System.Xml.Serialization;
+using OpenTAP.TUI.PropEditProviders;
 
 namespace OpenTAP.TUI
 {
-    public class DatagridView : Window
+    public class DatagridView : View
     {
         public int Rows { get; private set; }
         public int Columns { get { return columns.Count; } }
@@ -19,23 +20,32 @@ namespace OpenTAP.TUI
         List<(View header, FramedListView column)> columns = new List<(View header, FramedListView column)>();
         Dictionary<(int, int), AnnotationCollection> cells = new Dictionary<(int, int), AnnotationCollection>();
         MenuBar menu;
+        Action<int> deleteRow;
 
-        public DatagridView(string title, string[] headers, Func<int, int, AnnotationCollection> CellProvider) : base(title)
+        public DatagridView(string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
         {
+            this.deleteRow = deleteRow;
             this.CellProvider = CellProvider;
 
             // Add menu
             menu = new MenuBar(new MenuBarItem[]{
                 new MenuBarItem("Edit", new MenuItem[]{
-                    new MenuItem("Add Row", "", () =>{ AddRow(); }),
-                    new MenuItem("Remove Row", "", () => { SetColumns(new []{ "key", "value", "something else" }); })
+                    new MenuItem("Add Row", "", () => AddRow()),
+                    new MenuItem("Remove Row", "", () => RemoveCurrentRow())
                 })
             });
             Add(menu);
-
             SetColumns(headers);
         }
 
+        void RemoveCurrentRow()
+        {
+            if (MostFocused is ListView listview)
+            {
+                RemoveRow(listview.SelectedItem);
+            }
+        }
+        
         public void AddRow()
         {
             Rows++;
@@ -54,6 +64,7 @@ namespace OpenTAP.TUI
 
         public void RemoveRow(int index)
         {
+            deleteRow(index);
             Rows--;
             for (int i = 0; i < Columns; i++)
             {
@@ -85,7 +96,7 @@ namespace OpenTAP.TUI
                     Height = 3,
                     Width = preColumn == null ? Dim.Percent((float)100 / headers.Length) : Dim.Width(preColumn)
                 };
-                headerFrame.Add(new Label(headers[i]) { TextColor = ColorScheme.HotNormal });
+                headerFrame.Add(new Label(headers[i]) {  });
                 Add(headerFrame);
 
                 // Add cells frame
@@ -129,7 +140,8 @@ namespace OpenTAP.TUI
             var list = new List<string>();
             for (int j = 0; j < Rows; j++)
             {
-                list.Add(cells[(i, j)].Get<IObjectValueAnnotation>().Value.ToString());
+                var annotation = cells[(i, j)];
+                list.Add(annotation.Get<IStringReadOnlyValueAnnotation>()?.Value ?? annotation.Get<IObjectValueAnnotation>().Value?.ToString() ?? "");
             }
 
             var column = columns[i].column;
@@ -159,10 +171,14 @@ namespace OpenTAP.TUI
                     {
                         if (columns[i].column.HasFocus)
                         {
+                            while (cells.ContainsKey((i, listview.SelectedItem)) == false)
+                            {
+                                AddRow();
+                            }
                             var cell = cells[(i, listview.SelectedItem)];
 
                             // Find edit provider
-                            var propEditor = PropEditProvider.GetProvider(cell, out var provider);
+                            var propEditor =   PropEditProvider.GetProvider(cell, out var provider);
                             if (propEditor == null)
                                 TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
                             else
@@ -177,6 +193,7 @@ namespace OpenTAP.TUI
                             cell.Read();
 
                             UpdateColumn(i);
+                            return true;
                         }
                     }
                 }
