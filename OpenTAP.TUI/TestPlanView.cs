@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using OpenTap;
@@ -95,7 +96,19 @@ namespace OpenTAP.TUI
         }
         public void SaveTestPlan(string path)
         {
-            Plan.Save(path ?? Plan.Path);
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
+                Application.Run(dialog);
+                if (dialog.FileName != null)
+                    path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+            }
+
+            if (string.IsNullOrWhiteSpace(path) == false)
+            {
+                Plan.Save(path);
+                TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+            }
         }
         public void AddNewStep(Type type)
         {
@@ -187,7 +200,24 @@ namespace OpenTAP.TUI
                 return true;
 
             if (kb.Key == Key.ControlS)
+                SaveTestPlan(Plan.Path);
+            
+            if (kb.KeyValue == 115) // CTRL+Shift+S
                 SaveTestPlan(null);
+            
+            if (kb.Key == Key.ControlO)
+                LoadTestPlan();
+
+            if (kb.Key == Key.ControlT)
+            {
+                var newStep = new NewPluginWindow(typeof(ITestStep), "Add New Step");
+                Application.Run(newStep);
+                if (newStep.PluginType != null)
+                {
+                    InsertNewStep(newStep.PluginType);
+                    Update();
+                }
+            }
 
             return base.ProcessKey(kb);
         }

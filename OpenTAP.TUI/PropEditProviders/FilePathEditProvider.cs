@@ -16,36 +16,29 @@ namespace OpenTAP.TUI.PropEditProviders
             if (filePath == null)
                 return null;
 
+            FileDialog dialog;
             if (filePath.Behavior == FilePathAttribute.BehaviorChoice.Open)
-            {
-                var dialog = new OpenDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Open" };
-                dialog.SelectionChanged += (s, path) => 
-                {
-                    var value = annotation.Get<IObjectValueAnnotation>().Value;
-
-                    if (value is MacroString ms)
-                        ms.Text = path.ToString();
-                    else
-                        value = path.ToString();
-                };
-
-                return dialog;
-            }
+                dialog = new OpenDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Open" };
             else
+                dialog = new SaveDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Save" };
+            
+            dialog.SelectionChanged += (sender) =>
             {
-                var dialog = new SaveDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Save" };
-                dialog.SelectionChanged += (s, path) =>
+                var path = sender.FilePath;
+                if (string.IsNullOrWhiteSpace(filePath.FileExtension) == false && path.ToLower().EndsWith(filePath.FileExtension) == false)
                 {
-                    var value = annotation.Get<IObjectValueAnnotation>().Value;
-
-                    if (value is MacroString ms)
-                        ms.Text = path.ToString();
-                    else
-                        value = path.ToString();
-                };
-
-                return dialog;
-            }
+                    TUI.Log.Info($"Extension of '{path}' does not match '.{filePath.FileExtension}'.");
+                    return;
+                }
+                
+                var value = annotation.Get<IObjectValueAnnotation>().Value;
+                if (value is MacroString ms)
+                    ms.Text = path.ToString();
+                else
+                    annotation.Get<IStringValueAnnotation>().Value = path.ToString();
+            };
+            
+            return dialog;
         }
     }
 }

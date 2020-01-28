@@ -1,10 +1,13 @@
 stages:
   - build
+  - publish
 
 Build:
   stage: build
-  image: opentapio/opentap:beta-ubuntu18.04
+  image: opentapio/opentap:9.5-ubuntu18.04
   tags: [ docker, gce ]
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   script:
         - dotnet build -c Release
         - cp OpenTAP.TUI/bin/Release/TUI*.TapPackage .
@@ -12,3 +15,42 @@ Build:
     expire_in: 1 week
     paths:
        - "TUI*.TapPackage"
+
+PublishAlpha:
+  stage: publish
+  image: opentapio/opentap:9.5-ubuntu18.04
+  tags: [ docker, gce ]
+  when: manual
+  dependencies:
+    - Build
+  script:
+    - tap package install PackagePublish
+    - tap package publish TUI*.TapPackage -k $REPO_KEY
+
+Publish:
+  stage: publish
+  image: opentapio/opentap:9.5-ubuntu18.04
+  tags: [ docker, gce ]
+  only:
+    - master
+  dependencies:
+    - Build
+  script:
+    - tap package install PackagePublish
+    - tap package publish TUI*.TapPackage -k $REPO_KEY
+
+pages:
+  stage: build
+  image: node:9.11.1
+  only: 
+    - master
+  cache:
+    paths:
+    - node_modules/
+  script:
+  - cd doc
+  - npm install
+  - npm run build
+  artifacts:
+    paths:
+    - public

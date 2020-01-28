@@ -16,6 +16,7 @@ namespace OpenTAP.TUI
         public IList Resources { get; set; }
         private List<string> list { get; set; }
         private ListView listView { get; set; }
+        private Button addButton { get; set; }
         private PropertiesView detailsView { get; set; } = new PropertiesView();
 
         public ResourceSettingsWindow(string title) : base(null)
@@ -46,12 +47,12 @@ namespace OpenTAP.TUI
             frame.Add(listView);
 
             // add resource button
-            var button = new Button("+")
+            addButton = new Button("+")
             {
                 Width = Dim.Fill(),
                 Y = Pos.Bottom(listView)
             };
-            button.Clicked += () =>
+            addButton.Clicked += () =>
             {
                 var newPlugin = new NewPluginWindow(typeof(T), title);
                 Application.Run(newPlugin);
@@ -72,7 +73,7 @@ namespace OpenTAP.TUI
                     }
                 }
             };
-            frame.Add(button);
+            frame.Add(addButton);
 
             // details frame
             var detailFrame = new FrameView("Details")
@@ -106,6 +107,9 @@ namespace OpenTAP.TUI
                     listView.SelectedItem = (index > Resources.Count - 1 ? Resources.Count - 1 : index);
                     detailsView.LoadProperties(Resources[listView.SelectedItem]);
                 }
+                else{
+                    detailsView.LoadProperties(null);
+                }
             }
 
             if (keyEvent.Key == Key.Esc)
@@ -115,6 +119,61 @@ namespace OpenTAP.TUI
                 return true;
             }
 
+            if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
+            {
+                if (listView.HasFocus)
+                    detailsView.FocusFirst();
+                else
+                    listView.FocusFirst();
+
+                return true;
+            }
+
+            if (keyEvent.Key == Key.CursorDown)
+            {
+                if (addButton.HasFocus)
+                    return true;
+
+                var index = listView.SelectedItem;
+                base.ProcessKey(keyEvent);
+                if (listView.HasFocus && index == listView.SelectedItem)
+                {
+                    addButton.FocusFirst();
+                }
+
+                return true;
+            }
+
+            if (keyEvent.Key == Key.CursorRight || keyEvent.Key == Key.CursorLeft)
+            {
+                if (detailsView.HasFocus)
+                    detailsView.ProcessKey(keyEvent);
+                return true;
+            }
+            
+            if (keyEvent.Key == Key.F1)
+            {
+                listView.FocusFirst();
+                return true;
+            }
+            if (keyEvent.Key == Key.F2)
+            {
+                detailsView.FocusFirst();
+                return true;
+            }
+            if (keyEvent.Key == Key.F3)
+            {
+                addButton.FocusFirst();
+                return true;
+            }
+            if (keyEvent.Key == Key.F4)
+            {
+                var kevent = keyEvent;
+                kevent.Key = Key.F2;
+                detailsView.ProcessKey(kevent);
+                return true;
+            }
+            
             return base.ProcessKey(keyEvent);
         }
     }

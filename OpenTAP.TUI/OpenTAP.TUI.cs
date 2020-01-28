@@ -1,4 +1,4 @@
-﻿using NStack;
+using NStack;
 using OpenTap;
 using OpenTap.Cli;
 using OpenTap.Diagnostic;
@@ -34,10 +34,13 @@ namespace OpenTAP.TUI
                 return true;
             }
 
-            if (keyEvent.Key == Key.ControlX)
-                Environment.Exit(0);
+            if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC)
+            {
+                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
+                    Application.RequestStop();
+            }
 
-            if (keyEvent.Key == Key.Tab)
+            if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
             {
                 if (TestPlanView.HasFocus)
                     StepSettingsView.FocusFirst();
@@ -58,7 +61,12 @@ namespace OpenTAP.TUI
                 return true;
             }
             if (keyEvent.Key == Key.F3)
-                StepSettingsView.ProcessKey(keyEvent);
+            {
+                var kevent = keyEvent;
+                kevent.Key = Key.F2;
+                StepSettingsView.ProcessKey(kevent);
+                return true;
+            }
             if (keyEvent.Key == Key.F4)
             {
                 LogFrame.FocusFirst();
@@ -86,8 +94,11 @@ namespace OpenTAP.TUI
             Console.TreatControlCAsInput = false;
             Console.CancelKeyPress += (s, e) =>
             {
-                Environment.Exit(0);
-                e.Cancel = true;
+                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
+                {
+                    Application.RequestStop();
+                    e.Cancel = true;
+                }
             };
 
             try
@@ -106,25 +117,8 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(null);
                         }),
                         new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
-                        new MenuItem("_Save", "", () =>
-                        {
-                            if (TestPlanView.Plan.Path != null)
-                                TestPlanView.SaveTestPlan(null);
-                            else
-                            {
-                                var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
-                                Application.Run(dialog);
-                                if (dialog.FileName != null)
-                                    TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
-                            }
-                        }),
-                        new MenuItem("_Save As", "", () =>
-                        {
-                            var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
-                            Application.Run(dialog);
-                            if (dialog.FileName != null)
-                                TestPlanView.SaveTestPlan(Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString()));
-                        }),
+                        new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
+                        new MenuItem("_Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
                         new MenuItem("_Quit", "", () => Application.RequestStop())
                     }),
                     new MenuBarItem("_Edit", new MenuItem [] {
@@ -170,6 +164,12 @@ namespace OpenTAP.TUI
                         {
                             var settingsView = new ResourceSettingsWindow<IResultListener>("Result Listeners");
                             Application.Run(settingsView);
+                        })
+                    }),
+                    new MenuBarItem("_Help", new MenuItem[]{
+                        new MenuItem("_Help", "", () => {
+                            var helpWin = new HelpWindow();
+                            Application.Run(helpWin);
                         })
                     })
                 });
@@ -241,7 +241,8 @@ namespace OpenTAP.TUI
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Log.Error("Something went wrong in the TUI.");
+                Log.Debug(ex);
                 Execute(cancellationToken);
             }
 

@@ -9,10 +9,16 @@
 
   <ItemGroup>
     <PackageReference Include="NStack.Core" Version="0.12.0" />
-    <PackageReference Include="OpenTAP" Version="9.3.0-beta.25" />
+    <PackageReference Include="OpenTAP" Version="9.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Terminal.Gui\Terminal.Gui.csproj" />
+    <ProjectReference Include="..\gui.cs\Terminal.Gui\Terminal.Gui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Terminal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
