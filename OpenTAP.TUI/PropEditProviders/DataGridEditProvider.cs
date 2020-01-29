@@ -55,16 +55,15 @@ namespace OpenTAP.TUI.PropEditProviders
                 var type = col.NewElement().Get<IReflectionAnnotation>().ReflectionInfo;
                 if (type != null)
                 {
-                    if (type.CanCreateInstance == false)
-                    {
-                        isComplicatedType = true;
-                    }
                     if (type is TypeData cst)
                     {
-                        if (PluginManager.GetPlugins(cst.Type).Count(x => x != cst.Type) > 0)
+                        if ((cst.DerivedTypes?.Count() ?? 0) > 0)
                         {
                             isComplicatedType = true;
                         }
+                    }else if (type.CanCreateInstance == false)
+                    {
+                        isComplicatedType = true;
                     }
                 }
 
@@ -114,7 +113,7 @@ namespace OpenTAP.TUI.PropEditProviders
                 items = col.AnnotatedElements.ToArray();
             }
             
-            var view = new DatagridView(Columns.ToArray(), (x, y) =>
+            var view = new DatagridView(fixedSize, Columns.ToArray(), (x, y) =>
             {
                 if (y >= items.Length)
                 {

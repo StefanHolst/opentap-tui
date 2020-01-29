@@ -21,20 +21,30 @@ namespace OpenTAP.TUI
         Dictionary<(int, int), AnnotationCollection> cells = new Dictionary<(int, int), AnnotationCollection>();
         MenuBar menu;
         Action<int> deleteRow;
+        
+        /// <summary>  Number of elements cannot be changed. </summary>
+        public bool IsIsFixedSize { get; } 
 
-        public DatagridView(string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
+        public DatagridView(bool isFixedSize, string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
         {
+            IsIsFixedSize = isFixedSize;
             this.deleteRow = deleteRow;
             this.CellProvider = CellProvider;
 
             // Add menu
-            menu = new MenuBar(new MenuBarItem[]{
-                new MenuBarItem("Edit", new MenuItem[]{
-                    new MenuItem("Add Row", "", () => AddRow()),
-                    new MenuItem("Remove Row", "", () => RemoveCurrentRow())
-                })
-            });
-            Add(menu);
+            if (IsIsFixedSize == false)
+            {
+                menu = new MenuBar(new MenuBarItem[]
+                {
+                    new MenuBarItem("Edit", new MenuItem[]
+                    {
+                        new MenuItem("Add Row", "", () => AddRow()),
+                        new MenuItem("Remove Row", "", () => RemoveCurrentRow())
+                    })
+                });
+                Add(menu);
+            }
+
             SetColumns(headers);
         }
 
