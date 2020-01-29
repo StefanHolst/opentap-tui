@@ -27,7 +27,10 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    return $"{x.Get<DisplayAttribute>().Name}: {(x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value)}";
+                    var value = (x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
+                    // replace new lines with spaces for viewing.
+                    value = value.Replace("\n", " ").Replace("\r", "");
+                    return $"{x.Get<DisplayAttribute>().Name}: {value}";
                 }, 
                 (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
 

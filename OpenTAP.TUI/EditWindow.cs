@@ -25,6 +25,8 @@ namespace OpenTAP.TUI
         {
             if (keyEvent.Key == Key.Esc)
             {
+                var handled = base.ProcessKey(keyEvent);
+                if (handled) return true;
                 closing(this, false);
                 Application.RequestStop();
                 return true;
