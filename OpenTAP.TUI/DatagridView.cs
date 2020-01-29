@@ -83,7 +83,7 @@ namespace OpenTAP.TUI
                     cells[(i, j)] = cells[(i, j + 1)];
                 }
 
-                cells.Remove((i, Rows + 1));
+                cells.Remove((i, Rows));
                 UpdateColumn(i);
             }
 
@@ -140,7 +140,7 @@ namespace OpenTAP.TUI
         {
             foreach (var column in columns)
             {
-                if (list != column.column)
+                if (list != column.column && list.Source.TopItem != column.column.Source.TopItem)
                     column.column.Source.TopItem = list.Source.TopItem;
             }
         }
