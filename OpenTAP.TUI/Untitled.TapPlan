@@ -1,6 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TestPlan type="OpenTap.TestPlan" Locked="false">
   <Steps>
+    <TestStep type="OpenTap.Plugins.BasicSteps.SweepLoop" Version="9.5.0+45ab79bc" Id="f3990595-29e6-410d-bed1-cb3bec8cbff2">
+      <EnabledRows>
+        <Boolean>true</Boolean>
+        <Boolean>false</Boolean>
+        <Boolean>true</Boolean>
+        <Boolean>false</Boolean>
+        <Boolean>true</Boolean>
+        <Boolean>false</Boolean>
+      </EnabledRows>
+      <SweepParameters>
+        <SweepParam>
+          <Values>
+            <Double type="System.Double">0.1</Double>
+            <Double type="System.Double">20.1</Double>
+            <Double type="System.Double">30.1</Double>
+            <Double type="System.Double">40.1</Double>
+            <Double type="System.Double">50.1</Double>
+            <Double type="System.Double">60.1</Double>
+          </Values>
+          <MemberNames>
+            <String>OpenTap.Plugins.BasicSteps.DelayStep.DelaySecs</String>
+          </MemberNames>
+        </SweepParam>
+      </SweepParameters>
+      <CrossPlan>Within_Run</CrossPlan>
+      <Enabled>true</Enabled>
+      <Name>Sweep Loop</Name>
+      <ChildTestSteps>
+        <TestStep type="OpenTap.Plugins.BasicSteps.DelayStep" Version="9.5.0+45ab79bc" Id="5f51b963-e15b-44fb-b26a-866280843f0f">
+          <DelaySecs>0.1</DelaySecs>
+          <Enabled>true</Enabled>
+          <Name>Delay</Name>
+          <ChildTestSteps />
+        </TestStep>
+      </ChildTestSteps>
+    </TestStep>
     <TestStep type="OpenTap.Plugins.BasicSteps.RepeatStep" Version="9.5.0+45ab79bc" Id="1f829c20-1829-44aa-8336-5552a7a33e39">
       <Action>Fixed_Count</Action>
       <TargetVerdict>Fail</TargetVerdict>
@@ -16,12 +52,6 @@
           <Enabled>true</Enabled>
           <Name>Sequence</Name>
           <ChildTestSteps>
-            <TestStep type="OpenTap.Plugins.BasicSteps.DelayStep" Version="9.5.0+45ab79bc" Id="5f51b963-e15b-44fb-b26a-866280843f0f">
-              <DelaySecs>0.1</DelaySecs>
-              <Enabled>true</Enabled>
-              <Name>Delay</Name>
-              <ChildTestSteps />
-            </TestStep>
             <TestStep type="OpenTap.Plugins.BasicSteps.DelayStep" Version="9.5.0+45ab79bc" Id="501f8b45-ac6c-443e-9c3e-33c6199feace">
               <DelaySecs>0.1</DelaySecs>
               <Enabled>true</Enabled>

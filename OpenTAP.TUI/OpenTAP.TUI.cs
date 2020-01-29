@@ -1,16 +1,7 @@
-using NStack;
 using OpenTap;
 using OpenTap.Cli;
-using OpenTap.Diagnostic;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
-using System.Xml.Serialization;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI
@@ -124,7 +115,7 @@ namespace OpenTAP.TUI
                     new MenuBarItem("_Edit", new MenuItem [] {
                         new MenuItem("_Add New Step", "", () =>
                         {
-                            var newStep = new NewPluginWindow(typeof(ITestStep), "Add New Step");
+                            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Add New Step");
                             Application.Run(newStep);
                             if (newStep.PluginType != null)
                             {
@@ -134,7 +125,7 @@ namespace OpenTAP.TUI
                         }),
                         new MenuItem("_Insert New Step", "", () =>
                         {
-                            var newStep = new NewPluginWindow(typeof(ITestStep), "Insert New Step");
+                            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Insert New Step");
                             Application.Run(newStep);
                             if (newStep.PluginType != null)
                             {
@@ -158,6 +149,11 @@ namespace OpenTAP.TUI
                         new MenuItem("_Instruments", "", () =>
                         {
                             var settingsView = new ResourceSettingsWindow<IInstrument>("Instruments");
+                            Application.Run(settingsView);
+                        }),
+                        new MenuItem("_Connections", "", () =>
+                        {
+                            var settingsView = new ConnectionSettingsWindow("Connections");
                             Application.Run(settingsView);
                         }),
                         new MenuItem("_Result Listeners", "", () =>
@@ -227,7 +223,6 @@ namespace OpenTAP.TUI
                     TestPlanView.Update();
                     StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                 }
-
                 // Run application
                 Application.Run();
             }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using OpenTap;
+using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI
@@ -110,18 +111,18 @@ namespace OpenTAP.TUI
                 TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
             }
         }
-        public void AddNewStep(Type type)
+        public void AddNewStep(ITypeData type)
         {
             try
             { 
-                Plan.ChildTestSteps.Add(Activator.CreateInstance(type) as ITestStep);
+                Plan.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
                 Update();
             } catch(Exception ex)
             {
                 TUI.Log.Error(ex);
             }
         }
-        public void InsertNewStep(Type type)
+        public void InsertNewStep(ITypeData type)
         {
             var flatplan = FlattenPlan();
             if (flatplan.Count == 0)
@@ -134,7 +135,7 @@ namespace OpenTAP.TUI
             var index = step.Parent.ChildTestSteps.IndexOf(step);
             var flatIndex = flatplan.IndexOf(step);
 
-            step.Parent.ChildTestSteps.Insert(index, Activator.CreateInstance(type) as ITestStep);
+            step.Parent.ChildTestSteps.Insert(index, type.CreateInstance() as ITestStep);
             Update();
             SelectedItem = flatIndex;
         }
@@ -210,7 +211,7 @@ namespace OpenTAP.TUI
 
             if (kb.Key == Key.ControlT)
             {
-                var newStep = new NewPluginWindow(typeof(ITestStep), "Add New Step");
+                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Add New Step");
                 Application.Run(newStep);
                 if (newStep.PluginType != null)
                 {

@@ -27,7 +27,10 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    return $"{x.Get<DisplayAttribute>().Name}: {(x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value)}";
+                    var value = (x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
+                    // replace new lines with spaces for viewing.
+                    value = value.Replace("\n", " ").Replace("\r", "");
+                    return $"{x.Get<DisplayAttribute>().Name}: {value}";
                 }, 
                 (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
 
@@ -78,6 +81,13 @@ namespace OpenTAP.TUI
             ListViewOnSelectedChanged();
         }
 
+        static public bool FilterMember(IMemberData member)
+        {
+            if (member.GetAttribute<BrowsableAttribute>()?.Browsable ?? false)
+                return true;
+            return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
+        }
+    
         AnnotationCollection[] getMembers()
         {
             return annotations?.Get<IMembersAnnotation>()?.Members
@@ -85,10 +95,8 @@ namespace OpenTAP.TUI
                 .Where(x => 
                 {
                     var member = x.Get<IMemberAnnotation>()?.Member;
-                    if (member != null)
-                        return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
-                    else
-                        return true;
+                    if (member == null) return false;
+                    return FilterMember(member);
                 })
                 .ToArray();
         }

@@ -11,7 +11,7 @@ using Terminal.Gui;
 
 namespace OpenTAP.TUI
 {
-    public class ResourceSettingsWindow<T> : Window where T : IResource
+    public class ResourceSettingsWindow<T> : Window where T : class
     {
         public IList Resources { get; set; }
         private List<string> list { get; set; }
@@ -29,7 +29,7 @@ namespace OpenTAP.TUI
                 Width = Dim.Percent(25),
                 Height = Dim.Fill()
             };
-
+            
             // resource list
             list = Resources.Cast<IResource>().Select(r => r.Name).ToList();
             listView = new ListView(list)
@@ -54,13 +54,13 @@ namespace OpenTAP.TUI
             };
             addButton.Clicked += () =>
             {
-                var newPlugin = new NewPluginWindow(typeof(T), title);
+                var newPlugin = new NewPluginWindow(TypeData.FromType(typeof(T)), title);
                 Application.Run(newPlugin);
                 if (newPlugin.PluginType != null)
                 {
                     try
                     {
-                        var resource = Activator.CreateInstance(newPlugin.PluginType);
+                        var resource = newPlugin.PluginType.CreateInstance();
                         Resources.Add(resource);
                         listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
                         if (Resources.Count == 1)
