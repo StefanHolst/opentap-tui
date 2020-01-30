@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
-using System.Xml.Serialization;
 using OpenTap;
+using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI
 {
-    public class ResourceSettingsWindow<T> : Window where T : class
+    public class ResourceSettingsWindow : Window
     {
         public IList Resources { get; set; }
         private List<string> list { get; set; }
@@ -19,10 +18,9 @@ namespace OpenTAP.TUI
         private Button addButton { get; set; }
         private PropertiesView detailsView { get; set; } = new PropertiesView();
 
-        public ResourceSettingsWindow(string title) : base(null)
+        public ResourceSettingsWindow(string title, IList Resources) : base(null)
         {
-            Resources = ComponentSettingsList.GetContainer(typeof(T));
-
+            
             // list frame
             var frame = new FrameView(title)
             {
@@ -54,7 +52,7 @@ namespace OpenTAP.TUI
             };
             addButton.Clicked += () =>
             {
-                var newPlugin = new NewPluginWindow(TypeData.FromType(typeof(T)), title);
+                var newPlugin = new NewPluginWindow(TypeData.FromType(DataGridEditProvider.GetEnumerableElementType(Resources.GetType())), title);
                 Application.Run(newPlugin);
                 if (newPlugin.PluginType != null)
                 {
