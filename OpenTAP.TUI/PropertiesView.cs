@@ -16,7 +16,7 @@ namespace OpenTAP.TUI
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
         private TreeView treeView { get; set; }
-        private TextView descriptionView { get; set; } = new TextView();
+        private TextView descriptionView { get; set; }
 
         public PropertiesView()
         {
@@ -40,6 +40,11 @@ namespace OpenTAP.TUI
             Add(treeView);
 
             // Description
+            descriptionView = new TextView()
+            {
+                ReadOnly = true
+            };
+            
             var descriptionFrame = new FrameView("Description")
             {
                 Y = Pos.Bottom(treeView),
