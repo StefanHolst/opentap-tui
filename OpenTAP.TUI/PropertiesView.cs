@@ -16,7 +16,7 @@ namespace OpenTAP.TUI
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
         private TreeView treeView { get; set; }
-        private TextView descriptionView { get; set; } = new TextView();
+        private TextView descriptionView { get; set; }
 
         public PropertiesView()
         {
@@ -27,7 +27,7 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    var value = (x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
+                    var value = (x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
                     // replace new lines with spaces for viewing.
                     value = value.Replace("\n", " ").Replace("\r", "");
                     return $"{x.Get<DisplayAttribute>().Name}: {value}";
@@ -40,6 +40,11 @@ namespace OpenTAP.TUI
             Add(treeView);
 
             // Description
+            descriptionView = new TextView()
+            {
+                ReadOnly = true
+            };
+            
             var descriptionFrame = new FrameView("Description")
             {
                 Y = Pos.Bottom(treeView),

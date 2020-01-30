@@ -31,7 +31,7 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter)
+            if (keyEvent.Key == Key.Enter && treeview.SelectedObject?.obj != null)
                 PluginType = treeview.SelectedObject.obj as ITypeData;
 
             return base.ProcessKey(keyEvent);

@@ -1,6 +1,7 @@
 using OpenTap;
 using OpenTap.Cli;
 using System;
+using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using Terminal.Gui;
+using TraceSource = OpenTap.TraceSource;
 
 namespace OpenTAP.TUI
 {
@@ -31,7 +33,7 @@ namespace OpenTAP.TUI
                 return true;
             }
 
-            if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC)
+            if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                     Application.RequestStop();
@@ -68,6 +70,11 @@ namespace OpenTAP.TUI
             {
                 LogFrame.FocusFirst();
                 return true;
+            }
+
+            if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false)
+            {
+                FocusPrev();
             }
 
             return base.ProcessKey(keyEvent);

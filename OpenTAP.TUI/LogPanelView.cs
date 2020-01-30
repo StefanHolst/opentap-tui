@@ -10,7 +10,7 @@ namespace OpenTAP.TUI
 {
     public class LogPanelView : ListView, ILogListener
     {
-        private List<string> messages = new List<string>();
+        private static List<string> messages = new List<string>();
 
         public LogPanelView()
         {
@@ -34,6 +34,7 @@ namespace OpenTAP.TUI
             {
                 TopItem = Math.Max(0, messages.Count - Bounds.Height);
                 SelectedItem = messages.Count - 1;
+                Application.Refresh();
             }
         }
 
