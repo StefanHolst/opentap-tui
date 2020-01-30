@@ -1,6 +1,8 @@
 using OpenTap;
 using OpenTap.Cli;
 using System;
+using System.IO;
+using System.Net;
 using System.Threading;
 using Terminal.Gui;
 
@@ -219,9 +221,23 @@ namespace OpenTAP.TUI
                 // Load plan from args
                 if (path != null)
                 {
-                    TestPlanView.Plan = TestPlan.Load(path);
-                    TestPlanView.Update();
-                    StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                    try
+                    {
+                        if (File.Exists(path) == false)
+                        {
+                            // file does not exist, lets just create it.
+                            var plan = new TestPlan();
+                            plan.Save(path);
+                        }
+
+                        TestPlanView.Plan = TestPlan.Load(path);
+                        TestPlanView.Update();
+                        StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                    }
+                    catch
+                    {
+                        Log.Info("Unable to load plan {0}.", path);
+                    }
                 }
                 // Run application
                 Application.Run();

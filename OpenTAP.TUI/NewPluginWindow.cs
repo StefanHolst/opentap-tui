@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using OpenTap;
 using Terminal.Gui;
@@ -19,7 +20,12 @@ namespace OpenTAP.TUI
             treeview = new TreeView(
                 (item) => (item as ITypeData).GetDisplayAttribute().Name ?? (item as ITypeData).Name, 
                 (item) => (item as ITypeData).GetDisplayAttribute()?.Group);
-            treeview.SetTreeViewSource(TypeData.GetDerivedTypes(type).Where(x => x.CanCreateInstance).ToList());
+            
+            var types = TypeData.GetDerivedTypes(type)
+                .Where(x => x.CanCreateInstance)
+                .Where(x => x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true);
+                
+            treeview.SetTreeViewSource(types.ToList());
             Add(treeview);
         }
 
