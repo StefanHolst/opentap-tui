@@ -81,14 +81,17 @@ namespace OpenTAP.TUI
         public void LoadTestPlan()
         {
             var dialog = new OpenDialog("Open a TestPlan", "Open");
-            Application.Run(dialog);
-
-            var path = dialog.FilePaths.FirstOrDefault();
-            if (path != null)
+            dialog.SelectionChanged += fileDialog =>
             {
-                Plan = TestPlan.Load(path);
-                Update();
-            }
+                var path = fileDialog.FilePath.ToString();
+                if (path != null)
+                {
+                    Plan = TestPlan.Load(path);
+                    Update();
+                }
+            };
+            
+            Application.Run(dialog);
         }
         public void NewTestPlan()
         {
