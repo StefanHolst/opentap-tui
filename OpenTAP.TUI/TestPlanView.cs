@@ -86,8 +86,15 @@ namespace OpenTAP.TUI
                 var path = fileDialog.FilePath.ToString();
                 if (path != null)
                 {
-                    Plan = TestPlan.Load(path);
-                    Update();
+                    try
+                    {
+                        Plan = TestPlan.Load(path);
+                        Update();
+                    }
+                    catch
+                    {
+                        TUI.Log.Info($"Could not load test plan '{path}'.");
+                    }
                 }
             };
             
