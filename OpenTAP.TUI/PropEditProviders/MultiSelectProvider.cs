@@ -16,7 +16,7 @@ namespace OpenTAP.TUI.PropEditProviders
             if (avail == null) return null;
             var avalues = avail.AvailableValues.ToArray();
   
-            var view = new ListView(avalues.Select(x => x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? "?").ToArray());
+            var view = new ListView(avalues.Select(x => x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IObjectValueAnnotation>()?.Value ?? "?").ToArray());
             view.AllowsMarking = true;
 
             for (int i = 0; i < avalues.Length; i++)
