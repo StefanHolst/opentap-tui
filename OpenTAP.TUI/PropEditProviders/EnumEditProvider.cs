@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using OpenTap;
+using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -23,8 +24,16 @@ namespace OpenTAP.TUI.PropEditProviders
                 p.Get<IObjectValueAnnotation>().Value).ToList());
             listView.Closing += (s, e) =>
             {
-                if (availableValues.Any())
-                    availableValue.SelectedValue = availableValues[listView.SelectedItem];
+                try
+                {
+                    if (availableValues.Any())
+                        availableValue.SelectedValue = availableValues[listView.SelectedItem];
+                }
+                catch (Exception exception)
+                {
+                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                    TUI.Log.Debug(exception);
+                }
             };
 
             var index = Array.IndexOf(availableValues, availableValue.SelectedValue);

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -15,7 +16,18 @@ namespace OpenTAP.TUI.PropEditProviders
             if (booledit == null || annotation.Get<IMemberAnnotation>()?.ReflectionInfo != TypeData.FromType(typeof(bool))) return null;
 
             var check = new CheckBox(annotation.Get<DisplayAttribute>()?.Name ?? "...", (bool)booledit.Value);
-            check.Toggled += (sender, args) => booledit.Value = check.Checked;
+            check.Toggled += (sender, args) =>
+            {
+                try
+                {
+                    booledit.Value = check.Checked;
+                }
+                catch (Exception exception)
+                {
+                    TUI.Log.Error(exception.Message);
+                    TUI.Log.Debug(exception);
+                }
+            };
 
             return check;
         }

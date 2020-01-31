@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap;
-using OpenTap.Tui;
+using OpenTap.TUI;
 using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 

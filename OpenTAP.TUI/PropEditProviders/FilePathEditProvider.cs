@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using OpenTap;
+using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -24,18 +25,26 @@ namespace OpenTAP.TUI.PropEditProviders
             
             dialog.SelectionChanged += (sender) =>
             {
-                var path = sender.FilePath;
-                if (string.IsNullOrWhiteSpace(filePath.FileExtension) == false && path.ToLower().EndsWith(filePath.FileExtension) == false)
+                try
                 {
-                    TUI.Log.Info($"Extension of '{path}' does not match '.{filePath.FileExtension}'.");
-                    return;
+                    var path = sender.FilePath;
+                    if (string.IsNullOrWhiteSpace(filePath.FileExtension) == false && path.ToLower().EndsWith(filePath.FileExtension) == false)
+                    {
+                        TUI.Log.Warning($"Extension of '{path}' does not match '.{filePath.FileExtension}'.");
+                        return;
+                    }
+                    
+                    var value = annotation.Get<IObjectValueAnnotation>().Value;
+                    if (value is MacroString ms)
+                        ms.Text = path.ToString();
+                    else
+                        annotation.Get<IStringValueAnnotation>().Value = path.ToString();
                 }
-                
-                var value = annotation.Get<IObjectValueAnnotation>().Value;
-                if (value is MacroString ms)
-                    ms.Text = path.ToString();
-                else
-                    annotation.Get<IStringValueAnnotation>().Value = path.ToString();
+                catch (Exception exception)
+                {
+                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                    TUI.Log.Debug(exception);
+                }
             };
             
             return dialog;

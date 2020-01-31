@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 using OpenTap;
+using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -34,14 +35,21 @@ namespace OpenTAP.TUI.PropEditProviders
             
             textField.Closing += (s, e) => 
             {
-                var sec2 = new SecureString();
-                foreach (var chr in textField.Text)
+                try
                 {
-                    sec2.AppendChar((char)chr);
+                    var sec2 = new SecureString();
+                    foreach (var chr in textField.Text)
+                    {
+                        sec2.AppendChar((char)chr);
+                    }
+
+                    annotation.Get<IObjectValueAnnotation>().Value = sec2;
                 }
-
-                annotation.Get<IObjectValueAnnotation>().Value = sec2;
-
+                catch (Exception exception)
+                {
+                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                    TUI.Log.Debug(exception);
+                }
             };
             return textField;
         }

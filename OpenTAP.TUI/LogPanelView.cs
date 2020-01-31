@@ -40,7 +40,7 @@ namespace OpenTAP.TUI
 
         public void EventsLogged(IEnumerable<Event> Events)
         {
-            messages.AddRange(Events.Select(e => e.Message));
+            messages.AddRange(Events.Where(e => e.EventType < 40).Select(e => e.Message));
             Update();
         }
 

@@ -14,13 +14,8 @@ namespace OpenTAP.TUI.PropEditProviders
             var col = annotation.Get<ICollectionAnnotation>();
             if (col == null) return null;
             if (annotation.Get<ReadOnlyMemberAnnotation>() != null) return null;
-            var title = annotation.Get<IMemberAnnotation>()?.Member.GetDisplayAttribute().Name ??
-                        annotation.Get<IObjectValueAnnotation>()?.Value?.ToString();
-            
             bool fixedSize = annotation.Get<IFixedSizeCollectionAnnotation>()?.IsFixedSize ?? false;
 
-            var context = annotation.ToString();
-            
             var items = col.AnnotatedElements.ToArray();
             bool placeholderElementAdded = false;
             if (items.Length == 0)

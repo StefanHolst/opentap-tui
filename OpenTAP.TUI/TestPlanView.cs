@@ -93,7 +93,7 @@ namespace OpenTAP.TUI
                     }
                     catch
                     {
-                        TUI.Log.Info($"Could not load test plan '{path}'.");
+                        TUI.Log.Warning($"Could not load test plan '{path}'.");
                     }
                 }
             };

@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTap;
+using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -27,13 +29,21 @@ namespace OpenTAP.TUI.PropEditProviders
 
             view.Closing += (s, e) => 
             {
-                var selectedValues = new List<AnnotationCollection>();
-                for (int i = 0; i < view.Source.Count; i++)
+                try
                 {
-                    if (view.Source.IsMarked(i))
-                        selectedValues.Add(avalues[i]);
+                    var selectedValues = new List<AnnotationCollection>();
+                    for (int i = 0; i < view.Source.Count; i++)
+                    {
+                        if (view.Source.IsMarked(i))
+                            selectedValues.Add(avalues[i]);
+                    }
+                    multi.SelectedValues = selectedValues;
                 }
-                multi.SelectedValues = selectedValues;
+                catch (Exception exception)
+                {
+                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                    TUI.Log.Debug(exception);
+                }
             };
             
             return view;
