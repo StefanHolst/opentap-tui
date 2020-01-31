@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using OpenTap.TUI;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
 
@@ -36,7 +37,10 @@ namespace OpenTAP.TUI
             if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
+                {
                     Application.RequestStop();
+                    TUI.Quitting = true;
+                }
             }
 
             if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
@@ -88,6 +92,7 @@ namespace OpenTAP.TUI
         public string path { get; set; }
 
         public static TraceSource Log = OpenTap.Log.CreateSource("TUI");
+        public static bool Quitting { get; set; }
 
         public TestPlanView TestPlanView { get; set; }
         public PropertiesView StepSettingsView { get; set; }
@@ -102,6 +107,7 @@ namespace OpenTAP.TUI
                 {
                     Application.RequestStop();
                     e.Cancel = true;
+                    Quitting = true;
                 }
             };
 
@@ -274,7 +280,7 @@ namespace OpenTAP.TUI
                     }
                     catch
                     {
-                        Log.Info("Unable to load plan {0}.", path);
+                        Log.Warning("Unable to load plan {0}.", path);
                     }
                 }
                 // Run application
@@ -282,9 +288,11 @@ namespace OpenTAP.TUI
             }
             catch (Exception ex)
             {
-                Log.Error("Something went wrong in the TUI.");
+                Log.Error(DefaultExceptionMessages.DefaultExceptionMessage);
                 Log.Debug(ex);
-                Execute(cancellationToken);
+                
+                if (Quitting == false)
+                    Execute(cancellationToken);
             }
 
             return 0;

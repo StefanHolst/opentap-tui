@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using OpenTap;
+using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -26,8 +27,16 @@ namespace OpenTAP.TUI.PropEditProviders
             
             textField.Closing += (s, e) => 
             {
-                if (e) // trim \r from the output.
-                    stredit.Value = textField.Text.ToString().Replace("\r", "");
+                try
+                {
+                    if (e) // trim \r from the output.
+                        stredit.Value = textField.Text.ToString().Replace("\r", "");
+                }
+                catch (Exception exception)
+                {
+                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                    TUI.Log.Debug(exception);
+                }
             };
             return textField;
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using OpenTap;
+using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -23,7 +24,18 @@ namespace OpenTAP.TUI.PropEditProviders
             var enabled = members[enabledIndex];
             var value = members[enabledIndex == 0 ? 1 : 0];
             var check = new CheckBox("", (bool)enabled.Get<IObjectValueAnnotation>().Value);
-            check.Toggled += (sender, args) => enabled.Get<IObjectValueAnnotation>().Value = check.Checked;
+            check.Toggled += (sender, args) =>
+            {
+                try
+                {
+                    enabled.Get<IObjectValueAnnotation>().Value = check.Checked;
+                }
+                catch (Exception exception)
+                {
+                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                    TUI.Log.Debug(exception);
+                }
+            };
             var viewbox = new View();
             
             var valuebox = PropEditProvider.GetProvider(value, out var _);

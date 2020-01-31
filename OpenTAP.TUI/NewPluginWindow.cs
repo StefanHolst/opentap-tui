@@ -5,7 +5,7 @@ using System.Linq;
 using OpenTap;
 using Terminal.Gui;
 using System.Reflection;
-using OpenTap.Tui;
+using OpenTap.TUI;
 
 namespace OpenTAP.TUI
 {
