@@ -34,7 +34,7 @@ namespace OpenTAP.TUI
             {
                 TopItem = Math.Max(0, messages.Count - Bounds.Height);
                 SelectedItem = messages.Count - 1;
-                Application.Refresh();
+                // Application.Refresh(); // Find another way
             }
         }
 
