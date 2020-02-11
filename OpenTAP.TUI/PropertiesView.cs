@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -18,6 +19,8 @@ namespace OpenTAP.TUI
         private TreeView treeView { get; set; }
         private TextView descriptionView { get; set; }
 
+        public event Action PropertiesChanged;
+        
         public PropertiesView()
         {
             treeView = new TreeView(
@@ -132,6 +135,9 @@ namespace OpenTAP.TUI
 
                 // Load new values
                 LoadProperties(obj);
+                
+                // Invoke property changed event
+                PropertiesChanged?.Invoke();
             }
 
             if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)

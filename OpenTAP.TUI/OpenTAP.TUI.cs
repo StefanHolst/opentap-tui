@@ -261,7 +261,10 @@ namespace OpenTAP.TUI
 
                 // Update step settings
                 TestPlanView.SelectedChanged += () => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
-
+                
+                // Update testplanview
+                StepSettingsView.PropertiesChanged += TestPlanView.Update;
+                
                 // Load plan from args
                 if (path != null)
                 {
