@@ -76,7 +76,8 @@ namespace OpenTAP.TUI
             var index = SelectedItem;
             var top = TopItem;
             SetSource(ExpandItems());
-            TopItem = top;
+            if (top != 0)
+                TopItem = top;
             if (Source.Count > 0)
                 SelectedItem = (index > Source.Count - 1 ? Source.Count - 1 : index);
         }
