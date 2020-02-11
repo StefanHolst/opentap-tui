@@ -18,6 +18,8 @@ namespace OpenTAP.TUI.PropEditProviders
             if (stredit == null) return null;
             var text = stredit.Value ?? "";
             var textField = new TextViewWithEnter(){Text = text};
+            textField.ReadOnly = annotation.Get<IAccessAnnotation>()?.IsReadOnly ?? false;
+            
             LayoutAttribute layout = annotation.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>();
             if ((layout?.RowHeight ?? 0) > 1)
             {
