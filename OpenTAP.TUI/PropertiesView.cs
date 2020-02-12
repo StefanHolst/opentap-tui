@@ -33,6 +33,10 @@ namespace OpenTAP.TUI
                     var value = (x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
                     // replace new lines with spaces for viewing.
                     value = value.Replace("\n", " ").Replace("\r", "");
+
+                    if (x.Get<IObjectValueAnnotation>()?.Value is Action)
+                        return $"[ {x.Get<DisplayAttribute>().Name} ]";
+                    
                     return $"{x.Get<DisplayAttribute>().Name}: {value}";
                 }, 
                 (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
