@@ -265,6 +265,9 @@ namespace OpenTAP.TUI
                 // Update testplanview
                 StepSettingsView.PropertiesChanged += TestPlanView.Update;
                 
+                // Stop OpenTAP from taking over the terminal for user inputs.
+                UserInput.SetInterface(null);
+                
                 // Load plan from args
                 if (path != null)
                 {
