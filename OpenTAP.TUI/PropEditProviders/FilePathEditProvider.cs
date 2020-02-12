@@ -16,26 +16,10 @@ namespace OpenTAP.TUI.PropEditProviders
             var filePath = annotation.Get<FilePathAttribute>();
             if (filePath == null)
                 return null;
-
-            // Parse extension patterns
-            var exts = filePath.FileExtension.Split('|');
-            string[] extPatterns = null;
-            if (string.IsNullOrEmpty(filePath.FileExtension) || !filePath.FileExtension.Contains("*."))
-                extPatterns = new []{ filePath.FileExtension };
-            else if (filePath.FileExtension.Contains("*.*") == false)
-            {
-                extPatterns = new string[exts.Length / 2];
-                
-                for (int i = 0; i < exts.Length;)
-                {
-                    extPatterns[i / 2] = exts[i + 1].TrimStart().TrimStart('*');
-                    i += 2;
-                }
-            }
             
             FileDialog dialog;
             if (filePath.Behavior == FilePathAttribute.BehaviorChoice.Open)
-                dialog = new OpenDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Open", AllowedFileTypes = extPatterns};
+                dialog = new OpenDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Open"};
             else
                 dialog = new SaveDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Save" };
             
