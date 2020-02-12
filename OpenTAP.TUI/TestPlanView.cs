@@ -144,13 +144,16 @@ namespace OpenTAP.TUI
                 return;
             }
 
-            var step = flatplan[SelectedItem];
-            var index = step.Parent.ChildTestSteps.IndexOf(step);
-            var flatIndex = flatplan.IndexOf(step);
-
-            step.Parent.ChildTestSteps.Insert(index, type.CreateInstance() as ITestStep);
-            Update();
-            SelectedItem = flatIndex;
+            try
+            {
+                var step = flatplan[SelectedItem];
+                step.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
+                Update();
+            }
+            catch (Exception ex)
+            {
+                TUI.Log.Error(ex);
+            }
         }
 
         public override bool ProcessKey(KeyEvent kb)
@@ -228,7 +231,7 @@ namespace OpenTAP.TUI
                 Application.Run(newStep);
                 if (newStep.PluginType != null)
                 {
-                    InsertNewStep(newStep.PluginType);
+                    AddNewStep(newStep.PluginType);
                     Update();
                 }
             }

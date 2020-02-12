@@ -181,9 +181,9 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
                     }),
-                    new MenuItem("_Insert New Step", "", () =>
+                    new MenuItem("_Insert As Child", "", () =>
                     {
-                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Insert New Step");
+                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Insert As Child");
                         Application.Run(newStep);
                         if (newStep.PluginType != null)
                         {
