@@ -167,6 +167,8 @@ namespace OpenTAP.TUI.PropEditProviders
             for (int i = 0; i < items.Length; i++)
                 view.AddRow();
 
+            if (annotation.Get<IAccessAnnotation>()?.IsReadOnly == true)
+                view.IsReadOnly = true;
             return view;
         }
         
