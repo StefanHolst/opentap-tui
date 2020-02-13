@@ -127,15 +127,27 @@ namespace OpenTAP.TUI
         public void AddNewStep(ITypeData type)
         {
             try
-            { 
-                Plan.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
+            {
+                var flatplan = FlattenPlan();
+                if (flatplan.Count == 0)
+                {
+                    Plan.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
+                    return;
+                }
+                
+                var step = flatplan[SelectedItem];
+                var index = step.Parent.ChildTestSteps.IndexOf(step);
+                step.Parent.ChildTestSteps.Insert(index + 1, type.CreateInstance() as ITestStep);
+                
                 Update();
-            } catch(Exception ex)
+                SelectedItem = flatplan.IndexOf(step) + 1;
+            }
+            catch(Exception ex)
             {
                 TUI.Log.Error(ex);
             }
         }
-        public void InsertNewStep(ITypeData type)
+        public void InsertNewChildStep(ITypeData type)
         {
             var flatplan = FlattenPlan();
             if (flatplan.Count == 0)
