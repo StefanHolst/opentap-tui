@@ -13,7 +13,14 @@ namespace OpenTAP.TUI.PropEditProviders
             if (actionEdit.Value is Action ac)
             {
                 var actionName = annotation.Get<DisplayAttribute>().Name;
-                ac.Invoke();
+                try
+                {
+                    ac.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    TUI.Log.Error(ex);
+                }
                 
                 var message = new MessageDialog($"'{actionName}' was executed.", actionName);
                 return message;
