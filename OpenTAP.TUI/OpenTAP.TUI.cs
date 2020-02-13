@@ -34,7 +34,7 @@ namespace OpenTAP.TUI
                 return true;
             }
 
-            if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
+            if (keyEvent.Key == Key.ControlX || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
@@ -100,17 +100,12 @@ namespace OpenTAP.TUI
 
         public int Execute(CancellationToken cancellationToken)
         {
-            Console.TreatControlCAsInput = false;
-            Console.CancelKeyPress += (s, e) =>
+            cancellationToken.Register(() =>
             {
-                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
-                {
-                    Application.RequestStop();
-                    e.Cancel = true;
-                    Quitting = true;
-                }
-            };
-
+                Quitting = true;
+                Application.RequestStop();
+            });
+            
             try
             {
                 Application.Init();
