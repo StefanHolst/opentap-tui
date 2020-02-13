@@ -98,11 +98,13 @@ namespace OpenTAP.TUI.PropEditProviders
             }
             else
             {
-                Columns2.Add("title");
-                Columns.Add("title");
+                var name = annotation.ToString();
+                Columns2.Add(name);
+                Columns.Add(name);
             }
             if (placeholderElementAdded)
             {
+                
                 // remove the added prototype element.
                 annotation.Read();
                 items = col.AnnotatedElements.ToArray();
@@ -143,26 +145,29 @@ namespace OpenTAP.TUI.PropEditProviders
                     items = col.AnnotatedElements.ToArray();
                 }
 
-                var row = items[y];
                 
-                var test = row.Get<IMembersAnnotation>().Members
+
+                var row = items[y];
+                if (isMultiColumns == false)
+                    return row;
+                
+                var cell = row.Get<IMembersAnnotation>().Members
                     .FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns2[x]);
-                    
-                return test;
+
+                return cell;
             },
-                i =>
-                {
-                    var lst = items.ToList();
-                    lst.RemoveAt(i);
-                    col.AnnotatedElements = lst;
-                    items = col.AnnotatedElements.ToArray();
-                }
-                );
-            for(int i = 0; i < items.Length; i++)
+            i =>
+            {
+                var lst = items.ToList();
+                lst.RemoveAt(i);
+                col.AnnotatedElements = lst;
+                items = col.AnnotatedElements.ToArray();
+            }
+            );
+            for (int i = 0; i < items.Length; i++)
                 view.AddRow();
 
             return view;
-
         }
         
         static public Type GetEnumerableElementType(System.Type enumType)
