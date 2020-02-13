@@ -23,7 +23,18 @@ namespace OpenTAP.TUI
         Action<int> deleteRow;
         
         /// <summary>  Number of elements cannot be changed. </summary>
-        public bool IsIsFixedSize { get; } 
+        public bool IsIsFixedSize { get; }
+
+        bool isReadOnly;
+        public bool IsReadOnly
+        {
+            get => isReadOnly;
+            set
+            {
+                isReadOnly = value;
+                Remove(menu);
+            }
+        }
 
         public DatagridView(bool isFixedSize, string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
         {
@@ -160,6 +171,10 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
+            if (IsReadOnly)
+            {
+                return base.ProcessKey(keyEvent);
+            }
             if (keyEvent.Key == Key.Tab && columns.Any())
             {
                 for (int i = 0; i < columns.Count; i++)
