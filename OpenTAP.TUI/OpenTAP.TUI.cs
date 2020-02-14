@@ -290,6 +290,7 @@ namespace OpenTAP.TUI
                         Log.Warning("Unable to load plan {0}.", path);
                     }
                 }
+                
                 // Run application
                 Application.Run();
             }
