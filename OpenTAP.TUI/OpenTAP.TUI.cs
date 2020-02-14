@@ -167,9 +167,9 @@ namespace OpenTAP.TUI
                 });
                 var editmenu = new MenuBarItem("_Edit", new MenuItem[]
                 {
-                    new MenuItem("_Add New Step", "", () =>
+                    new MenuItem("_Insert New Step", "", () =>
                     {
-                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Add New Step");
+                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
                         Application.Run(newStep);
                         if (newStep.PluginType != null)
                         {
@@ -177,13 +177,13 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
                     }),
-                    new MenuItem("_Insert New Step", "", () =>
+                    new MenuItem("_Insert New Step Child", "", () =>
                     {
-                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Insert New Step");
+                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
                         Application.Run(newStep);
                         if (newStep.PluginType != null)
                         {
-                            TestPlanView.InsertNewStep(newStep.PluginType);
+                            TestPlanView.InsertNewChildStep(newStep.PluginType);
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
                     })
