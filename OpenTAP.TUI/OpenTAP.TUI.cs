@@ -110,6 +110,7 @@ namespace OpenTAP.TUI
             {
                 Application.Init();
                 var top = Application.Top;
+                SetColorScheme();
 
                 TestPlanView = new TestPlanView();
                 StepSettingsView = new PropertiesView();
@@ -284,6 +285,7 @@ namespace OpenTAP.TUI
                         Log.Warning("Unable to load plan {0}.", path);
                     }
                 }
+                
                 // Run application
                 Application.Run();
             }
@@ -297,6 +299,36 @@ namespace OpenTAP.TUI
             }
 
             return 0;
+        }
+
+        void SetColorScheme()
+        {
+            var baseScheme = new ColorScheme()
+            {
+                Normal = Application.Driver.MakeAttribute(Color.White, Color.DarkGray),
+                Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
+                HotFocus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
+                HotNormal = Application.Driver.MakeAttribute(Color.Black, Color.Gray)
+            };
+            var dialogScheme = new ColorScheme()
+            {
+                Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
+                Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
+                HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
+                HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
+            };
+            var menuScheme = new ColorScheme()
+            {
+                Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
+                Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
+                HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
+                HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
+            };
+
+            Colors.Base = baseScheme;
+            Colors.Dialog = dialogScheme;
+            // Colors.Error = errorScheme;
+            Colors.Menu = menuScheme;
         }
     }
 }

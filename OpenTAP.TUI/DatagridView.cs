@@ -47,10 +47,10 @@ namespace OpenTAP.TUI
             {
                 menu = new MenuBar(new MenuBarItem[]
                 {
-                    new MenuBarItem("Edit", new MenuItem[]
+                    new MenuBarItem("_Edit", new MenuItem[]
                     {
-                        new MenuItem("Add Row", "", () => AddRow()),
-                        new MenuItem("Remove Row", "", () => RemoveCurrentRow())
+                        new MenuItem("_Add Row", "", () => AddRow()),
+                        new MenuItem("_Remove Row", "", () => RemoveCurrentRow())
                     })
                 });
                 Add(menu);
