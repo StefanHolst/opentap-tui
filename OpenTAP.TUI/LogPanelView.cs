@@ -43,7 +43,7 @@ namespace OpenTAP.TUI
         {
             lock (messages)
             {
-                messages.AddRange(Events.Where(e => e.EventType < 40).Select(e => e.Message));
+                messages.AddRange(Events.Select(e => e.Message));
             }
             Refresh();
         }
