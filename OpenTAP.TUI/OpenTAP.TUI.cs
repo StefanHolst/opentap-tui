@@ -18,8 +18,8 @@ namespace OpenTAP.TUI
 {
     public class MainWindow : Window
     {
-        public View StepSettingsView { get; set; }
-        public View TestPlanView { get; set; }
+        public PropertiesView StepSettingsView { get; set; }
+        public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
 
         public MainWindow(string title) : base(title)
@@ -37,6 +37,9 @@ namespace OpenTAP.TUI
 
             if (keyEvent.Key == Key.ControlX || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
             {
+                if (base.ProcessKey(keyEvent))
+                    return true;
+                
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
                     Application.RequestStop();
@@ -188,28 +191,7 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
                     }),
-                    new MenuItem("_Run Test Plan", "", TestPlanView.RunTestPlan),
-                    new MenuItem("test", "", () =>
-                    {
-                        // var dialog = new Dialog("something", 50, 7);
-                        // // top.Add(dialog);
-                        // dialog.Height = 7;
-                        // dialog.Width = 50;
-                        // dialog.X = Pos.Center();
-                        // dialog.Y = Pos.Center();
-                        // Application.Run(dialog);
-                        
-                        var text =  new FrameView("something")
-                        {
-                            X = 1,
-                            Y = 1,
-                            Width = 50,
-                            Height = 50
-                        };
-                        top.Add(text);
-                        top.SetNeedsDisplay();
-                        Application.Refresh();
-                    }), 
+                    new MenuItem("_Run Test Plan", "", TestPlanView.RunTestPlan)
                 });
 
                 var helpmenu = new MenuBarItem("_Help", new MenuItem[]
@@ -323,44 +305,6 @@ namespace OpenTAP.TUI
             }
 
             return 0;
-        }
-
-        void StartTestPlan()
-        {
-            TestPlanRun testPlanRun = null;
-            var dialog = new Dialog("Running Test Plan", 50, 7);
-            var stopButton = new Button("Stop", true);
-            stopButton.Clicked += () =>
-            {
-                testPlanRun?.MainThread.Abort();
-                dialog.Running = false;
-            };
-            dialog.AddButton(stopButton);
-            var progressBar = new ProgressBar();
-            dialog.Add(progressBar);
-            
-            // MainWindow.Add(ProgressBar);
-            TapThread.Start(() =>
-            {
-                // Run testplan and show progress bar
-                testPlanRun = TestPlanView.Plan.Execute();
-            });
-
-            Task.Run(() =>
-            {
-                while (TestPlanView.Plan.IsRunning)
-                {
-                    Application.MainLoop.Invoke(() => progressBar.Pulse());
-                    Thread.Sleep(500);
-                }
-            });
-            
-            Application.Top.Subviews[0].Add(dialog);
-            
-            //
-            
-            //
-            // MainWindow.Remove(ProgressBar);
         }
 
         void SetColorScheme()

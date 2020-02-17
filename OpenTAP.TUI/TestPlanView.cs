@@ -172,23 +172,24 @@ namespace OpenTAP.TUI
         }
 
         private TestPlanRun testPlanRun;
+        private bool planIsRunning = false;
         public void RunTestPlan()
         {
-            bool running = true;
+            planIsRunning = true;
             TapThread.Start(() =>
             {
                 // Run testplan and show progress bar
                 testPlanRun = Plan.Execute();
-                running = false;
+                planIsRunning = false;
             });
             
             Task.Run(() =>
             {
                 var title = Frame.Title;
-                while (running)
+                while (planIsRunning)
                 {
                     Application.MainLoop.Invoke(() => Frame.Title += " - Running ");
-                    for (int i = 0; i < 3 && running; i++)
+                    for (int i = 0; i < 3 && planIsRunning; i++)
                     {
                         Application.MainLoop.Invoke(() => Frame.Title += ">");
                         Thread.Sleep(1000);
@@ -282,6 +283,21 @@ namespace OpenTAP.TUI
                     Update();
                 }
             }
+
+            if (planIsRunning == false && kb.Key == Key.F5)
+            {
+                // Start the testplan
+                RunTestPlan();
+            }
+
+            // if (planIsRunning && kb.Key == Key.f)
+            // {
+            //     // Abort plan?
+            //     if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?") == 0)
+            //     {
+            //         testPlanRun.MainThread.Abort();
+            //     }
+            // }
 
             return base.ProcessKey(kb);
         }
