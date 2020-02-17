@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using OpenTap;
 using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
@@ -14,6 +16,7 @@ namespace OpenTAP.TUI
         private int moveIndex = -1;
         private bool injectStep = false;
         public TestPlan Plan { get; set; } = new TestPlan();
+        public FrameView Frame { get; set; }
 
         private List<string> ExpandItems()
         {
@@ -168,8 +171,45 @@ namespace OpenTAP.TUI
             }
         }
 
+        private TestPlanRun testPlanRun;
+        public void RunTestPlan()
+        {
+            bool running = true;
+            TapThread.Start(() =>
+            {
+                // Run testplan and show progress bar
+                testPlanRun = Plan.Execute();
+                running = false;
+            });
+            
+            Task.Run(() =>
+            {
+                var title = Frame.Title;
+                while (running)
+                {
+                    Application.MainLoop.Invoke(() => Frame.Title += " - Running ");
+                    for (int i = 0; i < 3 && running; i++)
+                    {
+                        Application.MainLoop.Invoke(() => Frame.Title += ">");
+                        Thread.Sleep(1000);
+                    }
+
+                    Application.MainLoop.Invoke(() => Frame.Title = title);
+                }
+            });
+        }
+
         public override bool ProcessKey(KeyEvent kb)
         {
+            if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
+            {
+                injectStep = false;
+                Update();
+            }
+            
+            if (Plan.IsRunning)
+                return base.ProcessKey(kb);
+            
             if (kb.Key == Key.DeleteChar)
             {
                 var index = SelectedItem;
@@ -184,11 +224,6 @@ namespace OpenTAP.TUI
             if (kb.Key == Key.CursorRight && moveIndex > -1 && FlattenPlan()[SelectedItem].GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
-                Update();
-            }
-            if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
-            {
-                injectStep = false;
                 Update();
             }
             if (kb.Key == Key.Space)

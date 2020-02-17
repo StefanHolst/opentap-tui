@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTap.TUI;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
@@ -186,7 +187,29 @@ namespace OpenTAP.TUI
                             TestPlanView.InsertNewChildStep(newStep.PluginType);
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
-                    })
+                    }),
+                    new MenuItem("_Run Test Plan", "", TestPlanView.RunTestPlan),
+                    new MenuItem("test", "", () =>
+                    {
+                        // var dialog = new Dialog("something", 50, 7);
+                        // // top.Add(dialog);
+                        // dialog.Height = 7;
+                        // dialog.Width = 50;
+                        // dialog.X = Pos.Center();
+                        // dialog.Y = Pos.Center();
+                        // Application.Run(dialog);
+                        
+                        var text =  new FrameView("something")
+                        {
+                            X = 1,
+                            Y = 1,
+                            Width = 50,
+                            Height = 50
+                        };
+                        top.Add(text);
+                        top.SetNeedsDisplay();
+                        Application.Refresh();
+                    }), 
                 });
 
                 var helpmenu = new MenuBarItem("_Help", new MenuItem[]
@@ -234,6 +257,7 @@ namespace OpenTAP.TUI
                     Height = Dim.Percent(75)
                 };
                 testPlanFrame.Add(TestPlanView);
+                TestPlanView.Frame = testPlanFrame;
                 win.Add(testPlanFrame);
 
                 var settingsFrame = new FrameView("Settings")
@@ -299,6 +323,44 @@ namespace OpenTAP.TUI
             }
 
             return 0;
+        }
+
+        void StartTestPlan()
+        {
+            TestPlanRun testPlanRun = null;
+            var dialog = new Dialog("Running Test Plan", 50, 7);
+            var stopButton = new Button("Stop", true);
+            stopButton.Clicked += () =>
+            {
+                testPlanRun?.MainThread.Abort();
+                dialog.Running = false;
+            };
+            dialog.AddButton(stopButton);
+            var progressBar = new ProgressBar();
+            dialog.Add(progressBar);
+            
+            // MainWindow.Add(ProgressBar);
+            TapThread.Start(() =>
+            {
+                // Run testplan and show progress bar
+                testPlanRun = TestPlanView.Plan.Execute();
+            });
+
+            Task.Run(() =>
+            {
+                while (TestPlanView.Plan.IsRunning)
+                {
+                    Application.MainLoop.Invoke(() => progressBar.Pulse());
+                    Thread.Sleep(500);
+                }
+            });
+            
+            Application.Top.Subviews[0].Add(dialog);
+            
+            //
+            
+            //
+            // MainWindow.Remove(ProgressBar);
         }
 
         void SetColorScheme()
