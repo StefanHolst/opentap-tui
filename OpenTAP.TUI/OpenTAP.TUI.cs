@@ -124,32 +124,33 @@ namespace OpenTAP.TUI
                     {
                         obj = ComponentSettings.GetCurrent(setting.Load());
                         if(obj == null) continue;
-                    }catch
-                    {
-                        continue;
-                    }
 
-                    var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
-                    var name = setting.GetDisplayAttribute().Name;
-                    Toplevel settingsView;
-                    if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
-                    {
-                        settingsView = new ConnectionSettingsWindow(name);
-                    }else
-                    if (setting.DescendsTo(TypeData.FromType(typeof(ComponentSettingsList<,>))))
-                    {
-                        settingsView = new ResourceSettingsWindow(name,(IList)obj);
-                    }
-                    else
-                    {
-                        settingsView = new ComponentSettingsWindow(obj);
-                    }
+                        var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
+                        var name = setting.GetDisplayAttribute().Name;
+                        Toplevel settingsView;
+                        if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
+                        {
+                            settingsView = new ConnectionSettingsWindow(name);
+                        }else
+                        if (setting.DescendsTo(TypeData.FromType(typeof(ComponentSettingsList<,>))))
+                        {
+                            settingsView = new ResourceSettingsWindow(name,(IList)obj);
+                        }
+                        else
+                        {
+                            settingsView = new ComponentSettingsWindow(obj);
+                        }
 
-                    var menuItem = new MenuItem("_" + name, "", () =>
+                        var menuItem = new MenuItem("_" + name, "", () =>
+                        {
+                            Application.Run(settingsView);
+                        });
+                        groupItems[menuItem] = setgroup;
+                    }
+                    catch (Exception ex)
                     {
-                        Application.Run(settingsView);
-                    });
-                    groupItems[menuItem] = setgroup;
+                        Log.Error(ex);
+                    }
                 }
                 
                 
