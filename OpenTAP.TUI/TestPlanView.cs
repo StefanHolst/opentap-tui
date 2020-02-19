@@ -267,7 +267,7 @@ namespace OpenTAP.TUI
             if (kb.Key == Key.ControlS)
                 SaveTestPlan(Plan.Path);
             
-            if (kb.KeyValue == 115) // CTRL+Shift+S
+            if (kb.IsCtrl && kb.IsShift && kb.KeyValue == 115) // CTRL+Shift+S
                 SaveTestPlan(null);
             
             if (kb.Key == Key.ControlO)

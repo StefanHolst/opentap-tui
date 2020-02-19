@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenTap.TUI;
 using Terminal.Gui;
+using Unix.Terminal;
 using TraceSource = OpenTap.TraceSource;
 
 namespace OpenTAP.TUI
