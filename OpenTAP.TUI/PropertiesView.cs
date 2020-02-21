@@ -30,7 +30,7 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    var value = (x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
+                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
                     // replace new lines with spaces for viewing.
                     value = value.Replace("\n", " ").Replace("\r", "");
 
