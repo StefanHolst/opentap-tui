@@ -15,10 +15,10 @@
   <ItemGroup>
     <ProjectReference Include="..\gui.cs\Terminal.Gui\Terminal.Gui.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <None Update="Terminal.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Content Include="..\doc\icon.png">
+      <Link>Packages/TUI/icon.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>
