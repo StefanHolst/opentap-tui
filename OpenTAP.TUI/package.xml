@@ -22,7 +22,7 @@ It supports running in almost every terminal including in Docker containers.
     <File Path="Packages/TUI/Terminal.Gui.dll">
       <SetAssemblyInfo Attributes="Version"/>
     </File>
-    <File Path="Packages/TUI/Terminal.png">
+    <File Path="Packages/TUI/icon.png">
       <PackageIcon/>
     </File>
   </Files>
