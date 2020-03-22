@@ -132,6 +132,7 @@ namespace OpenTAP.TUI
                 if (flatplan.Count == 0)
                 {
                     Plan.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
+                    Update();
                     return;
                 }
                 
