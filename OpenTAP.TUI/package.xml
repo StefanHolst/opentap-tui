@@ -14,7 +14,7 @@ It supports running in almost every terminal including in Docker containers.
   <Dependencies>
   </Dependencies>
   <Owner>Keysight Technologies, Inc.</Owner>
-  <SourceUrl>https://opentap.gitlab.io/Plugins/keysight/opentap-tui/</SourceUrl>
+  <SourceUrl>https://gitlab.com/OpenTAP/Plugins/keysight/opentap-tui/</SourceUrl>
   <Files>
     <File Path="Packages/TUI/OpenTap.Tui.dll">
       <SetAssemblyInfo Attributes="Version"/>
