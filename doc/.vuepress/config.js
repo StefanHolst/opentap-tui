@@ -2,7 +2,7 @@ module.exports = {
     title: 'OpenTAP TUI',
     description: 'Textual User Interface for OpenTAP',
     themeConfig: {
-        repo: 'https://gitlab.com/StefanHolst0/opentap-tui',
+        repo: 'https://gitlab.com/OpenTAP/Plugins/keysight/opentap-tui',
         editLinks: true,
         editLinkText: 'Help improve this page!',
         docsDir: 'doc',
@@ -24,5 +24,5 @@ module.exports = {
         ]
     },
     dest: '../public',
-    base: '/Plugins/opentap-tui/opentap-tui/'
+    base: '/Plugins/keysight/opentap-tui/'
 }
