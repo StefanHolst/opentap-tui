@@ -6,7 +6,7 @@ It supports running in almost every terminal including in Docker containers.
 ![](doc/images/TUI.jpg)
 
 ## Install
-Either build it from source or install it from the OpenTAP package repository ([packages.opentap.io](packages.opentap.io)).
+Either build it from source or install it from the OpenTAP package repository ([packages.opentap.io](https://packages.opentap.io)).
 
 ### Install from Repository
 - Install: `tap package install TUI --version any`
