@@ -7,14 +7,14 @@ It supports running in almost every terminal including in Docker containers.
 
 <Status>Active Development</Status>
 <Links>
-  <Link Description="Go to the GitLab repository" Name="GitLab Repository" Url="https://gitlab.com/OpenTAP/Plugins/opentap-tui/opentap-tui"/>
-  <Link Description="Go to the documentation" Name="Documentation" Url="https://opentap.gitlab.io/Plugins/opentap-tui/opentap-tui/"/>
+  <Link Description="Go to the GitLab repository" Name="GitLab Repository" Url="https://gitlab.com/OpenTAP/Plugins/keysight/opentap-tui"/>
+  <Link Description="Go to the documentation" Name="Documentation" Url="https://opentap.gitlab.io/Plugins/keysight/opentap-tui"/>
 </Links>
   </Description>
   <Dependencies>
   </Dependencies>
-  <Owner>Stefan Holst</Owner>
-  <SourceUrl>https://gitlab.com/OpenTAP/Plugins/opentap-tui/opentap-tui</SourceUrl>
+  <Owner>Keysight Technologies, Inc.</Owner>
+  <SourceUrl>https://gitlab.com/OpenTAP/Plugins/keysight/opentap-tui/</SourceUrl>
   <Files>
     <File Path="Packages/TUI/OpenTap.Tui.dll">
       <SetAssemblyInfo Attributes="Version"/>
@@ -22,7 +22,7 @@ It supports running in almost every terminal including in Docker containers.
     <File Path="Packages/TUI/Terminal.Gui.dll">
       <SetAssemblyInfo Attributes="Version"/>
     </File>
-    <File Path="Packages/TUI/Terminal.png">
+    <File Path="Packages/TUI/icon.png">
       <PackageIcon/>
     </File>
   </Files>

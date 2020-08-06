@@ -6,7 +6,7 @@ It supports running in almost every terminal including in Docker containers.
 ![](doc/images/TUI.jpg)
 
 ## Install
-Either build it from source or install it from the OpenTAP package repository ([packages.opentap.io](packages.opentap.io)).
+Either build it from source or install it from the OpenTAP package repository ([packages.opentap.io](https://packages.opentap.io)).
 
 ### Install from Repository
 - Install: `tap package install TUI --version any`
@@ -18,7 +18,7 @@ Either build it from source or install it from the OpenTAP package repository ([
 
 
 ## Documentation
-More documentation is available [here](https://opentap.gitlab.io/Plugins/opentap-tui/opentap-tui/).
+More documentation is available [here](https://opentap.gitlab.io/Plugins/keysight/opentap-tui).
 
 
 ## Known Issues
@@ -28,3 +28,6 @@ E.g. when running in an SSH session, or a linux build on WSL.
 Launching the TUI with mono instead of dotnet, seems to work: 
 
 `mono OpenTAP.TUI/bin/Debug/tap.dll tui`
+
+## Maintainers
+@StefanHolst - stefan.holst@keysight.com.
