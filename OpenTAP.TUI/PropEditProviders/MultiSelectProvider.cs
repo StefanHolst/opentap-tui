@@ -27,7 +27,7 @@ namespace OpenTAP.TUI.PropEditProviders
                     view.Source.SetMark(i, true);
             }
 
-            view.Closing += (s, e) => 
+            view.FindSuper<EditWindow>().Closing += (s, e) => 
             {
                 try
                 {

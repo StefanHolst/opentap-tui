@@ -16,7 +16,11 @@ namespace OpenTAP.TUI
 
 Move steps using space to select a step, then navigate to the place you want to drop the step and press space.
 You can also use right arrow ('>') to insert a step into another step as a child step.",
-                ReadOnly = true
+                ReadOnly = true,
+                X = Pos.Left(this),
+                Y = Pos.Bottom(this),
+                Height = Dim.Fill(),
+                Width = Dim.Fill()
             };
             Add(text);
 

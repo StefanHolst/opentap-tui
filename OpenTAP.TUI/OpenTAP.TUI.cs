@@ -212,7 +212,7 @@ namespace OpenTAP.TUI
                 menuBars.Add(helpmenu);
                 
                 var menu = new MenuBar(menuBars.ToArray());
-                menu.Closing += (s, e) => 
+                menu.MenuClosing += () => 
                 {
                     TestPlanView.FocusFirst();
                 };
@@ -257,7 +257,7 @@ namespace OpenTAP.TUI
                 win.LogFrame = LogFrame;
 
                 // Update step settings
-                TestPlanView.SelectedChanged += () => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
+                TestPlanView.SelectedItemChanged += args => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
                 
                 // Update testplanview
                 StepSettingsView.PropertiesChanged += TestPlanView.Update;

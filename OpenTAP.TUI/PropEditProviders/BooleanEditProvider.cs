@@ -16,7 +16,7 @@ namespace OpenTAP.TUI.PropEditProviders
             if (booledit == null || annotation.Get<IMemberAnnotation>()?.ReflectionInfo != TypeData.FromType(typeof(bool))) return null;
 
             var check = new CheckBox(annotation.Get<DisplayAttribute>()?.Name ?? "...", (bool)booledit.Value);
-            check.Toggled += (sender, args) =>
+            check.Toggled += b => 
             {
                 try
                 {

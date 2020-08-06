@@ -43,7 +43,7 @@ namespace OpenTAP.TUI
 
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
-            treeView.SelectedChanged += ListViewOnSelectedChanged;
+            treeView.SelectedItemChanged += ListViewOnSelectedChanged;
             Add(treeView);
 
             // Description
@@ -61,20 +61,20 @@ namespace OpenTAP.TUI
             };
             descriptionFrame.Add(descriptionView);
             Add(descriptionFrame);
-
-            descriptionView.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(ListView.Frame))
-                {
-                    ListViewOnSelectedChanged();
-                }
-            };
+            // TODO: TEST
+            // descriptionView.PropertyChanged += (s, e) =>
+            // {
+            //     if (e.PropertyName == nameof(ListView.Frame))
+            //     {
+            //         ListViewOnSelectedChanged();
+            //     }
+            // };
         }
 
-        private void ListViewOnSelectedChanged()
+        private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
             var members = getMembers();
-            var description = members?.ElementAtOrDefault(treeView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
+            var description = members?.ElementAtOrDefault(args.Item)?.Get<DisplayAttribute>()?.Description;
             
             if (description != null)
                 descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
@@ -90,7 +90,7 @@ namespace OpenTAP.TUI
             if (members == null)
                 members = new AnnotationCollection[0];
             treeView.SetTreeViewSource<AnnotationCollection>(members.ToList());
-            ListViewOnSelectedChanged();
+            ListViewOnSelectedChanged(new ListViewItemEventArgs(treeView.SelectedItem, treeView.SelectedObject));
         }
 
         static public bool FilterMember(IMemberData member)
@@ -157,7 +157,7 @@ namespace OpenTAP.TUI
             }
             if (keyEvent.Key == Key.F2)
             {
-                SetFocus(descriptionView);
+                descriptionView.SetFocus(); //TODO: test
                 return true;
             }
 

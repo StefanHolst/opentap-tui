@@ -33,7 +33,7 @@ namespace OpenTAP.TUI.PropEditProviders
             
             var textField = new TextField(secureStringToString(sec ?? new SecureString())) {Secret = true};
             
-            textField.Closing += (s, e) => 
+            textField.FindSuper<EditWindow>().Closing += (s, e) => 
             {
                 try
                 {

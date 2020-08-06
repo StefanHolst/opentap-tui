@@ -22,7 +22,8 @@ namespace OpenTAP.TUI.PropEditProviders
             var listView = new ListView(availableValues.Select(p => 
                 p.Get<IStringReadOnlyValueAnnotation>()?.Value ?? 
                 p.Get<IObjectValueAnnotation>().Value).ToList());
-            listView.Closing += (s, e) =>
+
+            listView.FindSuper<EditWindow>().Closing += (s, e) =>
             {
                 try
                 {

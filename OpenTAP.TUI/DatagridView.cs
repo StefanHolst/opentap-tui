@@ -79,7 +79,7 @@ namespace OpenTAP.TUI
                 UpdateColumn(i);
             }
 
-            SetFocus(columns[0].column);
+            columns[0].column.SetFocus(); // TODO: Test
             LayoutSubviews();
         }
 
@@ -130,7 +130,7 @@ namespace OpenTAP.TUI
                     CanFocus = true
                 };
 
-                columnFrame.Source.SelectedChanged += () => Scroll(columnFrame);
+                columnFrame.Source.SelectedItemChanged += args => Scroll(columnFrame);
 
                 Add(columnFrame);
                 columns.Add((headerFrame, columnFrame));

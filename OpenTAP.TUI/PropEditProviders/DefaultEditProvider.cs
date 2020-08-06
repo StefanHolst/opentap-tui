@@ -27,19 +27,20 @@ namespace OpenTAP.TUI.PropEditProviders
                 textField.CloseOnEnter = false;
             }
             
-            textField.Closing += (s, e) => 
-            {
-                try
-                {
-                    if (e) // trim \r from the output.
-                        stredit.Value = textField.Text.ToString().Replace("\r", "");
-                }
-                catch (Exception exception)
-                {
-                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
-                    TUI.Log.Debug(exception);
-                }
-            };
+            // TODO: TEst
+            // textField.Closing += (s, e) => 
+            // {
+            //     try
+            //     {
+            //         if (e) // trim \r from the output.
+            //             stredit.Value = textField.Text.ToString().Replace("\r", "");
+            //     }
+            //     catch (Exception exception)
+            //     {
+            //         TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+            //         TUI.Log.Debug(exception);
+            //     }
+            // };
             return textField;
         }
     }

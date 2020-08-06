@@ -7,6 +7,8 @@ namespace OpenTAP.TUI
 {
     public class EditWindow : Window
     {
+        public event EventHandler<bool> Closing;
+        
         public EditWindow(string title) : base(title)
         {
 
@@ -18,7 +20,7 @@ namespace OpenTAP.TUI
             {
                 closing(item, edited);
             }
-            view.InvokeClosing(this, edited);
+            Closing?.Invoke(this, edited);
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
