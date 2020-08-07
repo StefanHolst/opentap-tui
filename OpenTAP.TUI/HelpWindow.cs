@@ -12,15 +12,12 @@ namespace OpenTAP.TUI
             var text = new TextView()
             {
                 Text =
-@"Navigate using arrows, 'TAB' and 'Enter'. Open the menu using 'F9'.
-
-Move steps using space to select a step, then navigate to the place you want to drop the step and press space.
-You can also use right arrow ('>') to insert a step into another step as a child step.",
+"Navigate using arrows, 'TAB' and 'Enter'. Open the menu using 'F9'.\n\nMove steps using space to select a step, then navigate to the place you want to drop the step and press space.\nYou can also use right arrow ('>') to insert a step into another step as a child step.",
                 ReadOnly = true,
-                X = Pos.Left(this),
-                Y = Pos.Bottom(this),
-                Height = Dim.Fill(),
-                Width = Dim.Fill()
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
             };
             Add(text);
 
