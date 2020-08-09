@@ -11,10 +11,6 @@ namespace OpenTAP.TUI
         
         public EditWindow(string title) : base(title)
         {
-            X = 0;
-            Y = 0;
-            Width = Dim.Fill();
-            Height = Dim.Fill();
         }
 
         private void closing(View view, bool edited)
@@ -43,8 +39,9 @@ namespace OpenTAP.TUI
                 {
                     closing(this, true);
                     Application.RequestStop();
+                    return true;
                 }
-                return handled;
+                return false;
             }
 
             return base.ProcessKey(keyEvent);

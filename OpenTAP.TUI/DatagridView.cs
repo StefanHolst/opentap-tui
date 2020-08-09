@@ -57,11 +57,6 @@ namespace OpenTAP.TUI
             }
 
             SetColumns(headers);
-
-            X = 0;
-            Y = 0;
-            Width = Dim.Fill();
-            Height = Dim.Fill();
         }
 
         void RemoveCurrentRow()

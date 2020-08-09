@@ -87,11 +87,6 @@ namespace OpenTAP.TUI
 
             Add(frame);
             Add(detailFrame);
-
-            X = 0;
-            Y = 0;
-            Width = Dim.Fill();
-            Height = Dim.Fill();
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
