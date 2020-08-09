@@ -51,7 +51,6 @@ namespace OpenTAP.TUI
             {
                 ReadOnly = true,
             };
-            
             var descriptionFrame = new FrameView("Description")
             {
                 // X = 0,
@@ -62,14 +61,12 @@ namespace OpenTAP.TUI
             };
             descriptionFrame.Add(descriptionView);
             Add(descriptionFrame);
-            // TODO: TEST
-            // descriptionView.PropertyChanged += (s, e) =>
-            // {
-            //     if (e.PropertyName == nameof(ListView.Frame))
-            //     {
-            //         ListViewOnSelectedChanged();
-            //     }
-            // };
+
+            // Make sure we redraw everything after we have loaded everything. Just to make sure we have the right sizes.
+            Enter += args =>
+            {
+                treeView.UpdateListView();
+            };
         }
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
@@ -91,7 +88,7 @@ namespace OpenTAP.TUI
             if (members == null)
                 members = new AnnotationCollection[0];
             treeView.SetTreeViewSource<AnnotationCollection>(members.ToList());
-            ListViewOnSelectedChanged(new ListViewItemEventArgs(treeView.SelectedItem, treeView.SelectedObject));
+            // ListViewOnSelectedChanged(new ListViewItemEventArgs(treeView.SelectedItem, treeView.SelectedObject));
         }
 
         static public bool FilterMember(IMemberData member)
