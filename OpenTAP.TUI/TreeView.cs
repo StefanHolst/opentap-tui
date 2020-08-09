@@ -30,6 +30,11 @@ namespace OpenTap.TUI
             this.getGroup = getGroup;
 
             CanFocus = true;
+
+            X = 0;
+            Y = 0;
+            Width = Dim.Fill();
+            Height = Dim.Fill();
         }
 
         public void SetTreeViewSource<T>(List<T> items)

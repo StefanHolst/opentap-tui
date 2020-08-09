@@ -69,6 +69,11 @@ namespace OpenTAP.TUI
         public TestPlanView()
         {
             CanFocus = true;
+
+            X = 0;
+            Y = 0;
+            Width = Dim.Fill();
+            Height = Dim.Fill();
         }
 
         public void Update()

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using OpenTap.TUI;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
@@ -143,6 +144,7 @@ namespace OpenTAP.TUI
 
                         var menuItem = new MenuItem("_" + name, "", () =>
                         {
+                            settingsView.SetNeedsDisplay();
                             Application.Run(settingsView);
                         });
                         groupItems[menuItem] = setgroup;
@@ -286,6 +288,12 @@ namespace OpenTAP.TUI
                         Log.Warning("Unable to load plan {0}.", path);
                     }
                 }
+
+                Task.Run(() =>
+                {
+                    Thread.Sleep(2000);
+                    Log.Info("something");
+                });
                 
                 // Run application
                 Application.Run();

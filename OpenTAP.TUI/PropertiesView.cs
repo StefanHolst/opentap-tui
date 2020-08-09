@@ -49,11 +49,17 @@ namespace OpenTAP.TUI
             // Description
             descriptionView = new TextView()
             {
-                ReadOnly = true
+                ReadOnly = true,
+
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
             };
             
             var descriptionFrame = new FrameView("Description")
             {
+                // X = 0,
                 Y = Pos.Bottom(treeView),
                 Height = Dim.Fill(),
                 Width = Dim.Fill(),
@@ -69,6 +75,13 @@ namespace OpenTAP.TUI
             //         ListViewOnSelectedChanged();
             //     }
             // };
+            
+            
+
+            X = 0;
+            Y = 0;
+            Width = Dim.Fill();
+            Height = Dim.Fill();
         }
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)

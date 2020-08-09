@@ -16,6 +16,11 @@ namespace OpenTAP.TUI
         {
             Log.AddListener(this);
             CanFocus = true;
+
+            X = 0;
+            Y = 0;
+            Width = Dim.Fill();
+            Height = Dim.Fill();
         }
 
         private void Refresh()
