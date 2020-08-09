@@ -24,7 +24,7 @@ namespace OpenTAP.TUI
 
         public MainWindow(string title) : base(title)
         {
-
+            
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -128,23 +128,22 @@ namespace OpenTAP.TUI
 
                         var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
                         var name = setting.GetDisplayAttribute().Name;
-                        Toplevel settingsView;
-                        if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
-                        {
-                            settingsView = new ConnectionSettingsWindow(name);
-                        }else
-                        if (setting.DescendsTo(TypeData.FromType(typeof(ComponentSettingsList<,>))))
-                        {
-                            settingsView = new ResourceSettingsWindow(name,(IList)obj);
-                        }
-                        else
-                        {
-                            settingsView = new ComponentSettingsWindow(obj);
-                        }
 
                         var menuItem = new MenuItem("_" + name, "", () =>
                         {
-                            settingsView.SetNeedsDisplay();
+                            Window settingsView;
+                            if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
+                            {
+                                settingsView = new ConnectionSettingsWindow(name);
+                            }
+                            else if (setting.DescendsTo(TypeData.FromType(typeof(ComponentSettingsList<,>))))
+                            {
+                                settingsView = new ResourceSettingsWindow(name,(IList)obj);
+                            }
+                            else
+                            {
+                                settingsView = new ComponentSettingsWindow(obj);
+                            }
                             Application.Run(settingsView);
                         });
                         groupItems[menuItem] = setgroup;
