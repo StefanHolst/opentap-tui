@@ -88,7 +88,6 @@ namespace OpenTAP.TUI
             if (members == null)
                 members = new AnnotationCollection[0];
             treeView.SetTreeViewSource<AnnotationCollection>(members.ToList());
-            // ListViewOnSelectedChanged(new ListViewItemEventArgs(treeView.SelectedItem, treeView.SelectedObject));
         }
 
         static public bool FilterMember(IMemberData member)

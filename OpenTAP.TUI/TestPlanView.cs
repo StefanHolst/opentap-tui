@@ -84,9 +84,9 @@ namespace OpenTAP.TUI
         public void LoadTestPlan()
         {
             var dialog = new OpenDialog("Open a TestPlan", "Open");
-            dialog.SelectionChanged += fileDialog =>
+            dialog.SelectionChanged += _ =>
             {
-                var path = Path.Combine(fileDialog.DirectoryPath.ToString(), fileDialog.FilePath.ToString());
+                var path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
                 if (path != null)
                 {
                     try

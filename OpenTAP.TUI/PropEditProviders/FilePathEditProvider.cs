@@ -22,12 +22,11 @@ namespace OpenTAP.TUI.PropEditProviders
                 dialog = new OpenDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Open"};
             else
                 dialog = new SaveDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Save" };
-            
-            dialog.SelectionChanged += (sender) =>
+
+            dialog.SelectionChanged += (path) =>
             {
                 try
                 {
-                    var path = sender.FilePath;
                     var value = annotation.Get<IObjectValueAnnotation>().Value;
                     if (value is MacroString ms)
                         ms.Text = path.ToString();

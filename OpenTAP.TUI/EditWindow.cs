@@ -41,7 +41,7 @@ namespace OpenTAP.TUI
                     Application.RequestStop();
                     return true;
                 }
-                return false;
+                return handled;
             }
 
             return base.ProcessKey(keyEvent);
