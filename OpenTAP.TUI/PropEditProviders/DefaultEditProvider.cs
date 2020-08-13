@@ -27,20 +27,18 @@ namespace OpenTAP.TUI.PropEditProviders
                 textField.CloseOnEnter = false;
             }
             
-            // TODO: TEst
-            // textField.Closing += (s, e) => 
-            // {
-            //     try
-            //     {
-            //         if (e) // trim \r from the output.
-            //             stredit.Value = textField.Text.ToString().Replace("\r", "");
-            //     }
-            //     catch (Exception exception)
-            //     {
-            //         TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
-            //         TUI.Log.Debug(exception);
-            //     }
-            // };
+            textField.Closing += () => 
+            {
+                try
+                {
+                    stredit.Value = textField.Text.ToString().Replace("\r", "");
+                }
+                catch (Exception exception)
+                {
+                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                    TUI.Log.Debug(exception);
+                }
+            };
             return textField;
         }
     }
@@ -48,10 +46,16 @@ namespace OpenTAP.TUI.PropEditProviders
     class TextViewWithEnter : TextView
     {
         public bool CloseOnEnter { get; set; } = true;
+
+        public Action Closing;
+        
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (kb.Key == Key.Enter && CloseOnEnter )
+            if (kb.Key == Key.Enter && CloseOnEnter)
+            {
+                Closing();
                 return false;
+            }
 
             if (kb.Key == Key.Esc && !CloseOnEnter)
             {

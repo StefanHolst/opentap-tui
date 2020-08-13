@@ -194,6 +194,9 @@ namespace OpenTAP.TUI
             }
             if (kb.Key == Key.Space)
             {
+                if (Plan.ChildTestSteps.Count == 0)
+                    return base.ProcessKey(kb);
+                
                 if (moveIndex == -1)
                 {
                     moveIndex = SelectedItem;

@@ -196,13 +196,18 @@ namespace OpenTAP.TUI
                     {
                         if (columns[i].column.HasFocus)
                         {
-                            while (cells.ContainsKey((i, listview.SelectedItem)) == false)
+                            if (cells.ContainsKey((i, listview.SelectedItem)) == false)
                             {
-                                AddRow();
-                            }
-                            var cell = cells[(i, listview.SelectedItem)];
+                                while (cells.ContainsKey((i, listview.SelectedItem)) == false)
+                                {
+                                    AddRow();
+                                }
 
+                                return true;
+                            }
+                            
                             // Find edit provider
+                            var cell = cells[(i, listview.SelectedItem)];
                             var propEditor =   PropEditProvider.GetProvider(cell, out var provider);
                             if (propEditor == null)
                                 TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");

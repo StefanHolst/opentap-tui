@@ -71,8 +71,7 @@ namespace OpenTAP.TUI
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var members = getMembers();
-            var description = members?.ElementAtOrDefault(args.Item)?.Get<DisplayAttribute>()?.Description;
+            var description = (treeView.SelectedObject.obj as AnnotationCollection)?.Get<DisplayAttribute>()?.Description;
             
             if (description != null)
                 descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
