@@ -1,8 +1,5 @@
 ﻿using OpenTap;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenTap.TUI;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders

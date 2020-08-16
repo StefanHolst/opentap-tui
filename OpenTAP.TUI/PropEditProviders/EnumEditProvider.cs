@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders

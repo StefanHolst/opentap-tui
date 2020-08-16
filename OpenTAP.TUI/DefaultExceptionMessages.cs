@@ -1,4 +1,4 @@
-namespace OpenTap.TUI
+namespace OpenTap.Tui
 {
     public static class DefaultExceptionMessages
     {

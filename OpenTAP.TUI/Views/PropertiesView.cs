@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 
@@ -30,7 +28,7 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
+                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "...";
                     // replace new lines with spaces for viewing.
                     value = value.Replace("\n", " ").Replace("\r", "");
 
@@ -71,7 +69,7 @@ namespace OpenTAP.TUI
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var description = (treeView.SelectedObject.obj as AnnotationCollection)?.Get<DisplayAttribute>()?.Description;
+            var description = (treeView.SelectedObject?.obj as AnnotationCollection)?.Get<DisplayAttribute>()?.Description;
             
             if (description != null)
                 descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
@@ -138,6 +136,8 @@ namespace OpenTAP.TUI
                 
                 // Invoke property changed event
                 PropertiesChanged?.Invoke();
+
+                return true;
             }
 
             if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)

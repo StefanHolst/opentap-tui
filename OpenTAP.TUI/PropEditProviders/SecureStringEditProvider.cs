@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders

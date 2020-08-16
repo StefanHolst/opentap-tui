@@ -1,16 +1,13 @@
 using OpenTap;
 using OpenTap.Cli;
 using System;
-using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
 
@@ -99,6 +96,8 @@ namespace OpenTAP.TUI
         public PropertiesView StepSettingsView { get; set; }
         public FrameView LogFrame { get; set; }
 
+        public static Toplevel Top { get; set; }
+
         public int Execute(CancellationToken cancellationToken)
         {
             cancellationToken.Register(() =>
@@ -110,11 +109,58 @@ namespace OpenTAP.TUI
             try
             {
                 Application.Init();
-                var top = Application.Top;
+                Top = Application.Top;
                 SetColorScheme();
 
                 TestPlanView = new TestPlanView();
                 StepSettingsView = new PropertiesView();
+
+                // menu items
+                var filemenu = new MenuBarItem("_File", new MenuItem[]
+                {
+                    new MenuItem("_New", "", () =>
+                    {
+                        TestPlanView.NewTestPlan();
+                        StepSettingsView.LoadProperties(null);
+                    }),
+                    new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
+                    new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
+                    new MenuItem("_Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
+                    new MenuItem("_Quit", "", () => Application.RequestStop())
+                });
+                var editmenu = new MenuBarItem("_Edit", new MenuItem[]
+                {
+                    new MenuItem("_Insert New Step", "", () =>
+                    {
+                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+                        Application.Run(newStep);
+                        if (newStep.PluginType != null)
+                        {
+                            TestPlanView.AddNewStep(newStep.PluginType);
+                            StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                        }
+                    }),
+                    new MenuItem("_Insert New Step Child", "", () =>
+                    {
+                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+                        Application.Run(newStep);
+                        if (newStep.PluginType != null)
+                        {
+                            TestPlanView.InsertNewChildStep(newStep.PluginType);
+                            StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                        }
+                    })
+                });
+                var helpmenu = new MenuBarItem("_Help", new MenuItem[]
+                {
+                    new MenuItem("_Help", "", () =>
+                    {
+                        var helpWin = new HelpWindow();
+                        Application.Run(helpWin);
+                    })
+                });
+                
+                // Settings menu
                 var settings = TypeData.GetDerivedTypes<ComponentSettings>()
                     .Where(x => x.CanCreateInstance && (x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true));
                 Dictionary<MenuItem, string> groupItems = new Dictionary<MenuItem, string>();
@@ -154,52 +200,7 @@ namespace OpenTAP.TUI
                     }
                 }
                 
-                
-                var filemenu = new MenuBarItem("_File", new MenuItem[]
-                {
-                    new MenuItem("_New", "", () =>
-                    {
-                        TestPlanView.NewTestPlan();
-                        StepSettingsView.LoadProperties(null);
-                    }),
-                    new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
-                    new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
-                    new MenuItem("_Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                    new MenuItem("_Quit", "", () => Application.RequestStop())
-                });
-                var editmenu = new MenuBarItem("_Edit", new MenuItem[]
-                {
-                    new MenuItem("_Insert New Step", "", () =>
-                    {
-                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
-                        Application.Run(newStep);
-                        if (newStep.PluginType != null)
-                        {
-                            TestPlanView.AddNewStep(newStep.PluginType);
-                            StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
-                        }
-                    }),
-                    new MenuItem("_Insert New Step Child", "", () =>
-                    {
-                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
-                        Application.Run(newStep);
-                        if (newStep.PluginType != null)
-                        {
-                            TestPlanView.InsertNewChildStep(newStep.PluginType);
-                            StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
-                        }
-                    })
-                });
-
-                var helpmenu = new MenuBarItem("_Help", new MenuItem[]
-                {
-                    new MenuItem("_Help", "", () =>
-                    {
-                        var helpWin = new HelpWindow();
-                        Application.Run(helpWin);
-                    })
-                });
-                
+                // Create list of all menu items, used in menu bar
                 List<MenuBarItem> menuBars = new List<MenuBarItem>();
                 menuBars.Add(filemenu);
                 menuBars.Add(editmenu);
@@ -212,13 +213,15 @@ namespace OpenTAP.TUI
                 }
                 menuBars.Add(helpmenu);
                 
+                // Add menu bar
                 var menu = new MenuBar(menuBars.ToArray());
                 menu.MenuClosing += () => 
                 {
                     TestPlanView.FocusFirst();
                 };
-                top.Add(menu);
+                Top.Add(menu);
 
+                // Create main window and add it to top item of application
                 var win = new MainWindow("OpenTAP TUI")
                 {
                     X = 0,
@@ -228,8 +231,9 @@ namespace OpenTAP.TUI
                     StepSettingsView = StepSettingsView,
                     TestPlanView = TestPlanView
                 };
-                top.Add(win);
+                Top.Add(win);
 
+                // Add testplan view
                 var testPlanFrame = new FrameView("Test Plan")
                 {
                     Width = Dim.Percent(75),
@@ -238,6 +242,7 @@ namespace OpenTAP.TUI
                 testPlanFrame.Add(TestPlanView);
                 win.Add(testPlanFrame);
 
+                // Add step settings view
                 var settingsFrame = new FrameView("Settings")
                 {
                     X = Pos.Percent(75),
@@ -247,6 +252,7 @@ namespace OpenTAP.TUI
                 settingsFrame.Add(StepSettingsView);
                 win.Add(settingsFrame);
 
+                // Add log panel
                 LogFrame = new FrameView("Log Panel")
                 {
                     Y = Pos.Percent(75),
@@ -257,10 +263,10 @@ namespace OpenTAP.TUI
                 win.Add(LogFrame);
                 win.LogFrame = LogFrame;
 
-                // Update step settings
+                // Update StepSettingsView when TestPlanView changes selected step
                 TestPlanView.SelectedItemChanged += args => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
                 
-                // Update testplanview
+                // Update testplanview when step settings are changed
                 StepSettingsView.PropertiesChanged += TestPlanView.Update;
                 
                 // Stop OpenTAP from taking over the terminal for user inputs.
@@ -288,12 +294,6 @@ namespace OpenTAP.TUI
                     }
                 }
 
-                Task.Run(() =>
-                {
-                    Thread.Sleep(2000);
-                    Log.Info("something");
-                });
-                
                 // Run application
                 Application.Run();
             }

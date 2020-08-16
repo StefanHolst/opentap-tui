@@ -1,11 +1,9 @@
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using OpenTap;
 using Terminal.Gui;
-using System.Reflection;
-using OpenTap.TUI;
+using OpenTap.Tui;
 
 namespace OpenTAP.TUI
 {
