@@ -32,7 +32,7 @@ namespace OpenTAP.TUI
                 return true;
             }
 
-            if (keyEvent.Key == Key.ControlX || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
+            if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
