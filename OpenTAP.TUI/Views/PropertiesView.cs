@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 
@@ -30,7 +28,7 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "";
+                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "...";
                     // replace new lines with spaces for viewing.
                     value = value.Replace("\n", " ").Replace("\r", "");
 
@@ -43,17 +41,17 @@ namespace OpenTAP.TUI
 
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
-            treeView.SelectedChanged += ListViewOnSelectedChanged;
+            treeView.SelectedItemChanged += ListViewOnSelectedChanged;
             Add(treeView);
 
             // Description
             descriptionView = new TextView()
             {
-                ReadOnly = true
+                ReadOnly = true,
             };
-            
             var descriptionFrame = new FrameView("Description")
             {
+                // X = 0,
                 Y = Pos.Bottom(treeView),
                 Height = Dim.Fill(),
                 Width = Dim.Fill(),
@@ -62,19 +60,16 @@ namespace OpenTAP.TUI
             descriptionFrame.Add(descriptionView);
             Add(descriptionFrame);
 
-            descriptionView.PropertyChanged += (s, e) =>
+            // Make sure we redraw everything after we have loaded everything. Just to make sure we have the right sizes.
+            Enter += args =>
             {
-                if (e.PropertyName == nameof(ListView.Frame))
-                {
-                    ListViewOnSelectedChanged();
-                }
+                treeView.UpdateListView();
             };
         }
 
-        private void ListViewOnSelectedChanged()
+        private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var members = getMembers();
-            var description = members?.ElementAtOrDefault(treeView.SelectedItem)?.Get<DisplayAttribute>()?.Description;
+            var description = (treeView.SelectedObject?.obj as AnnotationCollection)?.Get<DisplayAttribute>()?.Description;
             
             if (description != null)
                 descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
@@ -90,7 +85,6 @@ namespace OpenTAP.TUI
             if (members == null)
                 members = new AnnotationCollection[0];
             treeView.SetTreeViewSource<AnnotationCollection>(members.ToList());
-            ListViewOnSelectedChanged();
         }
 
         static public bool FilterMember(IMemberData member)
@@ -142,6 +136,8 @@ namespace OpenTAP.TUI
                 
                 // Invoke property changed event
                 PropertiesChanged?.Invoke();
+
+                return true;
             }
 
             if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
@@ -157,7 +153,7 @@ namespace OpenTAP.TUI
             }
             if (keyEvent.Key == Key.F2)
             {
-                SetFocus(descriptionView);
+                descriptionView.SetFocus(); //TODO: test
                 return true;
             }
 

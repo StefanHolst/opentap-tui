@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using Terminal.Gui;
 
-namespace OpenTap.TUI
+namespace OpenTap.Tui
 {
     public class TreeView : ListView
     {

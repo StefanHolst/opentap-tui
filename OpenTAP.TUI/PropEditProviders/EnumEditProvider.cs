@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -22,7 +19,8 @@ namespace OpenTAP.TUI.PropEditProviders
             var listView = new ListView(availableValues.Select(p => 
                 p.Get<IStringReadOnlyValueAnnotation>()?.Value ?? 
                 p.Get<IObjectValueAnnotation>().Value).ToList());
-            listView.Closing += (s, e) =>
+
+            listView.Removed += view =>
             {
                 try
                 {

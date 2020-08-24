@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -33,7 +33,7 @@ namespace OpenTAP.TUI.PropEditProviders
             
             var textField = new TextField(secureStringToString(sec ?? new SecureString())) {Secret = true};
             
-            textField.Closing += (s, e) => 
+            textField.Removed += view => 
             {
                 try
                 {

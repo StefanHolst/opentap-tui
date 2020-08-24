@@ -34,12 +34,13 @@ namespace OpenTAP.TUI
             {
                 Height = Dim.Fill(1)
             };
-            listView.SelectedChanged += () =>
+            
+            listView.SelectedItemChanged += args => 
             {
                 if (Resources.Count == 0)
                     return;
 
-                var resource = Resources[listView.SelectedItem];
+                var resource = Resources[args.Item];
                 detailsView.LoadProperties(resource);
             };
             frame.Add(listView);
