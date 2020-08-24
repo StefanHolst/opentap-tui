@@ -105,6 +105,10 @@ namespace OpenTAP.TUI
                 Quitting = true;
                 Application.RequestStop();
             });
+
+            var test = OpenTap.Log.GetListeners().OfType<ConsoleTraceListener>().FirstOrDefault();
+            if (test != null)
+                OpenTap.Log.RemoveListener(test);
             
             try
             {
