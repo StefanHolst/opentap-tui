@@ -79,7 +79,7 @@ namespace OpenTAP.TUI
                 UpdateColumn(i);
             }
 
-            SetFocus(columns[0].column);
+            columns[0].column.SetFocus(); // TODO: Test
             LayoutSubviews();
         }
 
@@ -130,7 +130,7 @@ namespace OpenTAP.TUI
                     CanFocus = true
                 };
 
-                columnFrame.Source.SelectedChanged += () => Scroll(columnFrame);
+                columnFrame.Source.SelectedItemChanged += args => Scroll(columnFrame);
 
                 Add(columnFrame);
                 columns.Add((headerFrame, columnFrame));
@@ -196,13 +196,18 @@ namespace OpenTAP.TUI
                     {
                         if (columns[i].column.HasFocus)
                         {
-                            while (cells.ContainsKey((i, listview.SelectedItem)) == false)
+                            if (cells.ContainsKey((i, listview.SelectedItem)) == false)
                             {
-                                AddRow();
-                            }
-                            var cell = cells[(i, listview.SelectedItem)];
+                                while (cells.ContainsKey((i, listview.SelectedItem)) == false)
+                                {
+                                    AddRow();
+                                }
 
+                                return true;
+                            }
+                            
                             // Find edit provider
+                            var cell = cells[(i, listview.SelectedItem)];
                             var propEditor =   PropEditProvider.GetProvider(cell, out var provider);
                             if (propEditor == null)
                                 TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");

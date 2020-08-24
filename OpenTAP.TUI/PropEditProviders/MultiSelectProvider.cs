@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -27,7 +27,7 @@ namespace OpenTAP.TUI.PropEditProviders
                     view.Source.SetMark(i, true);
             }
 
-            view.Closing += (s, e) => 
+            view.Removed += x => 
             {
                 try
                 {

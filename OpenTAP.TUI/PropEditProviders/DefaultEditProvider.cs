@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using OpenTap;
-using OpenTap.TUI;
+using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTAP.TUI.PropEditProviders
@@ -27,12 +27,11 @@ namespace OpenTAP.TUI.PropEditProviders
                 textField.CloseOnEnter = false;
             }
             
-            textField.Closing += (s, e) => 
+            textField.Closing += () => 
             {
                 try
                 {
-                    if (e) // trim \r from the output.
-                        stredit.Value = textField.Text.ToString().Replace("\r", "");
+                    stredit.Value = textField.Text.ToString().Replace("\r", "");
                 }
                 catch (Exception exception)
                 {
@@ -41,25 +40,6 @@ namespace OpenTAP.TUI.PropEditProviders
                 }
             };
             return textField;
-        }
-    }
-
-    class TextViewWithEnter : TextView
-    {
-        public bool CloseOnEnter { get; set; } = true;
-        public override bool ProcessKey(KeyEvent kb)
-        {
-            if (kb.Key == Key.Enter && CloseOnEnter )
-                return false;
-
-            if (kb.Key == Key.Esc && !CloseOnEnter)
-            {
-                // invoke a new Enter command while accepting to closing on it.
-                CloseOnEnter = true;
-                Application.Current.ProcessKey(new KeyEvent() {Key = Key.Enter});
-                return true;
-            }
-            return base.ProcessKey(kb);
         }
     }
 }

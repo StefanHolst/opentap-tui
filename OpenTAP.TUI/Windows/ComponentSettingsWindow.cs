@@ -15,7 +15,7 @@ namespace OpenTAP.TUI
     {
         private ComponentSettings setting { get; set; }
 
-        public ComponentSettingsWindow(ComponentSettings setting) : base(setting.GetType().GetCustomAttribute<DisplayAttribute>().Name)
+        public ComponentSettingsWindow(ComponentSettings setting) : base(setting.GetType().GetCustomAttribute<DisplayAttribute>()?.Name ?? setting.GetType().Name)
         {
             this.setting = setting;
             var propView = new PropertiesView();

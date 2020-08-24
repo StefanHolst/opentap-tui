@@ -84,24 +84,20 @@ namespace OpenTAP.TUI
         public void LoadTestPlan()
         {
             var dialog = new OpenDialog("Open a TestPlan", "Open");
-            dialog.SelectionChanged += fileDialog =>
-            {
-                var path = Path.Combine(fileDialog.DirectoryPath.ToString(), fileDialog.FilePath.ToString());
-                if (path != null)
-                {
-                    try
-                    {
-                        Plan = TestPlan.Load(path);
-                        Update();
-                    }
-                    catch
-                    {
-                        TUI.Log.Warning($"Could not load test plan '{path}'.");
-                    }
-                }
-            };
-            
             Application.Run(dialog);
+            var path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+            if (File.Exists(path) && dialog.Canceled == false)
+            {
+                try
+                {
+                    Plan = TestPlan.Load(path);
+                    Update();
+                }
+                catch
+                {
+                    TUI.Log.Warning($"Could not load test plan '{path}'.");
+                }
+            }
         }
         public void NewTestPlan()
         {
@@ -112,7 +108,7 @@ namespace OpenTAP.TUI
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?"){ NameFieldLabel = "Save: " };
+                var dialog = new SaveDialog("Save TestPlan", "Where do you want to save the TestPlan?");
                 Application.Run(dialog);
                 if (dialog.FileName != null)
                     path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
@@ -194,6 +190,9 @@ namespace OpenTAP.TUI
             }
             if (kb.Key == Key.Space)
             {
+                if (Plan.ChildTestSteps.Count == 0)
+                    return base.ProcessKey(kb);
+                
                 if (moveIndex == -1)
                 {
                     moveIndex = SelectedItem;
@@ -230,13 +229,16 @@ namespace OpenTAP.TUI
                 return true;
 
             if (kb.Key == Key.ControlS)
-                SaveTestPlan(Plan.Path);
-            
-            if (kb.KeyValue == 115) // CTRL+Shift+S
-                SaveTestPlan(null);
-            
+            {
+                SaveTestPlan(kb.IsShift ? null : Plan.Path);
+                return true;
+            }
+
             if (kb.Key == Key.ControlO)
+            {
                 LoadTestPlan();
+                return true;
+            }
 
             if (kb.Key == Key.ControlT)
             {

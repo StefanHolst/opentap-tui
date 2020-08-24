@@ -18,7 +18,7 @@ namespace OpenTAP.TUI
                 var settingsView = prov.Edit(annotation);
                 if (settingsView != null)
                     Add(settingsView);
-            }   
+            }
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
