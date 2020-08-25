@@ -116,6 +116,8 @@ namespace OpenTap.Tui
         {
             foreach (var item in items)
             {
+                if (item.Visible == false)
+                    continue;
                 if (index == 0)
                     return item;
 
