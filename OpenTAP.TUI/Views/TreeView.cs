@@ -9,6 +9,14 @@ namespace OpenTap.Tui
 {
     public class TreeView : ListView
     {
+        public void SetVisible(Func<TreeViewItem, bool> predicate)
+        {
+            foreach (var item in source)
+            {
+                item.SetVisible(predicate);
+            }
+        }
+        
         private Func<object, string> getTitle;
         private Func<object, string[]> getGroup;
         public List<TreeViewItem> source { get; set; }
@@ -88,7 +96,8 @@ namespace OpenTap.Tui
                 var list = new List<string>();
                 foreach (var item in items)
                 {
-                    list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{ (item.obj != null ? getTitle(item.obj) : item.Title)}");
+                    if (item.Visible)
+                        list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{ (item.obj != null ? getTitle(item.obj) : item.Title)}");
                     if (item.IsExpanded)
                         list.AddRange(displayList(item.SubItems, level + 1));
                 }
@@ -149,6 +158,7 @@ namespace OpenTap.Tui
             public string Title { get; set; }
             public object obj { get; set; }
             public bool IsExpanded { get; set; }
+            public bool Visible { get; set; } = true;
 
             public List<TreeViewItem> SubItems { get; set; }
 
@@ -158,6 +168,19 @@ namespace OpenTap.Tui
                 this.obj = obj;
 
                 SubItems = new List<TreeViewItem>();
+            }
+
+            public bool SetVisible(Func<TreeViewItem, bool> predicate)
+            {
+                Visible = false;
+                foreach (var item in SubItems)
+                {
+                    Visible |= item.SetVisible(predicate);
+                }
+
+                Visible = Visible || predicate(this);
+                IsExpanded = Visible;
+                return Visible;
             }
         }
     }
