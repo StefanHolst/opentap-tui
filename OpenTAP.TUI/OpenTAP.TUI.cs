@@ -106,9 +106,10 @@ namespace OpenTAP.TUI
                 Application.RequestStop();
             });
 
-            var test = OpenTap.Log.GetListeners().OfType<ConsoleTraceListener>().FirstOrDefault();
-            if (test != null)
-                OpenTap.Log.RemoveListener(test);
+            // Remove console listener to stop any log messages being printed on top of the TUI
+            var consoleListener = OpenTap.Log.GetListeners().OfType<ConsoleTraceListener>().FirstOrDefault();
+            if (consoleListener != null)
+                OpenTap.Log.RemoveListener(consoleListener);
             
             try
             {
