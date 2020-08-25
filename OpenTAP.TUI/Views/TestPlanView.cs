@@ -85,6 +85,11 @@ namespace OpenTAP.TUI
         {
             var dialog = new OpenDialog("Open a TestPlan", "Open");
             Application.Run(dialog);
+            
+            // If not path is selected
+            if (dialog.DirectoryPath == null || dialog.FilePath == null)
+                return;
+            
             var path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
             if (File.Exists(path) && dialog.Canceled == false)
             {
