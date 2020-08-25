@@ -58,11 +58,23 @@ namespace OpenTAP.TUI
             {
                 filter += (char) keyEvent.KeyValue;
             }
-            else if (keyEvent.Key == Key.Backspace && filter.Length > 0)
+            else if ((keyEvent.Key & Key.Backspace) == Key.Backspace && filter.Length > 0)
             {
-                filter = filter.Substring(0, filter.Length - 1);
+                var length = -1;
+                if (keyEvent.IsCtrl)
+                {
+                    filter = filter.TrimEnd();
+                    var lastSpace = filter.LastIndexOf(' ');
+                    length = lastSpace > 0 ? lastSpace + 1 : 0;
+                }
+                else
+                {
+                    length = filter.Length - 1;
+                }
+                
+                filter = filter.Substring(0, length);
             }
-
+            
             return base.ProcessKey(keyEvent);
         }
     }
