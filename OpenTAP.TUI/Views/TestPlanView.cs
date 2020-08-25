@@ -169,31 +169,48 @@ namespace OpenTAP.TUI
         }
 
         private TestPlanRun testPlanRun;
-        private bool planIsRunning = false;
+        public bool PlanIsRunning = false;
+        private TapThread testPlanThread;
+
+        public Action TestPlanStarted;
+        public Action TestPlanStopped;
+
+        public void AbortTestPlan()
+        {
+            if (Plan.IsRunning)
+            {
+                testPlanThread.Abort();
+                TestPlanStarted();
+            }
+        }
+        
         public void RunTestPlan()
         {
-            planIsRunning = true;
-            TapThread.Start(() =>
+            PlanIsRunning = true;
+            TestPlanStarted();
+            testPlanThread = TapThread.Start(() =>
             {
                 // Run testplan and show progress bar
                 testPlanRun = Plan.Execute();
-                planIsRunning = false;
+                PlanIsRunning = false;
+                TestPlanStopped();
             });
             
             Task.Run(() =>
             {
-                var title = Frame.Title;
-                while (planIsRunning)
+                while (PlanIsRunning)
                 {
-                    Application.MainLoop.Invoke(() => Frame.Title += " - Running ");
-                    for (int i = 0; i < 3 && planIsRunning; i++)
+                    Application.MainLoop.Invoke(() => Frame.Title = $"Test Plan - Running ");
+                    Thread.Sleep(1000);
+                    
+                    for (int i = 0; i < 3 && PlanIsRunning; i++)
                     {
                         Application.MainLoop.Invoke(() => Frame.Title += ">");
                         Thread.Sleep(1000);
                     }
-
-                    Application.MainLoop.Invoke(() => Frame.Title = title);
                 }
+                
+                Application.MainLoop.Invoke(() => Frame.Title = "Test Plan");
             });
         }
 
@@ -287,7 +304,7 @@ namespace OpenTAP.TUI
                 }
             }
 
-            if (planIsRunning == false && kb.Key == Key.F5)
+            if (PlanIsRunning == false && kb.Key == Key.F5)
             {
                 // Start the testplan
                 RunTestPlan();

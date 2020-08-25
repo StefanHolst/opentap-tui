@@ -16,7 +16,7 @@ namespace OpenTAP.TUI
     public class MainWindow : Window
     {
         public View StepSettingsView { get; set; }
-        public View TestPlanView { get; set; }
+        public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
 
         public MainWindow(string title) : base(title)
@@ -121,6 +121,13 @@ namespace OpenTAP.TUI
                 StepSettingsView = new PropertiesView();
 
                 // menu items
+                var runmenuItem = new MenuItem("_Run Test Plan", "", () =>
+                {
+                    if (TestPlanView.PlanIsRunning)
+                        TestPlanView.AbortTestPlan();
+                    else
+                        TestPlanView.RunTestPlan();
+                });
                 var filemenu = new MenuBarItem("_File", new MenuItem[]
                 {
                     new MenuItem("_New", "", () =>
@@ -155,7 +162,7 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
                     }),
-                    new MenuItem("_Run Test Plan", "", TestPlanView.RunTestPlan)
+                    runmenuItem
                 });
                 var helpmenu = new MenuBarItem("_Help", new MenuItem[]
                 {
@@ -248,6 +255,15 @@ namespace OpenTAP.TUI
                 testPlanFrame.Add(TestPlanView);
                 TestPlanView.Frame = testPlanFrame;
                 win.Add(testPlanFrame);
+
+                TestPlanView.TestPlanStarted = () =>
+                {
+                    runmenuItem.Title = "_Abort Test Plan";
+                };
+                TestPlanView.TestPlanStopped = () =>
+                {
+                    runmenuItem.Title = "_Run Test Plan";
+                };
 
                 // Add step settings view
                 var settingsFrame = new FrameView("Settings")
