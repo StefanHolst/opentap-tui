@@ -118,19 +118,19 @@ namespace OpenTAP.TUI
                 // menu items
                 var filemenu = new MenuBarItem("_File", new MenuItem[]
                 {
-                    new MenuItem("_New", "", () =>
+                    new MenuItem("New", "", () =>
                     {
                         TestPlanView.NewTestPlan();
                         StepSettingsView.LoadProperties(null);
                     }),
-                    new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
-                    new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
-                    new MenuItem("_Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                    new MenuItem("_Quit", "", () => Application.RequestStop())
+                    new MenuItem("Open", "", TestPlanView.LoadTestPlan),
+                    new MenuItem("Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
+                    new MenuItem("Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
+                    new MenuItem("Quit", "", () => Application.RequestStop())
                 });
                 var editmenu = new MenuBarItem("_Edit", new MenuItem[]
                 {
-                    new MenuItem("_Insert New Step", "", () =>
+                    new MenuItem("Insert New Step", "", () =>
                     {
                         var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
                         Application.Run(newStep);
@@ -140,7 +140,7 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
                     }),
-                    new MenuItem("_Insert New Step Child", "", () =>
+                    new MenuItem("Insert New Step Child", "", () =>
                     {
                         var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
                         Application.Run(newStep);
@@ -153,7 +153,7 @@ namespace OpenTAP.TUI
                 });
                 var helpmenu = new MenuBarItem("_Help", new MenuItem[]
                 {
-                    new MenuItem("_Help", "", () =>
+                    new MenuItem("Help", "", () =>
                     {
                         var helpWin = new HelpWindow();
                         Application.Run(helpWin);
@@ -175,7 +175,7 @@ namespace OpenTAP.TUI
                         var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
                         var name = setting.GetDisplayAttribute().Name;
 
-                        var menuItem = new MenuItem("_" + name, "", () =>
+                        var menuItem = new MenuItem(name, "", () =>
                         {
                             Window settingsView;
                             if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
