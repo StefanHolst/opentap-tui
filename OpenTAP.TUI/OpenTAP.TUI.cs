@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using OpenTap.Tui;
+using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
 

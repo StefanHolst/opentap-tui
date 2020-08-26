@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using OpenTap;
 using Terminal.Gui;
 
@@ -45,6 +46,24 @@ namespace OpenTAP.TUI.PropEditProviders
                 Application.RequestStop ();
             };
             AddButton (button);
+        }
+    }
+
+    public class TuiUserInput : IUserInputInterface
+    {
+        public void RequestUserInput(object dataObject, TimeSpan Timeout, bool modal)
+        {
+            // var message = new MessageDialog($"'{actionName}' was executed.", actionName);
+
+            var typedata = TypeData.FromType(dataObject.GetType());
+            var title = typedata.Display?.Name ?? typedata.Name;
+
+            // var annotations = AnnotationCollection.Annotate(dataObject);
+            // var members = annotations.Get<IMembersAnnotation>().Members.ToList();
+            // members.AddRange(annotations.Get<IForwardedAnnotations>().Forwarded);
+
+            var message = new MessageDialog(title, "");
+            Application.Run(message);
         }
     }
 }
