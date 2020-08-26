@@ -180,8 +180,15 @@ namespace OpenTap.Tui
                     Visible |= item.SetVisible(predicate);
                 }
 
-                Visible = Visible || predicate(this);
+                var matchesPred = predicate(this);
+                Visible |= matchesPred;
                 IsExpanded = Visible;
+                
+                // If a group is matched by the predicate, show all children of the group
+                if (matchesPred)
+                    foreach (var item in SubItems)
+                        item.Visible = true;
+                
                 return Visible;
             }
         }

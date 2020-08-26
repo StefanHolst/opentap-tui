@@ -58,20 +58,15 @@ namespace OpenTAP.TUI
             {
                 filter += (char) keyEvent.KeyValue;
             }
-            else if ((keyEvent.Key & Key.Backspace) == Key.Backspace && filter.Length > 0)
+            else if (keyEvent.Key == Key.Backspace && filter.Length > 0)
             {
-                var length = -1;
-                if (keyEvent.IsCtrl)
-                {
-                    filter = filter.TrimEnd();
-                    var lastSpace = filter.LastIndexOf(' ');
-                    length = lastSpace > 0 ? lastSpace + 1 : 0;
-                }
-                else
-                {
-                    length = filter.Length - 1;
-                }
-                
+                filter = filter.Substring(0, filter.Length - 1);
+            }
+            else if (keyEvent.Key == (Key.CtrlMask | Key.Backspace))
+            {
+                filter = filter.TrimEnd();
+                var lastSpace = filter.LastIndexOf(' ');
+                var length = lastSpace > 0 ? lastSpace + 1 : 0;
                 filter = filter.Substring(0, length);
             }
             
