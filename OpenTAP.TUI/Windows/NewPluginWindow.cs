@@ -16,10 +16,10 @@ namespace OpenTAP.TUI
         private string _filter = "";
         private string _originalTitle;
 
-        private string filter
+        public string Filter
         {
             get { return _filter; }
-            set
+            private set
             {
                 _filter = value ?? "";
                 if (string.IsNullOrEmpty(_filter))
@@ -30,9 +30,14 @@ namespace OpenTAP.TUI
                 {
                     this.Title = $"{_originalTitle} - {_filter}";
                 }
-                treeview.SetVisible(item => item.Title.ToLower().Contains(_filter.ToLower()));
-                treeview.UpdateListView();
             }
+        }
+
+        private void UpdateTreeView()
+        {
+            treeview.SetVisible(item => item.Title.ToLower().Contains(Filter.ToLower()));
+            treeview.UpdateListView();
+            treeview.SelectFirstTestStep();
         }
 
         public NewPluginWindow(TypeData type, string title) : base(title)
@@ -56,18 +61,18 @@ namespace OpenTAP.TUI
                 PluginType = treeview.SelectedObject.obj as ITypeData;
             else if (keyEvent.KeyValue >= 32 && keyEvent.KeyValue < 127) // any non-special character is in this range
             {
-                filter += (char) keyEvent.KeyValue;
+                Filter += (char) keyEvent.KeyValue;
             }
-            else if (keyEvent.Key == Key.Backspace && filter.Length > 0)
+            else if (keyEvent.Key == Key.Backspace && Filter.Length > 0)
             {
-                filter = filter.Substring(0, filter.Length - 1);
+                Filter = Filter.Substring(0, Filter.Length - 1);
             }
             else if (keyEvent.Key == (Key.CtrlMask | Key.Backspace))
             {
-                filter = filter.TrimEnd();
-                var lastSpace = filter.LastIndexOf(' ');
+                Filter = Filter.TrimEnd();
+                var lastSpace = Filter.LastIndexOf(' ');
                 var length = lastSpace > 0 ? lastSpace + 1 : 0;
-                filter = filter.Substring(0, length);
+                Filter = Filter.Substring(0, length);
             }
             
             return base.ProcessKey(keyEvent);

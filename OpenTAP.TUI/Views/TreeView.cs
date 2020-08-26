@@ -17,6 +17,24 @@ namespace OpenTap.Tui
             }
         }
         
+        public void SelectFirstTestStep()
+        {
+            void getIndexOfFirstLeaf(List<TreeViewItem> items, ref int index)
+            {
+                var item = items.FirstOrDefault(x => x.Visible);
+                if (item != null)
+                {
+                    index++;
+                    getIndexOfFirstLeaf(item.SubItems, ref index);
+                }
+            }
+
+            var selected = -1;
+            getIndexOfFirstLeaf(source, ref selected);
+            if (selected >= 0)
+                SelectedItem = selected;
+        }
+        
         private Func<object, string> getTitle;
         private Func<object, string[]> getGroup;
         public List<TreeViewItem> source { get; set; }
