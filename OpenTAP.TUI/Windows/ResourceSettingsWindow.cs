@@ -20,7 +20,6 @@ namespace OpenTAP.TUI
 
         public ResourceSettingsWindow(string title, IList Resources) : base(null)
         {
-            
             // list frame
             var frame = new FrameView(title)
             {
@@ -54,6 +53,7 @@ namespace OpenTAP.TUI
             addButton.Clicked += () =>
             {
                 var newPlugin = new NewPluginWindow(TypeData.FromType(DataGridEditProvider.GetEnumerableElementType(Resources.GetType())), title);
+                newPlugin.SetFocus();
                 Application.Run(newPlugin);
                 if (newPlugin.PluginType != null)
                 {
@@ -64,13 +64,15 @@ namespace OpenTAP.TUI
                         listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
                         if (Resources.Count == 1)
                             detailsView.LoadProperties(resource);
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         ComponentSettings.SaveAllCurrentSettings();
                         TUI.Log.Error(ex);
                         Application.RequestStop();
                     }
                 }
+                addButton.SetFocus();
             };
             frame.Add(addButton);
 
