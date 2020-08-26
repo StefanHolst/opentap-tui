@@ -172,6 +172,17 @@ namespace OpenTap.Tui
                 SubItems = new List<TreeViewItem>();
             }
 
+            public void ShowAll(TreeViewItem item)
+            {
+                item.Visible = true;
+                item.IsExpanded = true;
+
+                foreach (var subItem in item.SubItems)
+                {
+                    ShowAll(subItem);
+                }
+            }
+
             public bool SetVisible(Func<TreeViewItem, bool> predicate)
             {
                 Visible = false;
@@ -182,13 +193,12 @@ namespace OpenTap.Tui
 
                 var matchesPred = predicate(this);
                 Visible |= matchesPred;
-                IsExpanded = Visible;
-                
+
                 // If a group is matched by the predicate, show all children of the group
                 if (matchesPred)
-                    foreach (var item in SubItems)
-                        item.Visible = true;
-                
+                    ShowAll(this);
+
+                IsExpanded = Visible;
                 return Visible;
             }
         }
