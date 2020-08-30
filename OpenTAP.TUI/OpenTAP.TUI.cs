@@ -79,6 +79,20 @@ namespace OpenTAP.TUI
             {
                 FocusPrev();
             }
+            
+            if (TestPlanView.PlanIsRunning == false && keyEvent.Key == Key.F5)
+            {
+                // Start the testplan
+                TestPlanView.RunTestPlan();
+                return true;
+            }
+
+            if (TestPlanView.PlanIsRunning && keyEvent.Key == Key.F5 && keyEvent.IsShift)
+            {
+                // Abort plan?
+                if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?", "Yes", "No") == 0)
+                    TestPlanView.AbortTestPlan();
+            }
 
             return base.ProcessKey(keyEvent);
         }

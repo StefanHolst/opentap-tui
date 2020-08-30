@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NStack;
 using OpenTap;
 using Terminal.Gui;
@@ -60,6 +61,7 @@ namespace OpenTAP.TUI
                 }
 
                 // Show query
+                var queryRunning = true;
                 Application.MainLoop.Invoke(() =>
                 {
                     var result = MessageBox.Query(title, message.ToString(), buttons.ToArray());
@@ -68,10 +70,23 @@ namespace OpenTAP.TUI
                     
                     // Make sure we only run 1 query at a time
                     resetEvent.Set();
+                    queryRunning = false;
                 });
                 
-                // Wait for query to be finished
+                // Wait for timeout, then close the dialog
+                var timedOut = false;
+                Task.Delay(Timeout).ContinueWith(t =>
+                {
+                    if (queryRunning && Application.Current is Dialog)
+                    {
+                        timedOut = true;
+                        Application.Current.Running = false;
+                    }
+                });
+                
                 resetEvent.WaitOne();
+                if (timedOut)
+                    throw new TimeoutException("User input timed out.");
             }
 
             // Save changes.

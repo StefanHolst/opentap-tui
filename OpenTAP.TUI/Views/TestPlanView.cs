@@ -313,21 +313,6 @@ namespace OpenTAP.TUI
                 }
             }
 
-            if (PlanIsRunning == false && kb.Key == Key.F5)
-            {
-                // Start the testplan
-                RunTestPlan();
-            }
-
-            // if (planIsRunning && kb.Key == Key.f)
-            // {
-            //     // Abort plan?
-            //     if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?") == 0)
-            //     {
-            //         testPlanRun.MainThread.Abort();
-            //     }
-            // }
-
             return base.ProcessKey(kb);
         }
 
