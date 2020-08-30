@@ -111,6 +111,9 @@ namespace OpenTAP.TUI
             var consoleListener = OpenTap.Log.GetListeners().OfType<ConsoleTraceListener>().FirstOrDefault();
             if (consoleListener != null)
                 OpenTap.Log.RemoveListener(consoleListener);
+
+            // Stop OpenTAP from taking over the terminal for user inputs.
+            UserInput.SetInterface(null);
             
             try
             {
@@ -292,9 +295,6 @@ namespace OpenTAP.TUI
                 
                 // Update testplanview when step settings are changed
                 StepSettingsView.PropertiesChanged += TestPlanView.Update;
-                
-                // Stop OpenTAP from taking over the terminal for user inputs.
-                UserInput.SetInterface(null);
                 
                 // Load plan from args
                 if (path != null)
