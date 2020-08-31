@@ -21,15 +21,20 @@ namespace OpenTAP.TUI
             get { return _filter; }
             private set
             {
-                _filter = value ?? "";
-                if (string.IsNullOrEmpty(_filter))
+                if (_filter != value)
                 {
-                    this.Title = _originalTitle;
+                    _filter = value ?? "";
+                    if (string.IsNullOrEmpty(_filter))
+                    {
+                        this.Title = _originalTitle;
+                    }
+                    else
+                    {
+                        this.Title = $"{_originalTitle} - {_filter}";
+                    }
+                    UpdateTreeView();
                 }
-                else
-                {
-                    this.Title = $"{_originalTitle} - {_filter}";
-                }
+
             }
         }
 
@@ -58,15 +63,14 @@ namespace OpenTAP.TUI
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter && treeview.SelectedObject?.obj != null)
+            {
                 PluginType = treeview.SelectedObject.obj as ITypeData;
+                return base.ProcessKey(keyEvent);
+            }
             else if (keyEvent.KeyValue >= 32 && keyEvent.KeyValue < 127) // any non-special character is in this range
-            {
                 Filter += (char) keyEvent.KeyValue;
-            }
             else if (keyEvent.Key == Key.Backspace && Filter.Length > 0)
-            {
                 Filter = Filter.Substring(0, Filter.Length - 1);
-            }
             else if (keyEvent.Key == (Key.CtrlMask | Key.Backspace))
             {
                 Filter = Filter.TrimEnd();
@@ -74,8 +78,10 @@ namespace OpenTAP.TUI
                 var length = lastSpace > 0 ? lastSpace + 1 : 0;
                 Filter = Filter.Substring(0, length);
             }
-            
-            return base.ProcessKey(keyEvent);
+            else
+                return base.ProcessKey(keyEvent);
+
+            return true;
         }
     }
 }

@@ -53,7 +53,6 @@ namespace OpenTAP.TUI
             addButton.Clicked += () =>
             {
                 var newPlugin = new NewPluginWindow(TypeData.FromType(DataGridEditProvider.GetEnumerableElementType(Resources.GetType())), title);
-                newPlugin.SetFocus();
                 Application.Run(newPlugin);
                 if (newPlugin.PluginType != null)
                 {
@@ -72,7 +71,6 @@ namespace OpenTAP.TUI
                         Application.RequestStop();
                     }
                 }
-                addButton.SetFocus();
             };
             frame.Add(addButton);
 
