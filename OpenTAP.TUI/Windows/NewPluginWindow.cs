@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -40,9 +41,10 @@ namespace OpenTAP.TUI
 
         private void UpdateTreeView()
         {
-            treeview.SetVisible(item => item.Title.ToLower().Contains(Filter.ToLower()));
+            bool Predicate(TreeView.TreeViewItem item) => item.Title.ToLower().Contains(Filter.ToLower());
+            treeview.SetVisible(Predicate);
             treeview.UpdateListView();
-            treeview.SelectFirstTestStep();
+            treeview.SelectFirstMatch(Predicate);
         }
 
         public NewPluginWindow(TypeData type, string title) : base(title)

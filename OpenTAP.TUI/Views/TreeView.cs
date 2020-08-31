@@ -17,20 +17,22 @@ namespace OpenTap.Tui
             }
         }
         
-        public void SelectFirstTestStep()
+        public void SelectFirstMatch(Func<TreeViewItem, bool> predicate)
         {
-            void getIndexOfFirstLeaf(List<TreeViewItem> items, ref int index)
+            void getIndexOfFirstMatch(List<TreeViewItem> items, ref int index)
             {
                 var item = items.FirstOrDefault(x => x.Visible);
                 if (item != null)
                 {
                     index++;
-                    getIndexOfFirstLeaf(item.SubItems, ref index);
+                    if (predicate(item))
+                        return;
+                    getIndexOfFirstMatch(item.SubItems, ref index);
                 }
             }
 
             var selected = -1;
-            getIndexOfFirstLeaf(source, ref selected);
+            getIndexOfFirstMatch(source, ref selected);
             if (selected >= 0)
                 SelectedItem = selected;
         }
