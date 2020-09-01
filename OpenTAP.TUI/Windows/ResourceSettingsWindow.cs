@@ -18,8 +18,10 @@ namespace OpenTAP.TUI
         private Button addButton { get; set; }
         private PropertiesView detailsView { get; set; } = new PropertiesView();
 
-        public ResourceSettingsWindow(string title, IList Resources) : base(null)
+        public ResourceSettingsWindow(string title, IList resources) : base(null)
         {
+            this.Resources = resources;
+            
             // list frame
             var frame = new FrameView(title)
             {
