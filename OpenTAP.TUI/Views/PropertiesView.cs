@@ -101,7 +101,7 @@ namespace OpenTAP.TUI
                 .Where(x => 
                 {
                     var member = x.Get<IMemberAnnotation>()?.Member;
-                    if (member == null) return false;
+                    if (member == null || member.GetAttribute<SubmitAttribute>() != null) return false;
                     return FilterMember(member);
                 })
                 .ToArray();

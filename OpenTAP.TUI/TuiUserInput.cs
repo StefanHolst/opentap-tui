@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NStack;
 using OpenTap;
 using Terminal.Gui;
 
@@ -12,85 +10,87 @@ namespace OpenTAP.TUI
 {
     public class TuiUserInput : IUserInputInterface
     {
-        public void RequestUserInput(object dataObject, TimeSpan Timeout, bool modal)
+        string getTitle(List<AnnotationCollection> members, object dataObject)
         {
-            // Get annotations and all members, including forwarded members.
-            var typeData = TypeData.FromType(dataObject.GetType());
-            var annotations = AnnotationCollection.Annotate(dataObject);
-            var members = annotations.Get<IMembersAnnotation>().Members.ToList();
-            members.AddRange(annotations.Get<IForwardedAnnotations>()?.Forwarded ?? new List<AnnotationCollection>());
-
-            // Try to get the title
             var title = members.FirstOrDefault(m => m.Get<DisplayAttribute>()?.Name?.Equals("title", StringComparison.OrdinalIgnoreCase) == true)?.Get<IStringValueAnnotation>()?.Value;
             if (title == null)
                 title = members.FirstOrDefault(m => m.Get<DisplayAttribute>()?.Name?.Equals("name", StringComparison.OrdinalIgnoreCase) == true)?.Get<IStringValueAnnotation>()?.Value;
             if (title == null)
-                title = typeData.Display?.Name ?? typeData.Name;
-
-            
-            StringBuilder message = new StringBuilder();
-            var buttons = new List<ustring>();
-            ManualResetEvent resetEvent = new ManualResetEvent(false);
-            
-            foreach (var member in members)
             {
-                // Don't show member if not visible
-                var memberAccess = member.Get<IAccessAnnotation>();
-                if (memberAccess.IsVisible == false)
-                    continue;
-                
-                // If member is read only, only print the value
-                var memberValue = member.Get<IStringValueAnnotation>();
-                if (memberAccess.IsReadOnly)
-                {
-                    message.AppendLine($"{member.Get<DisplayAttribute>().Name}: {memberValue.Value}");
-                    continue;
-                }
-                
-                // Get available values
-                var availableValues = member.Get<IAvailableValuesAnnotationProxy>();
-                if (availableValues == null)
-                    continue;
+                var typeData = TypeData.FromType(dataObject.GetType());
+                title = typeData.Display?.Name ?? typeData.Name;
+            }
 
-                // Add buttons for each available value
-                foreach (var value in availableValues.AvailableValues)
-                {
-                    var stringValue = value.Get<IStringValueAnnotation>();
-                    if (stringValue != null)
-                        buttons.Add(stringValue.Value);
-                }
+            return title;
+        }
 
-                // Show query
-                var queryRunning = true;
-                Application.MainLoop.Invoke(() =>
+        public void RequestUserInput(object dataObject, TimeSpan Timeout, bool modal)
+        {
+            // Load properties
+            var annotations = AnnotationCollection.Annotate(dataObject);
+            var members = annotations?.Get<IMembersAnnotation>()?.Members?.ToList();
+            var propertiesView = new PropertiesView()
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill(2)
+            };
+            propertiesView.LoadProperties(dataObject);
+
+            // Get submit buttons
+            var buttons = new List<Button>();
+            var submit = members?.FirstOrDefault(m => m.Get<IAccessAnnotation>().IsVisible && m.Get<IMemberAnnotation>()?.Member.GetAttribute<SubmitAttribute>() != null);
+            if (submit != null)
+            {
+                var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
+                foreach (var availableValue in availableValuesAnnotation.AvailableValues)
                 {
-                    var result = MessageBox.Query(title, message.ToString(), buttons.ToArray());
-                    if (result != -1)
-                        memberValue.Value = availableValues.AvailableValues.ElementAt(result).Get<IStringValueAnnotation>().Value;
-                    
-                    // Make sure we only run 1 query at a time
-                    resetEvent.Set();
-                    queryRunning = false;
-                });
-                
-                // Wait for timeout, then close the dialog
-                var timedOut = false;
+                    var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue)
+                    {
+                        Clicked = () =>
+                        {
+                            Application.Current.Running = false;
+                            availableValuesAnnotation.SelectedValue = availableValue;
+                            submit.Write();
+                        }
+                    };
+                    buttons.Add(button);
+                }
+            }
+            
+            // Create dialog
+            var dialog = new Dialog(getTitle(members, dataObject), buttons.ToArray());
+            dialog.Add(propertiesView);
+
+            // Show dialog
+            var queryRunning = true;
+            ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
+            Application.MainLoop.Invoke(() =>
+            {
+                Application.Run(dialog);
+                resetEvent.Set();
+                queryRunning = false;
+            });
+
+            // Wait for timeout, then close the dialog
+            var timedOut = false;
+            if (TimeSpan.MaxValue != Timeout)
+            {
                 Task.Delay(Timeout).ContinueWith(t =>
                 {
                     if (queryRunning && Application.Current is Dialog)
                     {
                         timedOut = true;
                         Application.Current.Running = false;
+                        Application.MainLoop.Driver.Wakeup();
                     }
                 });
-                
-                resetEvent.WaitOne();
-                if (timedOut)
-                    throw new TimeoutException("User input timed out.");
             }
-
-            // Save changes.
-            annotations.Write();
+            
+            resetEvent.Wait();
+            if (timedOut)
+                throw new TimeoutException("User input timed out.");
         }
     }
 }
