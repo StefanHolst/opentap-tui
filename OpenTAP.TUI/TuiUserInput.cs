@@ -38,6 +38,8 @@ namespace OpenTAP.TUI
             };
             propertiesView.LoadProperties(dataObject);
 
+            propertiesView.Submit += () => { Application.Current.Running = false; };
+            
             // Get submit buttons
             var buttons = new List<Button>();
             var submit = members?.FirstOrDefault(m => m.Get<IAccessAnnotation>().IsVisible && m.Get<IMemberAnnotation>()?.Member.GetAttribute<SubmitAttribute>() != null);
@@ -60,7 +62,8 @@ namespace OpenTAP.TUI
             }
             
             // Create dialog
-            var dialog = new Dialog(getTitle(members, dataObject), buttons.ToArray());
+            // var dialog = new Dialog(getTitle(members, dataObject), buttons.ToArray());
+            var dialog = new Dialog(getTitle(members, dataObject));
             dialog.Add(propertiesView);
 
             // Show dialog
