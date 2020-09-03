@@ -9,6 +9,34 @@ namespace OpenTap.Tui
 {
     public class TreeView : ListView
     {
+        public void SetVisible(Func<TreeViewItem, bool> predicate)
+        {
+            foreach (var item in source)
+            {
+                item.SetVisible(predicate);
+            }
+        }
+        
+        public void SelectFirstMatch(Func<TreeViewItem, bool> predicate)
+        {
+            void getIndexOfFirstMatch(List<TreeViewItem> items, ref int index)
+            {
+                var item = items.FirstOrDefault(x => x.Visible);
+                if (item != null)
+                {
+                    index++;
+                    if (predicate(item))
+                        return;
+                    getIndexOfFirstMatch(item.SubItems, ref index);
+                }
+            }
+
+            var selected = -1;
+            getIndexOfFirstMatch(source, ref selected);
+            if (selected >= 0)
+                SelectedItem = selected;
+        }
+        
         private Func<object, string> getTitle;
         private Func<object, string[]> getGroup;
         public List<TreeViewItem> source { get; set; }
@@ -88,7 +116,8 @@ namespace OpenTap.Tui
                 var list = new List<string>();
                 foreach (var item in items)
                 {
-                    list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{ (item.obj != null ? getTitle(item.obj) : item.Title)}");
+                    if (item.Visible)
+                        list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{ (item.obj != null ? getTitle(item.obj) : item.Title)}");
                     if (item.IsExpanded)
                         list.AddRange(displayList(item.SubItems, level + 1));
                 }
@@ -107,6 +136,8 @@ namespace OpenTap.Tui
         {
             foreach (var item in items)
             {
+                if (item.Visible == false)
+                    continue;
                 if (index == 0)
                     return item;
 
@@ -149,6 +180,7 @@ namespace OpenTap.Tui
             public string Title { get; set; }
             public object obj { get; set; }
             public bool IsExpanded { get; set; }
+            public bool Visible { get; set; } = true;
 
             public List<TreeViewItem> SubItems { get; set; }
 
@@ -158,6 +190,36 @@ namespace OpenTap.Tui
                 this.obj = obj;
 
                 SubItems = new List<TreeViewItem>();
+            }
+
+            public void ShowAll(TreeViewItem item)
+            {
+                item.Visible = true;
+                item.IsExpanded = true;
+
+                foreach (var subItem in item.SubItems)
+                {
+                    ShowAll(subItem);
+                }
+            }
+
+            public bool SetVisible(Func<TreeViewItem, bool> predicate)
+            {
+                Visible = false;
+                foreach (var item in SubItems)
+                {
+                    Visible |= item.SetVisible(predicate);
+                }
+
+                var matchesPred = predicate(this);
+                Visible |= matchesPred;
+
+                // If a group is matched by the predicate, show all children of the group
+                if (matchesPred)
+                    ShowAll(this);
+
+                IsExpanded = Visible;
+                return Visible;
             }
         }
     }

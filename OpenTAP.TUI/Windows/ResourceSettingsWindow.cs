@@ -18,8 +18,9 @@ namespace OpenTAP.TUI
         private Button addButton { get; set; }
         private PropertiesView detailsView { get; set; } = new PropertiesView();
 
-        public ResourceSettingsWindow(string title, IList Resources) : base(null)
+        public ResourceSettingsWindow(string title, IList resources) : base(null)
         {
+            this.Resources = resources;
             
             // list frame
             var frame = new FrameView(title)
@@ -64,7 +65,8 @@ namespace OpenTAP.TUI
                         listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
                         if (Resources.Count == 1)
                             detailsView.LoadProperties(resource);
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         ComponentSettings.SaveAllCurrentSettings();
                         TUI.Log.Error(ex);
