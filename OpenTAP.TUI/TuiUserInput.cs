@@ -34,36 +34,21 @@ namespace OpenTAP.TUI
                 X = 0,
                 Y = 0,
                 Width = Dim.Fill(),
-                Height = Dim.Fill(2)
+                Height = Dim.Fill()
             };
             propertiesView.LoadProperties(dataObject);
-
             propertiesView.Submit += () => { Application.Current.Running = false; };
             
-            // Get submit buttons
-            var buttons = new List<Button>();
-            var submit = members?.FirstOrDefault(m => m.Get<IAccessAnnotation>().IsVisible && m.Get<IMemberAnnotation>()?.Member.GetAttribute<SubmitAttribute>() != null);
-            if (submit != null)
-            {
-                var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
-                foreach (var availableValue in availableValuesAnnotation.AvailableValues)
-                {
-                    var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue)
-                    {
-                        Clicked = () =>
-                        {
-                            Application.Current.Running = false;
-                            availableValuesAnnotation.SelectedValue = availableValue;
-                            submit.Write();
-                        }
-                    };
-                    buttons.Add(button);
-                }
-            }
-            
             // Create dialog
-            // var dialog = new Dialog(getTitle(members, dataObject), buttons.ToArray());
-            var dialog = new Dialog(getTitle(members, dataObject));
+            var dialogTitle = getTitle(members, dataObject);
+            var dialog = new EditWindow(dialogTitle)
+            {
+                Width = Dim.Percent(50),
+                Height = Dim.Percent(50),
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                ColorScheme = Colors.Dialog
+            };
             dialog.Add(propertiesView);
 
             // Show dialog
@@ -82,7 +67,7 @@ namespace OpenTAP.TUI
             {
                 Task.Delay(Timeout).ContinueWith(t =>
                 {
-                    if (queryRunning && Application.Current is Dialog)
+                    if (queryRunning && Application.Current is EditWindow win && win.Title == dialogTitle)
                     {
                         timedOut = true;
                         Application.Current.Running = false;

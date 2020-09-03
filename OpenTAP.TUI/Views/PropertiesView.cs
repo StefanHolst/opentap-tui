@@ -38,6 +38,10 @@ namespace OpenTAP.TUI
 
                     if (x.Get<IObjectValueAnnotation>()?.Value is Action)
                         return $"[ {x.Get<DisplayAttribute>().Name} ]";
+
+                    // Don't show member name if layout is fullrow
+                    if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
+                        return value;
                     
                     return $"{x.Get<DisplayAttribute>().Name}: {value}";
                 }, 
@@ -74,9 +78,10 @@ namespace OpenTAP.TUI
             Add(submitView);
 
             // Make sure we redraw everything after we have loaded everything. Just to make sure we have the right sizes.
-            Enter += args =>
+            LayoutComplete += args =>
             {
                 treeView.UpdateListView();
+                ListViewOnSelectedChanged(null);
             };
         }
 
@@ -134,8 +139,8 @@ namespace OpenTAP.TUI
             var submitButtons = getSubmitButtons();
             if (submitButtons.Any())
             {
-                descriptionFrame.Height = Dim.Fill(2);
-                submitView.Clear();
+                descriptionFrame.Height = Dim.Fill(1);
+                submitView.RemoveAll();
                 submitView.Add(submitButtons.ToArray());
                 
                 // Center buttons
