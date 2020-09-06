@@ -94,6 +94,9 @@ namespace OpenTAP.TUI
                     TestPlanView.AbortTestPlan();
             }
 
+            if (keyEvent.Key == Key.ControlS)
+                return TestPlanView.ProcessKey(keyEvent);
+
             return base.ProcessKey(keyEvent);
         }
     }
