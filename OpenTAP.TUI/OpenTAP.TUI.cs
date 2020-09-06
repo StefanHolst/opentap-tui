@@ -155,7 +155,7 @@ namespace OpenTAP.TUI
                     }),
                     new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
                     new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
-                    new MenuItem("_Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
+                    new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
                     new MenuItem("_Quit", "", () => Application.RequestStop())
                 });
                 var editmenu = new MenuBarItem("_Edit", new MenuItem[]
@@ -170,7 +170,7 @@ namespace OpenTAP.TUI
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
                     }),
-                    new MenuItem("_Insert New Step Child", "", () =>
+                    new MenuItem("Insert New Step _Child", "", () =>
                     {
                         var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
                         Application.Run(newStep);
