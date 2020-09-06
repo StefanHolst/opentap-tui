@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,8 +17,11 @@ namespace OpenTAP.TUI
         private AnnotationCollection annotations { get; set; }
         private TreeView treeView { get; set; }
         private TextView descriptionView { get; set; }
+        private FrameView descriptionFrame { get; set; }
+        private View submitView { get; set; }
 
         public event Action PropertiesChanged;
+        public event Action Submit;
         
         public PropertiesView()
         {
@@ -34,6 +38,10 @@ namespace OpenTAP.TUI
 
                     if (x.Get<IObjectValueAnnotation>()?.Value is Action)
                         return $"[ {x.Get<DisplayAttribute>().Name} ]";
+
+                    // Don't show member name if layout is fullrow
+                    if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
+                        return value;
                     
                     return $"{x.Get<DisplayAttribute>().Name}: {value}";
                 }, 
@@ -49,7 +57,7 @@ namespace OpenTAP.TUI
             {
                 ReadOnly = true,
             };
-            var descriptionFrame = new FrameView("Description")
+            descriptionFrame = new FrameView("Description")
             {
                 // X = 0,
                 Y = Pos.Bottom(treeView),
@@ -60,11 +68,50 @@ namespace OpenTAP.TUI
             descriptionFrame.Add(descriptionView);
             Add(descriptionFrame);
 
+            // Submit buttons view
+            submitView = new View()
+            {
+                Height = 1,
+                Width = Dim.Fill(),
+                Y = Pos.Bottom(descriptionFrame)
+            };
+            Add(submitView);
+
             // Make sure we redraw everything after we have loaded everything. Just to make sure we have the right sizes.
-            Enter += args =>
+            LayoutComplete += args =>
             {
                 treeView.UpdateListView();
+                ListViewOnSelectedChanged(null);
             };
+        }
+
+        List<Button> getSubmitButtons()
+        {
+            // Get submit buttons
+            var buttons = new List<Button>();
+            var members = annotations?.Get<IMembersAnnotation>()?.Members?.ToList();
+            var submit = members?.FirstOrDefault(m => m.Get<IAccessAnnotation>().IsVisible && m.Get<IMemberAnnotation>()?.Member.GetAttribute<SubmitAttribute>() != null);
+            if (submit != null)
+            {
+                var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
+                foreach (var availableValue in availableValuesAnnotation.AvailableValues)
+                {
+                    var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue)
+                    {
+                        Clicked = () =>
+                        {
+                            availableValuesAnnotation.SelectedValue = availableValue;
+                            submit.Write();
+                            Submit();
+                        }
+                    };
+
+                    
+                    buttons.Add(button);
+                }
+            }
+
+            return buttons;
         }
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
@@ -84,10 +131,32 @@ namespace OpenTAP.TUI
             var members = getMembers();
             if (members == null)
                 members = new AnnotationCollection[0];
-            treeView.SetTreeViewSource<AnnotationCollection>(members.ToList());
+
+            // Only show description view if there are any properties with descriptions
+            descriptionFrame.Visible = members.Any(a => a.Get<DisplayAttribute>()?.Description != null);
+
+            // Add submit buttons
+            var submitButtons = getSubmitButtons();
+            if (submitButtons.Any())
+            {
+                descriptionFrame.Height = Dim.Fill(1);
+                submitView.RemoveAll();
+                submitView.Add(submitButtons.ToArray());
+                
+                // Center buttons
+                var buttonsTotalWidth = submitButtons.Select(b => b.Bounds.Width).Sum() + submitButtons.Count() - 1;
+                submitView.Width = buttonsTotalWidth;
+                submitView.X = Pos.Center();
+                for (int i = 1; i < submitButtons.Count; i++)
+                    submitButtons[i].X = Pos.Right(submitButtons[i - 1]) + 1;
+            }
+            else
+                descriptionFrame.Height = Dim.Fill();
+            
+            treeView.SetTreeViewSource(members.ToList());
         }
 
-        static public bool FilterMember(IMemberData member)
+        public static bool FilterMember(IMemberData member)
         {
             if (member.GetAttribute<BrowsableAttribute>()?.Browsable ?? false)
                 return true;
@@ -101,7 +170,7 @@ namespace OpenTAP.TUI
                 .Where(x => 
                 {
                     var member = x.Get<IMemberAnnotation>()?.Member;
-                    if (member == null) return false;
+                    if (member == null || member.GetAttribute<SubmitAttribute>() != null) return false;
                     return FilterMember(member);
                 })
                 .ToArray();
@@ -109,7 +178,7 @@ namespace OpenTAP.TUI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null)
+            if (MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null)
             {
                 var members = getMembers();
                 if (members == null)
@@ -140,7 +209,7 @@ namespace OpenTAP.TUI
                 return true;
             }
 
-            if (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight)
+            if (MostFocused is TreeView && (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight))
             {
                 treeView.ProcessKey(keyEvent);
                 return true;

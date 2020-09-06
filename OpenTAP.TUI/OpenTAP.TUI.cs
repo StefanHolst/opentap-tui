@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using OpenTap.Tui;
+using OpenTAP.TUI.PropEditProviders;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
 
@@ -16,7 +17,7 @@ namespace OpenTAP.TUI
     public class MainWindow : Window
     {
         public View StepSettingsView { get; set; }
-        public View TestPlanView { get; set; }
+        public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
 
         public MainWindow(string title) : base(title)
@@ -78,6 +79,20 @@ namespace OpenTAP.TUI
             {
                 FocusPrev();
             }
+            
+            if (TestPlanView.PlanIsRunning == false && keyEvent.Key == Key.F5)
+            {
+                // Start the testplan
+                TestPlanView.RunTestPlan();
+                return true;
+            }
+
+            if (TestPlanView.PlanIsRunning && keyEvent.Key == Key.F5 && keyEvent.IsShift)
+            {
+                // Abort plan?
+                if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?", "Yes", "No") == 0)
+                    TestPlanView.AbortTestPlan();
+            }
 
             return base.ProcessKey(keyEvent);
         }
@@ -105,6 +120,14 @@ namespace OpenTAP.TUI
                 Quitting = true;
                 Application.Shutdown();
             });
+
+            // Remove console listener to stop any log messages being printed on top of the TUI
+            var consoleListener = OpenTap.Log.GetListeners().OfType<ConsoleTraceListener>().FirstOrDefault();
+            if (consoleListener != null)
+                OpenTap.Log.RemoveListener(consoleListener);
+
+            // Stop OpenTAP from taking over the terminal for user inputs.
+            UserInput.SetInterface(null);
             
             try
             {
@@ -116,6 +139,13 @@ namespace OpenTAP.TUI
                 StepSettingsView = new PropertiesView();
 
                 // menu items
+                var runmenuItem = new MenuItem("_Run Test Plan", "", () =>
+                {
+                    if (TestPlanView.PlanIsRunning)
+                        TestPlanView.AbortTestPlan();
+                    else
+                        TestPlanView.RunTestPlan();
+                });
                 var filemenu = new MenuBarItem("_File", new MenuItem[]
                 {
                     new MenuItem("_New", "", () =>
@@ -149,7 +179,8 @@ namespace OpenTAP.TUI
                             TestPlanView.InsertNewChildStep(newStep.PluginType);
                             StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                         }
-                    })
+                    }),
+                    runmenuItem
                 });
                 var helpmenu = new MenuBarItem("_Help", new MenuItem[]
                 {
@@ -240,7 +271,17 @@ namespace OpenTAP.TUI
                     Height = Dim.Percent(75)
                 };
                 testPlanFrame.Add(TestPlanView);
+                TestPlanView.Frame = testPlanFrame;
                 win.Add(testPlanFrame);
+
+                TestPlanView.TestPlanStarted = () =>
+                {
+                    runmenuItem.Title = "_Abort Test Plan";
+                };
+                TestPlanView.TestPlanStopped = () =>
+                {
+                    runmenuItem.Title = "_Run Test Plan";
+                };
 
                 // Add step settings view
                 var settingsFrame = new FrameView("Settings")
@@ -268,9 +309,6 @@ namespace OpenTAP.TUI
                 
                 // Update testplanview when step settings are changed
                 StepSettingsView.PropertiesChanged += TestPlanView.Update;
-                
-                // Stop OpenTAP from taking over the terminal for user inputs.
-                UserInput.SetInterface(null);
                 
                 // Load plan from args
                 if (path != null)
