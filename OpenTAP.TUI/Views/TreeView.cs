@@ -111,6 +111,9 @@ namespace OpenTap.Tui
 
         public void UpdateListView()
         {
+            if (source == null)
+                return;
+            
             List<string> displayList(List<TreeViewItem> items, int level = 0)
             {
                 var list = new List<string>();
