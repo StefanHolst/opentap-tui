@@ -38,7 +38,6 @@ namespace OpenTAP.TUI
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
                     Application.Shutdown();
-                    TUI.Quitting = true;
                 }
             }
 
@@ -108,8 +107,6 @@ namespace OpenTAP.TUI
         public string path { get; set; }
 
         public static TraceSource Log = OpenTap.Log.CreateSource("TUI");
-        public static bool Quitting { get; set; }
-
         public TestPlanView TestPlanView { get; set; }
         public PropertiesView StepSettingsView { get; set; }
         public FrameView LogFrame { get; set; }
@@ -120,7 +117,6 @@ namespace OpenTAP.TUI
         {
             cancellationToken.Register(() =>
             {
-                Quitting = true;
                 Application.Shutdown();
             });
 
@@ -342,9 +338,6 @@ namespace OpenTAP.TUI
             {
                 Log.Error(DefaultExceptionMessages.DefaultExceptionMessage);
                 Log.Debug(ex);
-                
-                if (Quitting == false)
-                    Execute(cancellationToken);
             }
 
             return 0;
