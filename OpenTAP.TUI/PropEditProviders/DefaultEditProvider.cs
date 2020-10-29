@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Reflection;
-using System.Text;
-using OpenTap;
-using OpenTap.Tui;
+using OpenTap.Tui.Views;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     public class DefaultEditProvider : IPropEditProvider
     {

@@ -1,8 +1,7 @@
-using OpenTap;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.PropEditProviders;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Windows
 {
     public class ConnectionSettingsWindow : Window
     {

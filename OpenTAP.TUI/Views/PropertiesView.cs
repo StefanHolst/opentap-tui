@@ -4,12 +4,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
-using OpenTap;
-using OpenTap.Tui;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.PropEditProviders;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class PropertiesView : View
     {

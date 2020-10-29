@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTAP" Version="9.9.0" />
+    <OpenTapPackageReference Include="OpenTAP" Version="9.9.0" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
   <ItemGroup>

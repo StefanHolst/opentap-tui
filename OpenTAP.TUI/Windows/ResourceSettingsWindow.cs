@@ -1,14 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using OpenTap;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.PropEditProviders;
+using OpenTap.Tui.Views;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Windows
 {
     public class ResourceSettingsWindow : Window
     {

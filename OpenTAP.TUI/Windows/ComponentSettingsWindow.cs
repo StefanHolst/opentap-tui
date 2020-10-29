@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
-using System.Xml.Serialization;
-using OpenTap;
+using OpenTap.Tui.Views;
 using Terminal.Gui;
 
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Windows
 {
     public class ComponentSettingsWindow : Window
     {

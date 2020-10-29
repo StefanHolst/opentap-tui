@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class LogPanelView : ListView, ILogListener
     {
