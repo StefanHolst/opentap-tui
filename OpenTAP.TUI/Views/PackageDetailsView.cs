@@ -72,7 +72,7 @@ namespace OpenTap.Tui.Views
             return sb.ToString();
         }
 
-        public void LoadPackage(PackageViewModel package, PackageDef installedOpenTap)
+        public void LoadPackage(PackageViewModel package, Installation installation, PackageDef installedOpentap)
         {
             if (package == null) // a group
             {
@@ -86,7 +86,7 @@ namespace OpenTap.Tui.Views
                 var opentapDependency = package.Dependencies.FirstOrDefault(d => d.Name.Equals("opentap", StringComparison.OrdinalIgnoreCase));
                 if (opentapDependency != null)
                 {
-                    if (opentapDependency.Version.IsCompatible(installedOpenTap.Version) == false)
+                    if (opentapDependency.Version.IsCompatible(installedOpentap.Version) == false)
                         isCompatible = false;
                 }
             }

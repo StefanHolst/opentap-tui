@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using OpenTap.Cli;
 using OpenTap.Tui.Windows;
@@ -15,6 +16,14 @@ namespace OpenTap.Tui
             {
                 Application.RequestStop();
             });
+
+            // Remove console listener to stop any log messages being printed on top of the TUI
+            var consoleListener = OpenTap.Log.GetListeners().OfType<ConsoleTraceListener>().FirstOrDefault();
+            if (consoleListener != null)
+                OpenTap.Log.RemoveListener(consoleListener);
+
+            // Stop OpenTAP from taking over the terminal for user inputs.
+            UserInput.SetInterface(null);
             
             Application.Init();
             

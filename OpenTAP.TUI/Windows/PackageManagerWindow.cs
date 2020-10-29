@@ -51,9 +51,9 @@ namespace OpenTap.Tui.Windows
             var packageList = new PackageListView();
             packageList.SelectionChanged += () =>
             {
-                detailsView.LoadPackage(packageList.SelectedPackage, packageList.installedOpenTap);
+                detailsView.LoadPackage(packageList.SelectedPackage, packageList.installation, packageList.installedOpentap);
             };
-            detailsView.LoadPackage(packageList.SelectedPackage, packageList.installedOpenTap);
+            detailsView.LoadPackage(packageList.SelectedPackage,packageList.installation, packageList.installedOpentap);
             packageFrame.Add(packageList);
             
             Add(packageFrame);

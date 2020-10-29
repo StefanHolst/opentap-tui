@@ -17,30 +17,35 @@ namespace OpenTap.Tui.Windows
         private Button installButton { get; set; }
         
         private PackageViewModel package;
+        private Installation installation;
         private PackageDef installedOpentap;
+        private List<PackageViewModel> versions;
         
-        public PackageVersionSelectorWindow(PackageViewModel package, PackageDef installedOpentap) : base("Install Package")
+        public PackageVersionSelectorWindow(PackageViewModel package, Installation installation, PackageDef installedOpentap) : base("Install Package")
         {
             this.package = package;
+            this.installation = installation;
             this.installedOpentap = installedOpentap;
             
+            // Install button
             installButton = new Button("", true)
             {
                 X = Pos.Center()
             };
+            installButton.Clicked += () => { InstallButtonClicked(false); };
             
             // Get package versions
-            var versions = GetVersions(package);
-            versionsView = new ListView(versions.Select(p => $"{p.Version}{(p.isInstalled ? " (Installed)" : "")}").ToList())
+            versions = GetVersions(package);
+            versionsView = new ListView()
             {
                 AllowsMarking = true
             };
-            versionsView.Source.SetMark(0, true);
             versionsView.SelectedItemChanged += args =>
             {
-                detailsView.LoadPackage(versions[args.Item], installedOpentap);
+                detailsView.LoadPackage(versions[args.Item], installation, installedOpentap);
                 installButton.Text = versions[args.Item].isInstalled ? "Uninstall" : "Install";
             };
+            UpdateVersions();
             
             // Versions frame
             var versionsFrame = new FrameView("Versions")
@@ -60,7 +65,7 @@ namespace OpenTap.Tui.Windows
             detailsView = new PackageDetailsView();
             detailsFrame.Add(detailsView);
 
-
+            // Install frame
             var installFrame = new FrameView("")
             {
                 Height = 3,
@@ -69,52 +74,37 @@ namespace OpenTap.Tui.Windows
             };
             installFrame.Add(installButton);
             
+            // Log panel
+            var logFrame = new FrameView("Log Panel")
+            {
+                Y = Pos.Percent(75),
+                Height = Dim.Fill(),
+                Width = Dim.Fill()
+            };
+            logFrame.Add(new LogPanelView());
             
+            // Add frames
             Add(versionsFrame);
             Add(detailsFrame);
             Add(installFrame);
-
-
-
-
-
-
-            // // Force install checkbox
-            // var forceCheck = new CheckBox("Force Install?") { Y = 5 };
-            // Add(forceCheck);
-            //
-            // // Add install button
-            // var installButton = new Button($"{(package.isInstalled ? "Uninstall" : "Install")} Package")
-            // {
-            //     Y = 12,
-            //     X = Pos.Center()
-            // };
-            // installButton.Clicked += () =>
-            // {
-            //     InstallButtonClicked(forceCheck.Checked);
-            // };
-            // Add(installButton);
-            //
-            // // Log panel
-            // var logFrame = new FrameView("Log Panel")
-            // {
-            //     Y = Pos.Percent(50),
-            //     Height = Dim.Fill(),
-            //     Width = Dim.Fill()
-            // };
-            // logFrame.Add(new LogPanelView());
-            // Add(logFrame);
+            Add(logFrame);
         }
 
         void InstallButtonClicked(bool force)
         {
-                    
-            if (package.isInstalled == false)
+            var selectedPackage = versions.FirstOrDefault();
+            for (int i = 0; i < versionsView.Source.Count; i++)
+            {
+                if (versionsView.Source.IsMarked(i))
+                    selectedPackage = versions[i];
+            }
+            
+            if (selectedPackage.isInstalled == false)
             {
                 var installAction = new PackageInstallAction()
                 {
                     Packages = new[] {package.Name},
-                    Version = package.Version.ToString(),
+                    Version = selectedPackage.Version.ToString(),
                     Force = force
                 };
                 installAction.Error += exception =>
@@ -122,11 +112,14 @@ namespace OpenTap.Tui.Windows
                     // TODO: Fix message width, wrap the text..
                     MessageBox.ErrorQuery(50, 7, "Installation Error", exception.Message);
                 };
-                installAction.ProgressUpdate += (percent, message) =>
+                TapThread.Start(() =>
                 {
-                    // progress.Fraction = (float)(percent / 100.0);
-                };
-                TapThread.Start(() => { installAction.Execute(TapThread.Current.AbortToken); });
+                    // Add tui user input
+                    UserInput.SetInterface(new TuiUserInput());
+                    
+                    installAction.Execute(TapThread.Current.AbortToken);
+                    Application.MainLoop.Invoke(UpdateVersions);
+                });
             }
             else
             {
@@ -136,7 +129,14 @@ namespace OpenTap.Tui.Windows
                     Force = force
                 };
                     
-                TapThread.Start(() => { uninstallAction.Execute(TapThread.Current.AbortToken); });
+                TapThread.Start(() =>
+                {
+                    // Add tui user input
+                    UserInput.SetInterface(new TuiUserInput());
+                    
+                    uninstallAction.Execute(TapThread.Current.AbortToken);
+                    Application.MainLoop.Invoke(UpdateVersions);
+                });
             }        
         }
 
@@ -165,6 +165,7 @@ namespace OpenTap.Tui.Windows
             jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
             
             // Parse the json response data
+            var installedPackage = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);
             var list = new List<PackageViewModel>();
             var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
             foreach (var item in jsonPackages.EnumerateArray())
@@ -172,7 +173,7 @@ namespace OpenTap.Tui.Windows
                 var version = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText());
                 version.Name = package.Name;
 
-                if (package.isInstalled && package.installedVersion == version.Version)
+                if (installedPackage != null && installedPackage.Version == version.Version)
                     version.isInstalled = true;
                 
                 list.Add(version);
@@ -181,6 +182,15 @@ namespace OpenTap.Tui.Windows
             return list;
         }
 
+        void UpdateVersions()
+        {
+            var installedPackage = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);
+            versionsView.SetSource(versions.Select(p => $"{p.Version}{(installedPackage?.Version == p.Version ? " (Installed)" : "")}").ToList());
+            versionsView.Source.SetMark(0, true);
+            
+            installButton.Text = versions.FirstOrDefault()?.isInstalled == true ? "Uninstall" : "Install";
+        }
+        
         public override bool ProcessKey (KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Space)

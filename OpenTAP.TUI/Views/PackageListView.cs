@@ -17,16 +17,18 @@ namespace OpenTap.Tui.Views
     public class PackageListView : View
     {
         private TreeView treeView { get; set; }
-        public PackageDef installedOpenTap { get; set; }
+        public Installation installation { get; set; }
+        public PackageDef installedOpentap { get; set; }
 
         public event Action SelectionChanged;
         public PackageViewModel SelectedPackage { get; set; }
+
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter && Application.Current is PackageVersionSelectorWindow == false)
             {
-                var dialog = new PackageVersionSelectorWindow(SelectedPackage, installedOpenTap);
+                var dialog = new PackageVersionSelectorWindow(SelectedPackage, installation, installedOpentap);
                 Application.Run(dialog);
                 
                 // TODO: Update list, package might have been installed or uninstalled
@@ -91,16 +93,15 @@ namespace OpenTap.Tui.Views
             }
             
             // Get installed packages
-            var installation = new Installation(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            installation = new Installation(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            installedOpentap = installation.GetOpenTapPackage();
             var installedPackages = installation.GetPackages();
-            installedOpenTap = installation.GetOpenTapPackage();
             foreach (var installedPackage in installedPackages)
             {
                 var existing = list.FirstOrDefault(p => p.Name == installedPackage.Name);
                 if (existing != null)
                 {
                     existing.isInstalled = true;
-                    existing.installedVersion = installedPackage.Version;
                 }
                 else
                 {
@@ -155,7 +156,6 @@ namespace OpenTap.Tui.Views
         public List<PackageDependency> Dependencies { get; set; }
         
         public bool isInstalled { get; set; }
-        public SemanticVersion installedVersion { get; set; }
     }
 
     public class CpuArchitectureConverter : JsonConverter<CpuArchitecture>

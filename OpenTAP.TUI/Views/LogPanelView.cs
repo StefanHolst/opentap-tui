@@ -9,8 +9,9 @@ namespace OpenTap.Tui.Views
 {
     public class LogPanelView : ListView, ILogListener
     {
-        private static List<string> messages = new List<string>();
-        private static object lockObj = new object();
+        private List<string> messages = new List<string>();
+        private object lockObj = new object();
+
 
         public LogPanelView()
         {
