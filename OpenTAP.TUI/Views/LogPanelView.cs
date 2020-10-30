@@ -9,21 +9,37 @@ namespace OpenTap.Tui.Views
 {
     public class LogPanelView : ListView, ILogListener
     {
-        private List<string> messages = new List<string>();
-        private object lockObj = new object();
+        private static List<string> messages = new List<string>();
+        private static object lockObj = new object();
+        private static bool listenerAdded = false;
+        private static Action refreshAction;
+        private View parent;
 
-
-        public LogPanelView()
+        public LogPanelView(View parent)
         {
-            Log.AddListener(this);
+            this.parent = parent;
+            lock (lockObj)
+            {
+                if (listenerAdded == false)
+                {
+                    listenerAdded = true;
+                    Log.AddListener(this);
+                }
+
+                refreshAction += Refresh;
+                parent.LayoutComplete += (_) =>  Refresh();
+            }
+            
             CanFocus = true;
+            SetSource(messages);
         }
 
         private void Refresh()
         {
             lock (lockObj)
             {
-                Application.MainLoop.Invoke(Update);
+                if (Application.Current == parent)
+                    Application.MainLoop.Invoke(Update);
             }
         }
 
@@ -33,7 +49,6 @@ namespace OpenTap.Tui.Views
             {
                 if (messages.Any()) 
                 {
-                    SetSource(messages);
                     TopItem = Math.Max(0, messages.Count - Bounds.Height);
                     SelectedItem = messages.Count - 1;
                 }
@@ -46,12 +61,13 @@ namespace OpenTap.Tui.Views
             {
                 messages.AddRange(Events.Select(e => e.Message));
             }
-            Refresh();
+
+            refreshAction?.Invoke();
         }
 
         public void Flush()
         {
-            Refresh();
+            refreshAction?.Invoke();
         }
     }
 }

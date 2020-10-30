@@ -299,7 +299,7 @@ namespace OpenTap.Tui
                     Width = Dim.Fill(),
                     Height = Dim.Fill()
                 };
-                LogFrame.Add(new LogPanelView());
+                LogFrame.Add(new LogPanelView(win));
                 win.Add(LogFrame);
                 win.LogFrame = LogFrame;
 

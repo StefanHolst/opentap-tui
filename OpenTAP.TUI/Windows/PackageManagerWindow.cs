@@ -3,7 +3,7 @@ using OpenTap.Tui.Views;
 
 namespace OpenTap.Tui.Windows
 {
-    public class PmWindow : Window
+    public class PackageManagerWindow : Window
     {
         private TreeView treeView { get; set; }
         private PackageDetailsView detailsView { get; set; }
@@ -21,7 +21,7 @@ namespace OpenTap.Tui.Windows
             return base.ProcessKey(keyEvent);
         }
         
-        public PmWindow() : base("OpenTAP TUI - Package Manager")
+        public PackageManagerWindow() : base("OpenTAP TUI - Package Manager")
         {
             // Package Details
             var detailsFrame = new FrameView("Package Details")
@@ -40,7 +40,7 @@ namespace OpenTap.Tui.Windows
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
             };
-            logsFrame.Add(new LogPanelView());
+            logsFrame.Add(new LogPanelView(Application.Top));
             
             // Packages
             var packageFrame = new FrameView("Packages")

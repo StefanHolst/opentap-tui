@@ -41,7 +41,7 @@ namespace OpenTap.Tui
             top.Add(menu);
 
             // Add pm window
-            top.Add(new PmWindow()
+            top.Add(new PackageManagerWindow()
             {
                 X = 0,
                 Y = 1,

@@ -52,7 +52,7 @@ namespace OpenTap.Tui.Views
                     else
                     {
                         sb.AppendLine();
-                        sb.AppendLine(element.Name.ToUpper() + ":");
+                        sb.AppendLine(element.Name + ":");
                         foreach (var childNode in element.ChildNodes)
                             parseXmlNode(childNode);
                     }
@@ -69,7 +69,7 @@ namespace OpenTap.Tui.Views
                 parseXmlNode(item);
             }
 
-            return sb.ToString();
+            return sb.ToString().Replace("\r", "");
         }
 
         public void LoadPackage(PackageViewModel package, Installation installation, PackageDef installedOpentap)
@@ -95,10 +95,10 @@ namespace OpenTap.Tui.Views
                             (package.Owner != null ? $"Owner: {package.Owner}\n" : "") + 
                             (package.SourceUrl != null ? $"SourceUrl: {package.SourceUrl}\n" : "") + 
                             $"{(Application.Current is PackageVersionSelectorWindow ? "" : "Latest ")}Version: {package.Version}\n" +
-                            (package.Architecture != null ? $"Architecture: {package.Architecture}\n" : "") + 
+                            (package.Architecture != CpuArchitecture.Unspecified ? $"Architecture: {package.Architecture}\n" : "") + 
                             (package.OS != null ? $"OS: {package.OS}\n" : "") + 
                             (package.Dependencies != null ? $"Dependencies: {string.Join(", ", package.Dependencies.Select(p => $"{p.Name}:{p.Version}"))}\n" : "") + 
-                            $"Compatible: {(isCompatible ? "Yes" : "No")}\n\n" +
+                            (package.OS != null || package.Architecture != CpuArchitecture.Unspecified ? $"Compatible: {(isCompatible ? "Yes" : "No")}\n\n" : "") + 
                             $"Description: \n{parseDescription(package.Description)}";
         }
     }

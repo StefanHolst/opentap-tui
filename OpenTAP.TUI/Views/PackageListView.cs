@@ -23,7 +23,6 @@ namespace OpenTap.Tui.Views
         public event Action SelectionChanged;
         public PackageViewModel SelectedPackage { get; set; }
 
-
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter && Application.Current is PackageVersionSelectorWindow == false)

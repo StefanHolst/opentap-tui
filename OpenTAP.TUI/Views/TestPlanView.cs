@@ -194,7 +194,6 @@ namespace OpenTap.Tui.Views
             TestPlanStarted();
             testPlanThread = TapThread.Start(() =>
             {
-
                 // Add tui user input
                 UserInput.SetInterface(new TuiUserInput());
                 

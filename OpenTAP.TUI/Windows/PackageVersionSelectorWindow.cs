@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using OpenTap.Package;
 using OpenTap.Tui.Views;
 using Terminal.Gui;
@@ -20,6 +21,7 @@ namespace OpenTap.Tui.Windows
         private Installation installation;
         private PackageDef installedOpentap;
         private List<PackageViewModel> versions;
+        private TapThread runningThread;
         
         public PackageVersionSelectorWindow(PackageViewModel package, Installation installation, PackageDef installedOpentap) : base("Install Package")
         {
@@ -81,7 +83,7 @@ namespace OpenTap.Tui.Windows
                 Height = Dim.Fill(),
                 Width = Dim.Fill()
             };
-            logFrame.Add(new LogPanelView());
+            logFrame.Add(new LogPanelView(this));
             
             // Add frames
             Add(versionsFrame);
@@ -90,13 +92,25 @@ namespace OpenTap.Tui.Windows
             Add(logFrame);
         }
 
+        private TraceSource log = Log.CreateSource("test");
+        
         void InstallButtonClicked(bool force)
         {
+            log.Info("Something");
+            return;
+            
             var selectedPackage = versions.FirstOrDefault();
             for (int i = 0; i < versionsView.Source.Count; i++)
             {
                 if (versionsView.Source.IsMarked(i))
                     selectedPackage = versions[i];
+            }
+
+            if (runningThread != null)
+            {
+                // cancel
+                runningThread.Abort();
+                return;
             }
             
             if (selectedPackage.isInstalled == false)
@@ -112,13 +126,16 @@ namespace OpenTap.Tui.Windows
                     // TODO: Fix message width, wrap the text..
                     MessageBox.ErrorQuery(50, 7, "Installation Error", exception.Message);
                 };
-                TapThread.Start(() =>
+                
+                installButton.Text = "Cancel";
+                runningThread = TapThread.Start(() =>
                 {
                     // Add tui user input
                     UserInput.SetInterface(new TuiUserInput());
                     
                     installAction.Execute(TapThread.Current.AbortToken);
                     Application.MainLoop.Invoke(UpdateVersions);
+                    runningThread = null;
                 });
             }
             else
@@ -128,14 +145,16 @@ namespace OpenTap.Tui.Windows
                     Packages = new []{ package.Name },
                     Force = force
                 };
-                    
-                TapThread.Start(() =>
+                
+                installButton.Text = "Cancel";
+                runningThread = TapThread.Start(() =>
                 {
                     // Add tui user input
                     UserInput.SetInterface(new TuiUserInput());
                     
                     uninstallAction.Execute(TapThread.Current.AbortToken);
                     Application.MainLoop.Invoke(UpdateVersions);
+                    runningThread = null;
                 });
             }        
         }
