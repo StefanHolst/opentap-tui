@@ -19,6 +19,7 @@ namespace OpenTap.Tui.Windows
         
         private PackageViewModel package;
         private Installation installation;
+        private PackageDef installedVersion;
         private PackageDef installedOpentap;
         private List<PackageViewModel> versions;
         private TapThread runningThread;
@@ -27,6 +28,7 @@ namespace OpenTap.Tui.Windows
         {
             this.package = package;
             this.installation = installation;
+            installedVersion = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);
             this.installedOpentap = installedOpentap;
             
             // Install button
@@ -45,7 +47,6 @@ namespace OpenTap.Tui.Windows
             versionsView.SelectedItemChanged += args =>
             {
                 detailsView.LoadPackage(versions[args.Item], installation, installedOpentap);
-                installButton.Text = versions[args.Item].isInstalled ? "Uninstall" : "Install";
             };
             UpdateVersions();
             
@@ -108,7 +109,7 @@ namespace OpenTap.Tui.Windows
                 return;
             }
             
-            if (selectedPackage.isInstalled == false)
+            if ((installedVersion != null && installedVersion.Version == selectedPackage.Version) == false)
             {
                 var installAction = new PackageInstallAction()
                 {
@@ -151,7 +152,7 @@ namespace OpenTap.Tui.Windows
                     Application.MainLoop.Invoke(UpdateVersions);
                     runningThread = null;
                 });
-            }        
+            }   
         }
 
         List<PackageViewModel> GetVersions(PackageViewModel package)
@@ -186,10 +187,6 @@ namespace OpenTap.Tui.Windows
             {
                 var version = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText());
                 version.Name = package.Name;
-
-                if (installedPackage != null && installedPackage.Version == version.Version)
-                    version.isInstalled = true;
-                
                 list.Add(version);
             }
 
@@ -198,11 +195,12 @@ namespace OpenTap.Tui.Windows
 
         void UpdateVersions()
         {
-            var installedPackage = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);
-            versionsView.SetSource(versions.Select(p => $"{p.Version}{(installedPackage?.Version == p.Version ? " (Installed)" : "")}").ToList());
+            installedVersion = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);
+            
+            versionsView.SetSource(versions.Select(p => $"{p.Version}{(installedVersion?.Version == p.Version ? " (Installed)" : "")}").ToList());
             versionsView.Source.SetMark(0, true);
             
-            installButton.Text = versions.FirstOrDefault()?.isInstalled == true ? "Uninstall" : "Install";
+            installButton.Text = versions.FirstOrDefault()?.Version == installedVersion?.Version ? "Uninstall" : "Install";
         }
         
         public override bool ProcessKey (KeyEvent keyEvent)
@@ -211,17 +209,14 @@ namespace OpenTap.Tui.Windows
             {
                 for (int i = 0; i < versionsView.Source.Count; i++)
                     versionsView.Source.SetMark(i, false);
+                
+                installButton.Text = versions[versionsView.SelectedItem].Version == installedVersion?.Version ? "Uninstall" : "Install";
             }
             
             if (keyEvent.Key == Key.Esc)
             {
                 Running = false;
                 return true;
-            }
-
-            if (keyEvent.Key == Key.Enter)
-            {
-                // ShowVersions();
             }
             
             return base.ProcessKey (keyEvent);

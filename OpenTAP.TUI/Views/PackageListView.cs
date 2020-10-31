@@ -19,10 +19,12 @@ namespace OpenTap.Tui.Views
         private TreeView treeView { get; set; }
         public Installation installation { get; set; }
         public PackageDef installedOpentap { get; set; }
-
         public event Action SelectionChanged;
         public PackageViewModel SelectedPackage { get; set; }
 
+        private List<PackageViewModel> packages;
+        private List<PackageDef> installedPackages;
+        
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter && Application.Current is PackageVersionSelectorWindow == false)
@@ -30,8 +32,8 @@ namespace OpenTap.Tui.Views
                 var dialog = new PackageVersionSelectorWindow(SelectedPackage, installation, installedOpentap);
                 Application.Run(dialog);
                 
-                // TODO: Update list, package might have been installed or uninstalled
-                var packages = GetPackages();
+                installedPackages = installation.GetPackages();
+                packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();
                 treeView.SetTreeViewSource(packages);
             }
             
@@ -40,15 +42,21 @@ namespace OpenTap.Tui.Views
 
         public PackageListView()
         {
-            var packages = GetPackages();
+            installation = new Installation(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            installedOpentap = installation.GetOpenTapPackage();
+            installedPackages = installation.GetPackages();
+            
+            // Get packages from repo
+            packages = GetPackages();
+            packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();
             
             treeView = new TreeView(
                 (item) =>
                 {
                     var package = item as PackageViewModel;
-                    return $"{package.Name}{(package.isInstalled ? " (installed)" : "")}";
+                    return $"{package.Name}{(installedPackages.Any(p => p.Name == package.Name) ? " (installed)" : "")}";
                 },
-                (item) => (item as PackageViewModel).Group?.Split(new []{'\\', '/'}, StringSplitOptions.RemoveEmptyEntries));
+                (item) => (item as PackageViewModel)?.Group?.Split(new []{'\\', '/'}, StringSplitOptions.RemoveEmptyEntries));
             treeView.SetTreeViewSource(packages);
 
             treeView.SelectedItemChanged += (_) =>
@@ -92,31 +100,20 @@ namespace OpenTap.Tui.Views
             }
             
             // Get installed packages
-            installation = new Installation(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-            installedOpentap = installation.GetOpenTapPackage();
-            var installedPackages = installation.GetPackages();
             foreach (var installedPackage in installedPackages)
             {
                 var existing = list.FirstOrDefault(p => p.Name == installedPackage.Name);
-                if (existing != null)
-                {
-                    existing.isInstalled = true;
-                }
-                else
+                if (existing == null)
                 {
                     list.Add(new PackageViewModel()
                     {
                         Name = installedPackage.Name,
                         Description = installedPackage.Description,
                         Group = installedPackage.Group,
-                        isInstalled = false,
                         Owner = installedPackage.Owner
                     });
                 }
             }
-            
-            // Order packages
-            list = list.OrderByDescending(p => p.isInstalled).ThenBy(p => p.Group + p.Name).ToList();
  
             return list;
         }
@@ -153,8 +150,6 @@ namespace OpenTap.Tui.Views
         [JsonPropertyName("dependencies")]
         [JsonConverter(typeof(PackageDependenciesConverter))]
         public List<PackageDependency> Dependencies { get; set; }
-        
-        public bool isInstalled { get; set; }
     }
 
     public class CpuArchitectureConverter : JsonConverter<CpuArchitecture>

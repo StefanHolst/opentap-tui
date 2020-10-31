@@ -91,7 +91,8 @@ namespace OpenTap.Tui.Views
                 }
             }
 
-            nameView.Text = $"Name: {package.Name}{(package.isInstalled ? " (installed)" : "")}\n" +
+            var installedPackages = installation.GetPackages();
+            nameView.Text = $"Name: {package.Name}{(installedPackages.Any(i => i.Name == package.Name) ? " (installed)" : "")}\n" +
                             (package.Owner != null ? $"Owner: {package.Owner}\n" : "") + 
                             (package.SourceUrl != null ? $"SourceUrl: {package.SourceUrl}\n" : "") + 
                             $"{(Application.Current is PackageVersionSelectorWindow ? "" : "Latest ")}Version: {package.Version}\n" +
