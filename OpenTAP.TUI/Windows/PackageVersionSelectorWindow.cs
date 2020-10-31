@@ -92,13 +92,8 @@ namespace OpenTap.Tui.Windows
             Add(logFrame);
         }
 
-        private TraceSource log = Log.CreateSource("test");
-        
         void InstallButtonClicked(bool force)
         {
-            log.Info("Something");
-            return;
-            
             var selectedPackage = versions.FirstOrDefault();
             for (int i = 0; i < versionsView.Source.Count; i++)
             {
@@ -124,7 +119,7 @@ namespace OpenTap.Tui.Windows
                 installAction.Error += exception =>
                 {
                     // TODO: Fix message width, wrap the text..
-                    MessageBox.ErrorQuery(50, 7, "Installation Error", exception.Message);
+                    Application.MainLoop.Invoke(() => MessageBox.ErrorQuery(50, 7, "Installation Error", exception.Message, "Ok"));
                 };
                 
                 installButton.Text = "Cancel";

@@ -12,10 +12,10 @@ namespace OpenTap.Tui.Views
         private static List<string> messages = new List<string>();
         private static object lockObj = new object();
         private static bool listenerAdded = false;
-        private static Action refreshAction;
+        private static Action RefreshAction;
         private View parent;
 
-        public LogPanelView(View parent)
+        public LogPanelView(View parent = null)
         {
             this.parent = parent;
             lock (lockObj)
@@ -26,8 +26,7 @@ namespace OpenTap.Tui.Views
                     Log.AddListener(this);
                 }
 
-                refreshAction += Refresh;
-                parent.LayoutComplete += (_) =>  Refresh();
+                RefreshAction += Refresh;
             }
             
             CanFocus = true;
@@ -38,19 +37,24 @@ namespace OpenTap.Tui.Views
         {
             lock (lockObj)
             {
-                if (Application.Current == parent)
-                    Application.MainLoop.Invoke(Update);
+                if (parent == null || parent == Application.Current)
+                    Application.MainLoop.Invoke(() => Update(true));
+                else
+                    Update(false);
             }
         }
 
-        private void Update()
+        private void Update(bool setNeedsDisplay)
         {
             lock (messages)
             {
-                if (messages.Any()) 
+                if (messages.Any())
                 {
-                    TopItem = Math.Max(0, messages.Count - Bounds.Height);
+                    if (Bounds.Height > 0)
+                        top = Math.Max(0, messages.Count - Bounds.Height);
                     SelectedItem = messages.Count - 1;
+                    if (setNeedsDisplay)
+                        SetNeedsDisplay();
                 }
             }
         }
@@ -62,12 +66,12 @@ namespace OpenTap.Tui.Views
                 messages.AddRange(Events.Select(e => e.Message));
             }
 
-            refreshAction?.Invoke();
+            RefreshAction?.Invoke();
         }
 
         public void Flush()
         {
-            refreshAction?.Invoke();
+            RefreshAction?.Invoke();
         }
     }
 }
