@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Terminal.Gui;
 using OpenTap.Tui.Views;
 
@@ -59,6 +61,29 @@ namespace OpenTap.Tui.Windows
             Add(packageFrame);
             Add(detailsFrame);
             Add(logsFrame);
+
+            // Load packages in parallel
+            bool running = true;
+            Task.Run(() =>
+            {
+                packageList.LoadPackages();
+                running = false;
+            });
+            Task.Run(() =>
+            {
+                while (running)
+                {
+                    Application.MainLoop.Invoke(() => packageFrame.Title = $"Packages ");
+                    Thread.Sleep(1000);
+                    
+                    for (int i = 0; i < 3 && running; i++)
+                    {
+                        Application.MainLoop.Invoke(() => packageFrame.Title += ".");
+                        Thread.Sleep(1000);
+                    }
+                }
+                Application.MainLoop.Invoke(() => packageFrame.Title = $"Packages");
+            });
         }
     }
 }

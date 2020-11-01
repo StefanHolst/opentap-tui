@@ -8,9 +8,11 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
 using OpenTap.Package;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace OpenTap.Tui.Views
 {
@@ -46,10 +48,6 @@ namespace OpenTap.Tui.Views
             installedOpentap = installation.GetOpenTapPackage();
             installedPackages = installation.GetPackages();
             
-            // Get packages from repo
-            packages = GetPackages();
-            packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();
-            
             treeView = new TreeView(
                 (item) =>
                 {
@@ -57,46 +55,72 @@ namespace OpenTap.Tui.Views
                     return $"{package.Name}{(installedPackages.Any(p => p.Name == package.Name) ? " (installed)" : "")}";
                 },
                 (item) => (item as PackageViewModel)?.Group?.Split(new []{'\\', '/'}, StringSplitOptions.RemoveEmptyEntries));
-            treeView.SetTreeViewSource(packages);
 
             treeView.SelectedItemChanged += (_) =>
             {
-                SelectedPackage = treeView.SelectedObject.obj as PackageViewModel;
+                SelectedPackage = treeView.SelectedObject?.obj as PackageViewModel;
                 SelectionChanged?.Invoke();
             };
-            SelectedPackage = treeView.SelectedObject.obj as PackageViewModel;
-            SelectionChanged?.Invoke();
             
             Add(treeView);
         }
 
-        List<PackageViewModel> GetPackages()
+        public void LoadPackages()
         {
             // Get packages from repo
-            HttpClient hc = new HttpClient();
-            hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var content = new StringContent(@"query Query {
-                packages(distinctName: true) {
-                    name
-                    version
-                    group
-                    owner
-                    sourceUrl
-                    description
-                }
-            }");
-            var response = hc.PostAsync("http://packages.opentap.io/3.1/Query", content).Result;
-            var jsonData = response.Content.ReadAsStringAsync().Result;
-            
-            // Remove unicode chars
-            jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
-            
-            // Parse the json response data
+            packages = GetPackages();
+            packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();
+            treeView.SetTreeViewSource(packages);
+        }
+
+        List<PackageViewModel> GetPackages()
+        {
             var list = new List<PackageViewModel>();
-            var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
-            foreach (var item in jsonPackages.EnumerateArray())
+
+            foreach (var repository in PackageManagerSettings.Current.Repositories)
             {
-                list.Add(JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText()));
+                TuiPm.log.Info("Loading packages from: " + repository.Url);
+
+                if (repository.Manager is HttpPackageRepository)
+                {
+                    // Get packages from repo
+                    HttpClient hc = new HttpClient();
+                    hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    var content = new StringContent(@"query Query {
+                        packages(distinctName: true) {
+                            name
+                            version
+                            group
+                            owner
+                            sourceUrl
+                            description
+                        }
+                    }");
+                    var response = hc.PostAsync(repository.Url.TrimEnd('/') + "/3.1/Query", content).Result;
+                    var jsonData = response.Content.ReadAsStringAsync().Result;
+            
+                    // Remove unicode chars
+                    jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
+            
+                    // Parse the json response data
+                    var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
+                    foreach (var item in jsonPackages.EnumerateArray())
+                    {
+                        var package = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText()); 
+                        if (list.Contains(package) == false)
+                            list.Add(package);
+                    }
+                }
+                else
+                {
+                    var packageDefs = repository.Manager.GetPackages(new PackageSpecifier("", VersionSpecifier.Any), new CancellationToken());
+                    foreach (var packageDef in packageDefs)
+                    {
+                        var package = new PackageViewModel(packageDef);
+                        if (list.Contains(package) == false)
+                            list.Add(package);
+                    }
+                }
             }
             
             // Get installed packages
@@ -150,6 +174,44 @@ namespace OpenTap.Tui.Views
         [JsonPropertyName("dependencies")]
         [JsonConverter(typeof(PackageDependenciesConverter))]
         public List<PackageDependency> Dependencies { get; set; }
+
+        public PackageViewModel()
+        {
+            
+        }
+
+        public PackageViewModel(PackageDef package)
+        {
+            Name = package.Name;
+            Version = package.Version;
+            OS = package.OS;
+            Architecture = package.Architecture;
+            Group = package.Group;
+            Owner = package.Owner;
+            SourceUrl = package.SourceUrl;
+            Description = package.Description;
+            Dependencies = package.Dependencies;
+        }
+
+        /// <summary>Returns the hash code for this PackageIdentifier.</summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            int num = 0;
+            if (this.Name != null)
+                num ^= this.Name.GetHashCode();
+            if (this.Version != (SemanticVersion) null)
+                num ^= this.Version.GetHashCode();
+            if (this.OS != null)
+                num ^= this.OS.GetHashCode();
+            return num ^ this.Architecture.GetHashCode();
+        }
+
+        /// <summary>Compare this PackageIdentifier to another object.</summary>
+        public override bool Equals(object obj)
+        {
+            return obj is IPackageIdentifier packageIdentifier && packageIdentifier.Name == this.Name && (packageIdentifier.Version == this.Version && packageIdentifier.OS == this.OS) && packageIdentifier.Architecture == this.Architecture;
+        }
     }
 
     public class CpuArchitectureConverter : JsonConverter<CpuArchitecture>

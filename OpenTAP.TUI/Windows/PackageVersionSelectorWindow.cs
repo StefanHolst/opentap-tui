@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
 using OpenTap.Package;
 using OpenTap.Tui.Views;
 using Terminal.Gui;
@@ -180,7 +179,6 @@ namespace OpenTap.Tui.Windows
             jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
             
             // Parse the json response data
-            var installedPackage = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);
             var list = new List<PackageViewModel>();
             var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
             foreach (var item in jsonPackages.EnumerateArray())
