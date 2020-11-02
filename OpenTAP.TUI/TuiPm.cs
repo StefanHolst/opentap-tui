@@ -31,7 +31,7 @@ namespace OpenTap.Tui
                 if (repository.Manager is HttpPackageRepository httprepo)
                     Repositories.Add(httprepo);
                 else
-                    log.Warning("Only http repositories are supported.");
+                    log.Warning($"Repository '{repository.Url}' is not supported, only http repositories are supported.");
             }
 
             try
