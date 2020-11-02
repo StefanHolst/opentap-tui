@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using OpenTap.Package;
 using OpenTap.Tui.Views;
 using Terminal.Gui;
@@ -38,16 +40,16 @@ namespace OpenTap.Tui.Windows
             installButton.Clicked += () => { InstallButtonClicked(false); };
             
             // Get package versions
-            versions = GetVersions(package);
+            // versions = GetVersions(package);
             versionsView = new ListView()
             {
                 AllowsMarking = true
             };
             versionsView.SelectedItemChanged += args =>
             {
-                detailsView.LoadPackage(versions[args.Item], installation, installedOpentap);
+                detailsView.LoadPackage(versions?[args.Item], installation, installedOpentap);
             };
-            UpdateVersions();
+            // UpdateVersions();
             
             // Versions frame
             var versionsFrame = new FrameView("Versions")
@@ -90,11 +92,38 @@ namespace OpenTap.Tui.Windows
             Add(detailsFrame);
             Add(installFrame);
             Add(logFrame);
+            
+            // Load packages in parallel
+            bool running = true;
+            Task.Run(() =>
+            {
+                versions = GetVersions(package);
+                UpdateVersions();
+                running = false;
+            });
+            Task.Run(() =>
+            {
+                while (running)
+                {
+                    Application.MainLoop.Invoke(() => versionsFrame.Title = $"Versions ");
+                    Thread.Sleep(100);
+                    
+                    for (int i = 0; i < 3 && running; i++)
+                    {
+                        Application.MainLoop.Invoke(() => versionsFrame.Title += ".");
+                        Thread.Sleep(100);
+                    }
+                }
+                Application.MainLoop.Invoke(() => versionsFrame.Title = $"Versions");
+            });
         }
 
         void InstallButtonClicked(bool force)
         {
-            var selectedPackage = versions.FirstOrDefault();
+            var selectedPackage = versions?.FirstOrDefault();
+            if (selectedPackage == null)
+                return;
+            
             for (int i = 0; i < versionsView.Source.Count; i++)
             {
                 if (versionsView.Source.IsMarked(i))
@@ -156,36 +185,41 @@ namespace OpenTap.Tui.Windows
 
         List<PackageViewModel> GetVersions(PackageViewModel package)
         {
-            HttpClient hc = new HttpClient();
-            hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var content = new StringContent(@"query Query {
-                packages(" + $"name: \"{package.Name}\", os: \"{installedOpentap.OS}\", architecture: \"{installedOpentap.Architecture}\"" + @") {
-                    architecture
-                    oS
-                    version
-                    owner
-                    sourceUrl
-                    description
-                    dependencies{
-                        name
-                        version
-                    }
-                }
-            }");
-            var response = hc.PostAsync("http://packages.opentap.io/3.1/Query", content).Result;
-            var jsonData = response.Content.ReadAsStringAsync().Result;
-            
-            // Remove unicode chars
-            jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
-            
-            // Parse the json response data
             var list = new List<PackageViewModel>();
-            var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
-            foreach (var item in jsonPackages.EnumerateArray())
+            
+            foreach (var repository in TuiPm.Repositories)
             {
-                var version = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText());
-                version.Name = package.Name;
-                list.Add(version);
+                TuiPm.log.Info("Loading packages from: " + repository.Url);
+                HttpClient hc = new HttpClient();
+                hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var content = new StringContent(@"query Query {
+                    packages(" + $"name: \"{package.Name}\", os: \"{installedOpentap.OS}\", architecture: \"{installedOpentap.Architecture}\"" + @") {
+                        architecture
+                        oS
+                        version
+                        owner
+                        sourceUrl
+                        description
+                        dependencies{
+                            name
+                            version
+                        }
+                    }
+                }");
+                var response = hc.PostAsync("http://packages.opentap.io/3.1/Query", content, TuiPm.CancellationToken).Result;
+                var jsonData = response.Content.ReadAsStringAsync().Result;
+        
+                // Remove unicode chars
+                jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
+        
+                // Parse the json response data
+                var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
+                foreach (var item in jsonPackages.EnumerateArray())
+                {
+                    var version = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText());
+                    version.Name = package.Name;
+                    list.Add(version);
+                }
             }
 
             return list;
@@ -197,6 +231,7 @@ namespace OpenTap.Tui.Windows
             
             versionsView.SetSource(versions.Select(p => $"{p.Version}{(installedVersion?.Version == p.Version ? " (Installed)" : "")}").ToList());
             versionsView.Source.SetMark(0, true);
+            versionsView.SelectedItem = 0;
             
             installButton.Text = versions.FirstOrDefault()?.Version == installedVersion?.Version ? "Uninstall" : "Install";
         }

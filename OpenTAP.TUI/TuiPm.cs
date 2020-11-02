@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using OpenTap.Cli;
+using OpenTap.Package;
+using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
@@ -11,14 +14,25 @@ namespace OpenTap.Tui
     public class TuiPm : ICliAction
     {
         public static TraceSource log = Log.CreateSource("TUI");
-        
+        public static CancellationToken CancellationToken;
+        public static List<HttpPackageRepository> Repositories = new List<HttpPackageRepository>();
+
         public int Execute(CancellationToken cancellationToken)
         {
-            // TuiHelpers.CancellationToken = cancellationToken;
+            new LogPanelView(); // Just to subscribe to log as soon as possible
+            CancellationToken = cancellationToken;
             cancellationToken.Register(() =>
             {
                 Application.RequestStop();
             });
+
+            foreach (var repository in PackageManagerSettings.Current.Repositories)
+            {
+                if (repository.Manager is HttpPackageRepository httprepo)
+                    Repositories.Add(httprepo);
+                else
+                    log.Warning("Only http repositories are supported.");
+            }
 
             try
             {

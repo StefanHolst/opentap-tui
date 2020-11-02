@@ -74,12 +74,12 @@ namespace OpenTap.Tui.Windows
                 while (running)
                 {
                     Application.MainLoop.Invoke(() => packageFrame.Title = $"Packages ");
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
                     
                     for (int i = 0; i < 3 && running; i++)
                     {
                         Application.MainLoop.Invoke(() => packageFrame.Title += ".");
-                        Thread.Sleep(1000);
+                        Thread.Sleep(100);
                     }
                 }
                 Application.MainLoop.Invoke(() => packageFrame.Title = $"Packages");

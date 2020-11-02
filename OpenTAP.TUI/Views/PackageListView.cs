@@ -77,49 +77,36 @@ namespace OpenTap.Tui.Views
         {
             var list = new List<PackageViewModel>();
 
-            foreach (var repository in PackageManagerSettings.Current.Repositories)
+            foreach (var repository in TuiPm.Repositories)
             {
                 TuiPm.log.Info("Loading packages from: " + repository.Url);
 
-                if (repository.Manager is HttpPackageRepository)
-                {
-                    // Get packages from repo
-                    HttpClient hc = new HttpClient();
-                    hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    var content = new StringContent(@"query Query {
-                        packages(distinctName: true) {
-                            name
-                            version
-                            group
-                            owner
-                            sourceUrl
-                            description
-                        }
-                    }");
-                    var response = hc.PostAsync(repository.Url.TrimEnd('/') + "/3.1/Query", content).Result;
-                    var jsonData = response.Content.ReadAsStringAsync().Result;
-            
-                    // Remove unicode chars
-                    jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
-            
-                    // Parse the json response data
-                    var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
-                    foreach (var item in jsonPackages.EnumerateArray())
-                    {
-                        var package = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText()); 
-                        if (list.Contains(package) == false)
-                            list.Add(package);
+                // Get packages from repo
+                HttpClient hc = new HttpClient();
+                hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var content = new StringContent(@"query Query {
+                    packages(distinctName: true) {
+                        name
+                        version
+                        group
+                        owner
+                        sourceUrl
+                        description
                     }
-                }
-                else
+                }");
+                var response = hc.PostAsync(repository.Url.TrimEnd('/') + "/3.1/Query", content, TuiPm.CancellationToken).Result;
+                var jsonData = response.Content.ReadAsStringAsync().Result;
+        
+                // Remove unicode chars
+                jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
+        
+                // Parse the json response data
+                var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
+                foreach (var item in jsonPackages.EnumerateArray())
                 {
-                    var packageDefs = repository.Manager.GetPackages(new PackageSpecifier("", VersionSpecifier.Any), new CancellationToken());
-                    foreach (var packageDef in packageDefs)
-                    {
-                        var package = new PackageViewModel(packageDef);
-                        if (list.Contains(package) == false)
-                            list.Add(package);
-                    }
+                    var package = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText()); 
+                    if (list.Contains(package) == false)
+                        list.Add(package);
                 }
             }
             

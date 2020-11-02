@@ -15,19 +15,22 @@ namespace OpenTap.Tui.Views
         private static Action RefreshAction;
         private View parent;
 
-        public LogPanelView(View parent = null)
+        static LogPanelView()
         {
-            this.parent = parent;
             lock (lockObj)
             {
                 if (listenerAdded == false)
                 {
                     listenerAdded = true;
-                    Log.AddListener(this);
+                    Log.AddListener(new LogPanelView());
                 }
-
-                RefreshAction += Refresh;
             }
+        }
+        
+        public LogPanelView(View parent = null)
+        {
+            this.parent = parent;
+            RefreshAction += Refresh;
             
             CanFocus = true;
             SetSource(messages);
