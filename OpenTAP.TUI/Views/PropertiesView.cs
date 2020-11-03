@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap.Tui.PropEditProviders;
@@ -116,11 +117,40 @@ namespace OpenTap.Tui.Views
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
             var description = (treeView.SelectedObject?.obj as AnnotationCollection)?.Get<DisplayAttribute>()?.Description;
-            
+
             if (description != null)
-                descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
+                descriptionView.Text = SplitText(description, descriptionView.Bounds.Width);
             else
                 descriptionView.Text = "";
+        }
+
+        public static string SplitText(string text, int length)
+        {
+            if (length < 2)
+                return text;
+            StringBuilder output = new StringBuilder();
+
+            while (text.Length > length)
+            {
+                for (int i = length; i >= length/2; i--)
+                {
+                    if (char.IsWhiteSpace(text[i]))
+                    {
+                        output.AppendLine(text.Substring(0, i).Trim());
+                        text = text.Substring(i);
+                        break;
+                    }
+
+                    if (length/2 == i)
+                    {
+                        output.AppendLine(text.Substring(0, length).Trim());
+                        text = text.Substring(length);
+                    }
+                }
+            }
+
+            output.AppendLine(text.Trim());
+            return output.ToString().Replace("\r", "");
         }
 
         public void LoadProperties(object obj)

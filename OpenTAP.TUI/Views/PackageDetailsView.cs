@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using OpenTap.Package;
 using OpenTap.Tui.Windows;
@@ -10,18 +11,18 @@ namespace OpenTap.Tui.Views
 {
     public class PackageDetailsView : View
     {
-        private TextView nameView { get; set; }
+        private TextView detailsView { get; set; }
         
         public PackageDetailsView()
         {
-            nameView = new TextView()
+            detailsView = new TextView()
             {
                 ReadOnly = true
                 // CanFocus = false,
                 // Height = Dim.Percent(50)
             };
             
-            Add(nameView);
+            Add(detailsView);
         }
 
         string parseDescription(string description)
@@ -69,14 +70,14 @@ namespace OpenTap.Tui.Views
                 parseXmlNode(item);
             }
 
-            return sb.ToString().Replace("\r", "");
+            return PropertiesView.SplitText(sb.ToString(), detailsView.Bounds.Width);
         }
 
         public void LoadPackage(PackageViewModel package, Installation installation, PackageDef installedOpentap)
         {
             if (package == null) // a group
             {
-                nameView.Text = "";
+                detailsView.Text = "";
                 return;
             }
 
@@ -92,15 +93,15 @@ namespace OpenTap.Tui.Views
             }
 
             var installedPackages = installation.GetPackages();
-            nameView.Text = $"Name: {package.Name}{(installedPackages.Any(i => i.Name == package.Name) ? " (installed)" : "")}\n" +
+            detailsView.Text = $"Name: {package.Name}{(installedPackages.Any(i => i.Name == package.Name) ? " (installed)" : "")}\n" +
                             (package.Owner != null ? $"Owner: {package.Owner}\n" : "") + 
                             (package.SourceUrl != null ? $"SourceUrl: {package.SourceUrl}\n" : "") + 
                             $"{(Application.Current is PackageVersionSelectorWindow ? "" : "Latest ")}Version: {package.Version}\n" +
                             (package.Architecture != CpuArchitecture.Unspecified ? $"Architecture: {package.Architecture}\n" : "") + 
                             (package.OS != null ? $"OS: {package.OS}\n" : "") + 
                             (package.Dependencies != null ? $"Dependencies: {string.Join(", ", package.Dependencies.Select(p => $"{p.Name}:{p.Version}"))}\n" : "") + 
-                            (package.OS != null || package.Architecture != CpuArchitecture.Unspecified ? $"Compatible: {(isCompatible ? "Yes" : "No")}\n\n" : "") + 
-                            $"Description: \n{parseDescription(package.Description)}";
+                            (package.OS != null || package.Architecture != CpuArchitecture.Unspecified ? $"Compatible: {(isCompatible ? "Yes" : "No")}\n" : "") + 
+                            $"\nDescription: \n{parseDescription(package.Description)}";
         }
     }
 }
