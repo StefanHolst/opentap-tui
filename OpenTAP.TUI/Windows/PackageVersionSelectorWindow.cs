@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -147,7 +148,6 @@ namespace OpenTap.Tui.Windows
                 };
                 installAction.Error += exception =>
                 {
-                    // TODO: Fix message width, wrap the text..
                     Application.MainLoop.Invoke(() => MessageBox.ErrorQuery(50, 7, "Installation Error", exception.Message, "Ok"));
                 };
                 
@@ -168,6 +168,11 @@ namespace OpenTap.Tui.Windows
                 {
                     Packages = new []{ package.Name },
                     Force = force
+                };
+                
+                uninstallAction.Error += exception =>
+                {
+                    Application.MainLoop.Invoke(() => MessageBox.ErrorQuery(50, 7, "Uninstallation Error", exception.Message, "Ok"));
                 };
                 
                 installButton.Text = "Cancel";
