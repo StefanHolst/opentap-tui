@@ -50,11 +50,18 @@ namespace OpenTap.Tui
                 TUI.SetColorScheme();
                 
                 // Add settings menu
+                var setting = TypeData.FromType(typeof(PackageManagerSettings));
+                var obj = ComponentSettings.GetCurrent(setting.Load());
+                var name = setting.GetDisplayAttribute().Name;
                 var menu = new MenuBar(new []
                 {
                     new MenuBarItem("Settings", new []
                     {
-                        new MenuItem("Settings", "", () => {})
+                        new MenuItem("Settings", name, () =>
+                        {
+                            var settingsView = new ComponentSettingsWindow(obj);
+                            Application.Run(settingsView);
+                        })
                     })
                 });
                 top.Add(menu);
