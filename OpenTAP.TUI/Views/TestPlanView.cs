@@ -196,8 +196,6 @@ namespace OpenTAP.TUI
             testPlanThread = TapThread.Start(() =>
             {
 
-                // Add tui user input
-                UserInput.SetInterface(new TuiUserInput());
                 
                 // Run testplan and show progress bar
                 testPlanRun = Plan.Execute();

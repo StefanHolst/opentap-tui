@@ -20,6 +20,63 @@ namespace OpenTAP.TUI
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
 
+        public List<MenuItem> ActiveMenuItems { get; private set; } = new List<MenuItem>();
+
+        public Action SelectionChanged { get; set; }
+
+        static readonly TraceSource log = Log.CreateSource("tui");
+        
+        void buildMenuItems(AnnotationCollection selectedMember)
+        {
+            
+            ActiveMenuItems.Clear();
+            
+            var menu = selectedMember?.Get<MenuAnnotation>();
+            if (menu == null) return;
+            
+            foreach (var _member in menu.MenuItems)
+            {
+                var member = _member;
+                if (member.Get<IAccessAnnotation>()?.IsVisible == false)
+                    continue;
+
+                if (ActiveMenuItems.Count == 0)
+                {
+                    var item2 = new MenuItem {Title = $"--- {selectedMember.Get<DisplayAttribute>().Name} ---"};
+                    ActiveMenuItems.Add(item2);
+
+                }
+                
+                var item = new MenuItem();
+                item.Title = member.Get<DisplayAttribute>().Name;
+                item.Action = () =>
+                {
+                    if (member.Get<IEnabledAnnotation>()?.IsEnabled == false)
+                    {
+                        log.Info("'{0}' is not curently enabled.", item.Title);
+                        return;
+                    }
+                    try
+                    {
+                        member.Get<IMethodAnnotation>().Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Error executing action: {0}", e.Message);
+                        log.Debug(e);
+                    }
+
+                    try
+                    {
+                        LoadProperties(obj);
+                    }
+                    catch {  }
+                };
+                item.CanExecute = () => true;
+                ActiveMenuItems.Add(item);
+            }
+        }
+
         public event Action PropertiesChanged;
         public event Action Submit;
         
@@ -32,7 +89,11 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "...";
+                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value 
+                                 ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value 
+                                 ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() 
+                                 ?? x.Get<IObjectValueAnnotation>()?.Value)?.ToString() 
+                                ?? "...";
                     // replace new lines with spaces for viewing.
                     value = value.Replace("\n", " ").Replace("\r", "");
 
@@ -116,17 +177,20 @@ namespace OpenTAP.TUI
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var description = (treeView.SelectedObject?.obj as AnnotationCollection)?.Get<DisplayAttribute>()?.Description;
-            
+            var memberAnnotqation = treeView.SelectedObject?.obj as AnnotationCollection;
+            var description = memberAnnotqation?.Get<DisplayAttribute>()?.Description;
             if (description != null)
                 descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
             else
                 descriptionView.Text = "";
+
+            buildMenuItems(memberAnnotqation);
+            SelectionChanged?.Invoke();
         }
 
         public void LoadProperties(object obj)
         {
-            this.obj = obj;
+            this.obj = obj ?? new object();
             annotations = AnnotationCollection.Annotate(obj);
             var members = getMembers();
             if (members == null)

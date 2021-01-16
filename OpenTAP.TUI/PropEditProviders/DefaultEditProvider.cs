@@ -19,7 +19,8 @@ namespace OpenTAP.TUI.PropEditProviders
             var text = stredit.Value ?? "";
             var textField = new TextViewWithEnter(){Text = text};
             textField.ReadOnly = annotation.Get<IAccessAnnotation>()?.IsReadOnly ?? false;
-            
+            if (annotation.Get<IEnabledAnnotation>()?.IsEnabled == false)
+                textField.ReadOnly = true;
             LayoutAttribute layout = annotation.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>();
             if ((layout?.RowHeight ?? 0) > 1)
             {
