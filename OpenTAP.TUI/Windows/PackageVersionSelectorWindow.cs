@@ -98,7 +98,7 @@ namespace OpenTap.Tui.Windows
             bool running = true;
             Task.Run(() =>
             {
-                versions = GetVersions(package);
+                versions = GetVersions();
                 UpdateVersions();
                 running = false;
             });
@@ -188,43 +188,73 @@ namespace OpenTap.Tui.Windows
             }   
         }
 
-        List<PackageViewModel> GetVersions(PackageViewModel package)
+        List<PackageViewModel> GetVersions()
         {
             var list = new List<PackageViewModel>();
             
-            foreach (var repository in TuiPm.Repositories)
+            foreach (var repository in PackageManagerSettings.Current.Repositories)
             {
-                TuiPm.log.Info("Loading packages from: " + repository.Url);
-                HttpClient hc = new HttpClient();
-                hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var content = new StringContent(@"query Query {
-                    packages(" + $"name: \"{package.Name}\", os: \"{installedOpentap.OS}\", architecture: \"{installedOpentap.Architecture}\"" + @") {
-                        architecture
-                        oS
+                if (repository.IsEnabled == false)
+                    continue;
+                if (repository.Manager is HttpPackageRepository httpRepository)
+                    list.AddRange(GetHttpPackages(httpRepository));
+                else if (repository.Manager is FilePackageRepository fileRepository)
+                    list.AddRange(GetFilePackages(fileRepository));
+            }
+
+            return list;
+        }
+
+        List<PackageViewModel> GetFilePackages(FilePackageRepository repository)
+        {
+            var list = new List<PackageViewModel>();
+            
+            var versions = repository.GetPackageVersions(package.Name, TuiPm.CancellationToken, installedOpentap);
+            foreach (var version in versions)
+            {
+                var packageDef = repository.GetPackages(new PackageSpecifier(package.Name, VersionSpecifier.Parse(version.Version.ToString())), TuiPm.CancellationToken).FirstOrDefault();
+                if (packageDef != null)
+                    list.Add(new PackageViewModel(packageDef));
+            }
+            
+            return list;
+        }
+
+        List<PackageViewModel> GetHttpPackages(HttpPackageRepository repository)
+        {
+            var list = new List<PackageViewModel>();
+            
+            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            HttpClient hc = new HttpClient();
+            hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var content = new StringContent(@"query Query {
+                packages(" + $"name: \"{package.Name}\", os: \"{installedOpentap.OS}\", architecture: \"{installedOpentap.Architecture}\"" + @") {
+                    architecture
+                    oS
+                    version
+                    owner
+                    sourceUrl
+                    description
+                    dependencies{
+                        name
                         version
-                        owner
-                        sourceUrl
-                        description
-                        dependencies{
-                            name
-                            version
-                        }
                     }
-                }");
-                var response = hc.PostAsync("http://packages.opentap.io/3.1/Query", content, TuiPm.CancellationToken).Result;
-                var jsonData = response.Content.ReadAsStringAsync().Result;
-        
-                // Remove unicode chars
-                jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
-        
-                // Parse the json response data
-                var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
-                foreach (var item in jsonPackages.EnumerateArray())
-                {
-                    var version = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText());
-                    version.Name = package.Name;
-                    list.Add(version);
                 }
+            }");
+            var response = hc.PostAsync("http://packages.opentap.io/3.1/Query", content, TuiPm.CancellationToken).Result;
+            var jsonData = response.Content.ReadAsStringAsync().Result;
+    
+            // Remove unicode chars
+            jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
+    
+            // Parse the json response data
+            var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
+            foreach (var item in jsonPackages.EnumerateArray())
+            {
+                var version = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText());
+                version.Name = package.Name;
+                if (list.Contains(version) == false)
+                    list.Add(version);
             }
 
             return list;

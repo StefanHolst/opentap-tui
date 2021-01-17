@@ -76,38 +76,56 @@ namespace OpenTap.Tui.Views
         List<PackageViewModel> GetPackages()
         {
             var list = new List<PackageViewModel>();
-
-            foreach (var repository in TuiPm.Repositories)
+            
+            foreach (var repository in PackageManagerSettings.Current.Repositories)
             {
-                TuiPm.log.Info("Loading packages from: " + repository.Url);
+                if (repository.IsEnabled == false)
+                    continue;
+                if (repository.Manager is HttpPackageRepository httpRepository)
+                    list.AddRange(GetHttpPackages(httpRepository));
+                else if (repository.Manager is FilePackageRepository fileRepository)
+                    list.AddRange(GetFilePackages(fileRepository));
+            }
 
-                // Get packages from repo
-                HttpClient hc = new HttpClient();
-                hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var content = new StringContent(@"query Query {
-                    packages(distinctName: true) {
-                        name
-                        version
-                        group
-                        owner
-                        sourceUrl
-                        description
-                    }
-                }");
-                var response = hc.PostAsync(repository.Url.TrimEnd('/') + "/3.1/Query", content, TuiPm.CancellationToken).Result;
-                var jsonData = response.Content.ReadAsStringAsync().Result;
-        
-                // Remove unicode chars
-                jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
-        
-                // Parse the json response data
-                var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
-                foreach (var item in jsonPackages.EnumerateArray())
-                {
-                    var package = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText()); 
-                    if (list.Contains(package) == false)
-                        list.Add(package);
+            return list;
+        }
+
+        List<PackageViewModel> GetFilePackages(FilePackageRepository repository)
+        {
+            return repository.GetPackages(new PackageSpecifier(null, null), TuiPm.CancellationToken).Select(p => new PackageViewModel(p)).ToList();
+        }
+
+        List<PackageViewModel> GetHttpPackages(HttpPackageRepository repository)
+        {
+            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            var list = new List<PackageViewModel>();
+
+            // Get packages from repo
+            HttpClient hc = new HttpClient();
+            hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var content = new StringContent(@"query Query {
+                packages(distinctName: true) {
+                    name
+                    version
+                    group
+                    owner
+                    sourceUrl
+                    description
                 }
+            }");
+            var response = hc.PostAsync(repository.Url.TrimEnd('/') + "/3.1/Query", content, TuiPm.CancellationToken).Result;
+            var jsonData = response.Content.ReadAsStringAsync().Result;
+    
+            // Remove unicode chars
+            jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
+    
+            // Parse the json response data
+            var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
+            foreach (var item in jsonPackages.EnumerateArray())
+            {
+                var package = JsonSerializer.Deserialize<PackageViewModel>(item.GetRawText()); 
+                if (list.Contains(package) == false)
+                    list.Add(package);
             }
             
             // Get installed packages
@@ -125,7 +143,7 @@ namespace OpenTap.Tui.Views
                     });
                 }
             }
- 
+        
             return list;
         }
     }

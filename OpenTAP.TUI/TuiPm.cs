@@ -15,7 +15,6 @@ namespace OpenTap.Tui
     {
         public static TraceSource log = Log.CreateSource("TUI");
         public static CancellationToken CancellationToken;
-        public static List<HttpPackageRepository> Repositories = new List<HttpPackageRepository>();
 
         public int Execute(CancellationToken cancellationToken)
         {
@@ -25,14 +24,6 @@ namespace OpenTap.Tui
             {
                 Application.RequestStop();
             });
-
-            foreach (var repository in PackageManagerSettings.Current.Repositories)
-            {
-                if (repository.Manager is HttpPackageRepository httprepo)
-                    Repositories.Add(httprepo);
-                else
-                    log.Warning($"Repository '{repository.Url}' is not supported, only http repositories are supported.");
-            }
 
             try
             {
