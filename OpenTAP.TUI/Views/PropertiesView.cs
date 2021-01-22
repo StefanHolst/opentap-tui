@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap;
@@ -82,6 +83,8 @@ namespace OpenTAP.TUI
         
         public PropertiesView()
         {
+            StringBuilder nameBuilder = new StringBuilder();
+
             treeView = new TreeView(
                 (item) =>
                 {
@@ -103,8 +106,24 @@ namespace OpenTAP.TUI
                     // Don't show member name if layout is fullrow
                     if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
                         return value;
-                    
-                    return $"{x.Get<DisplayAttribute>().Name}: {value}";
+                    var icons = x.GetAll<IIconAnnotation>().ToArray();
+                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName));//(y => y.IconName == OpenTap.IconNames.Parameterized);
+                    bool icon(string name) => icons2.Contains(name);
+                    nameBuilder.Clear();
+                    if(icon(IconNames.OutputAssigned))
+                        nameBuilder.Append("●");
+                    else if(icon(IconNames.Output))
+                        nameBuilder.Append("⭘");
+                    if(icon(IconNames.Input))
+                        nameBuilder.Append("●→");
+                    if(icon(IconNames.Parameterized))
+                        nameBuilder.Append("◇");
+                    if(x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
+                        nameBuilder.Append("◆");
+                    nameBuilder.Append(x.Get<DisplayAttribute>().Name);
+                    nameBuilder.Append(": ");
+                    nameBuilder.Append(value);
+                    return nameBuilder.ToString();
                 }, 
                 (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
 
@@ -224,6 +243,8 @@ namespace OpenTAP.TUI
         {
             if (member.GetAttribute<BrowsableAttribute>() is BrowsableAttribute attr)
                  return attr.Browsable;
+            if (member.HasAttribute<OutputAttribute>())
+                return true;
             return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
         }
     
