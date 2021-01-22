@@ -222,8 +222,8 @@ namespace OpenTAP.TUI
 
         public static bool FilterMember(IMemberData member)
         {
-            if (member.GetAttribute<BrowsableAttribute>()?.Browsable ?? false)
-                return true;
+            if (member.GetAttribute<BrowsableAttribute>() is BrowsableAttribute attr)
+                 return attr.Browsable;
             return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
         }
     
