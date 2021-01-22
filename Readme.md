@@ -4,7 +4,7 @@ The OpenTAP TUI is a textual based user interface that can be used from a termin
 It supports running in almost every terminal including in Docker containers.
 
 ![](doc/images/TUI.jpg)
-![](doc/images/Tui-Pm.jpg)
+![](doc/images/Tui-Pm.gif)
 
 ## Install
 Either build it from source or install it from the OpenTAP package repository ([packages.opentap.io](https://packages.opentap.io)).
