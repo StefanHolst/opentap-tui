@@ -10,6 +10,49 @@ namespace OpenTap.Tui.PropEditProviders
     public class DataGridEditProvider : IPropEditProvider
     {
         public int Order { get; } = 15;
+
+        (List<string>,List<string>) getColumnNames(AnnotationCollection[] items)
+        {
+            var Columns = new List<string>();
+            var Columns2 = new List<string>();
+            bool isMultiColumns = items.Any(x => x.Get<IMembersAnnotation>() != null);
+            if (isMultiColumns)
+            {
+                HashSet<string> names = new HashSet<string>();
+                Dictionary<string, double> orders = new Dictionary<string, double>();
+                Dictionary<string, string> realNames = new Dictionary<string, string>();
+
+                foreach (var mcol in items)
+                {
+                    var aggregate = mcol.Get<IMembersAnnotation>();
+                    if (aggregate != null)
+                    {
+                        foreach (var a in aggregate.Members)
+                        {
+                            var disp = a.Get<DisplayAttribute>();
+                            var mem = a.Get<IMemberAnnotation>().Member;
+                            if (PropertiesView.FilterMember(mem) == false)
+                                continue;
+                            if (disp == null) continue;
+                            var name = disp.GetFullName() + mem.TypeDescriptor.Name;
+                            names.Add(name);
+                            realNames[name] = disp.GetFullName();
+                            orders[name] = disp.Order;
+                        }
+                    }
+                }
+
+                foreach (var name in names.OrderBy(x => x).OrderBy(x => orders[x]).ToArray())
+                {
+                    Columns2.Add(name);
+                    Columns.Add(realNames[name]);
+                }
+            }
+
+            return (Columns, Columns2);
+
+        }
+
         public View Edit(AnnotationCollection annotation)
         {
             var col = annotation.Get<ICollectionAnnotation>();
@@ -110,9 +153,10 @@ namespace OpenTap.Tui.PropEditProviders
                 annotation.Read();
                 items = col.AnnotatedElements.ToArray();
             }
-            
-            var view = new DatagridView(fixedSize, Columns.ToArray(), (x, y) =>
-            {
+
+            DatagridView view = null;
+            view = new DatagridView(fixedSize, Columns.ToArray(), (x, y) =>
+                {
                 if (y >= items.Length)
                 {
                     var lst = items.ToList();
@@ -143,10 +187,22 @@ namespace OpenTap.Tui.PropEditProviders
                     }
 
                     col.AnnotatedElements = lst;
+                    annotation.Write();
+                    annotation.Read();
                     items = col.AnnotatedElements.ToArray();
-                }
+                    var (columns, columns2) = getColumnNames(items);
+                    if (Columns.Count != columns.Count)
+                    {
+                        // reload the grid with new columns.
+                        Columns = columns;
+                        Columns2 = columns2;
+                        view.SetColumns(columns.ToArray());
+                        for (int i = 0; i < items.Length; i++)
+                            view.AddRow();
 
-                
+                        return DatagridView.FlushColumns;
+                    }
+                }
 
                 var row = items[y];
                 if (isMultiColumns == false)

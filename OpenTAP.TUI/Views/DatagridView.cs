@@ -34,12 +34,10 @@ namespace OpenTap.Tui.Views
             }
         }
 
-        public DatagridView(bool isFixedSize, string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
-        {
-            IsIsFixedSize = isFixedSize;
-            this.deleteRow = deleteRow;
-            this.CellProvider = CellProvider;
+        public static AnnotationCollection FlushColumns = new AnnotationCollection();
 
+        void addMenu()
+        {
             // Add menu
             if (IsIsFixedSize == false)
             {
@@ -53,6 +51,12 @@ namespace OpenTap.Tui.Views
                 });
                 Add(menu);
             }
+        }
+        public DatagridView(bool isFixedSize, string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
+        {
+            IsIsFixedSize = isFixedSize;
+            this.deleteRow = deleteRow;
+            this.CellProvider = CellProvider;
 
             SetColumns(headers);
         }
@@ -72,7 +76,12 @@ namespace OpenTap.Tui.Views
             for (int i = 0; i < Columns; i++)
             {
                 if (cells.ContainsKey((i, Rows - 1)) == false)
-                    cells[(i, Rows - 1)] = CellProvider.Invoke(i, Rows - 1);
+                {
+                    var cell = CellProvider.Invoke(i, Rows - 1);
+                    if (cell == FlushColumns)
+                        return;
+                    cells[(i, Rows - 1)] = cell;
+                }
 
                 UpdateColumn(i);
             }
@@ -103,6 +112,7 @@ namespace OpenTap.Tui.Views
         {
             ClearDatagrid();
 
+            addMenu();
             for (int i = 0; i < headers.Length; i++)
             {
                 var preColumn = i > 0 ? columns[i - 1].header : null;
@@ -121,7 +131,7 @@ namespace OpenTap.Tui.Views
                 // Add cells frame
                 var columnFrame = new FramedListView(null)
                 {
-                    Y = Pos.Bottom(headerFrame),
+                    Y = 4,  // this did not seem to work after reloading columns:  Pos.Bottom(headerFrame),
                     X = preColumn == null ? 0 : Pos.Right(preColumn),
                     Height = Dim.Fill(),
                     Width = preColumn == null ? Dim.Percent((float)100 / headers.Length) : Dim.Width(preColumn),
@@ -143,6 +153,7 @@ namespace OpenTap.Tui.Views
             columns.Clear();
             cells.Clear();
             Rows = 0;
+            RemoveAll();
         }
 
         private void Scroll(FramedListView list)
