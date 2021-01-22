@@ -1,12 +1,8 @@
-using OpenTap;
-using OpenTAP.TUI.PropEditProviders;
 using System;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     public static class PropEditProvider
     {

@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
-using OpenTap;
-using OpenTap.Tui;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.PropEditProviders;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class PropertiesView : View
     {
@@ -199,12 +198,41 @@ namespace OpenTAP.TUI
             var memberAnnotqation = treeView.SelectedObject?.obj as AnnotationCollection;
             var description = memberAnnotqation?.Get<DisplayAttribute>()?.Description;
             if (description != null)
-                descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
+                descriptionView.Text = SplitText(description, descriptionView.Bounds.Width);
             else
                 descriptionView.Text = "";
 
             buildMenuItems(memberAnnotqation);
             SelectionChanged?.Invoke();
+        }
+
+        public static string SplitText(string text, int length)
+        {
+            if (length < 2)
+                return text;
+            StringBuilder output = new StringBuilder();
+
+            while (text.Length > length)
+            {
+                for (int i = length; i >= length/2; i--)
+                {
+                    if (char.IsWhiteSpace(text[i]))
+                    {
+                        output.AppendLine(text.Substring(0, i).Trim());
+                        text = text.Substring(i);
+                        break;
+                    }
+
+                    if (length/2 == i)
+                    {
+                        output.AppendLine(text.Substring(0, length).Trim());
+                        text = text.Substring(length);
+                    }
+                }
+            }
+
+            output.AppendLine(text.Trim());
+            return output.ToString().Replace("\r", "");
         }
 
         public void LoadProperties(object obj)

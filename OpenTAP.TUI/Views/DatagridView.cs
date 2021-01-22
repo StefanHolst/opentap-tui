@@ -1,15 +1,13 @@
 using System;
-using System.Collections.ObjectModel;
-using OpenTap;
 using Terminal.Gui;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
 using NStack;
-using System.Xml.Serialization;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.PropEditProviders;
+using OpenTap.Tui.Windows;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class DatagridView : View
     {
@@ -219,7 +217,7 @@ namespace OpenTAP.TUI
                             
                             // Find edit provider
                             var cell = cells[(i, listview.SelectedItem)];
-                            var propEditor =   PropEditProvider.GetProvider(cell, out var provider);
+                            var propEditor = PropEditProvider.GetProvider(cell, out var provider);
                             if (propEditor == null)
                                 TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
                             else

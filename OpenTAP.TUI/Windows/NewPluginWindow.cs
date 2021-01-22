@@ -6,7 +6,7 @@ using OpenTap;
 using Terminal.Gui;
 using OpenTap.Tui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Windows
 {
     public class NewPluginWindow : EditWindow
     {

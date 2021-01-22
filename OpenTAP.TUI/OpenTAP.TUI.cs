@@ -7,12 +7,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using OpenTap.Tui;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.Views;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui
 {
     public class MainWindow : Window
     {
@@ -392,7 +392,7 @@ namespace OpenTAP.TUI
                 StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
         }
         
-        void SetColorScheme()
+        internal static void SetColorScheme()
         {
             var baseScheme = new ColorScheme()
             {
