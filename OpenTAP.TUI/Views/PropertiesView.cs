@@ -119,12 +119,21 @@ namespace OpenTap.Tui.Views
                         nameBuilder.Append("◇");
                     if(x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
                         nameBuilder.Append("◆");
-                    nameBuilder.Append(x.Get<DisplayAttribute>().Name);
+
+                    var propertyName = x.Get<DisplayAttribute>().Name;
+                    nameBuilder.Append(propertyName);
                     nameBuilder.Append(": ");
                     nameBuilder.Append(value);
+
+                    // Check validation rules
+                    var step = x.Source as TestStep;
+                    var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName);
+                    if (rule?.IsValid() == false)
+                        nameBuilder.Append(" !");
+                    
                     return nameBuilder.ToString();
                 }, 
-                (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
+                (item) => (item as AnnotationCollection)?.Get<DisplayAttribute>().Group);
 
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
