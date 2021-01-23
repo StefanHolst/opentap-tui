@@ -5,7 +5,7 @@ using OpenTap;
 using OpenTap.Tui;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     /// <summary> Control for editing secure strings. </summary>
     public class SecureStringEditProvider : IPropEditProvider

@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Reflection;
-using System.Text;
-using OpenTap;
-using OpenTap.Tui;
+using OpenTap.Tui.Views;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     public class DefaultEditProvider : IPropEditProvider
     {
@@ -19,7 +14,8 @@ namespace OpenTAP.TUI.PropEditProviders
             var text = stredit.Value ?? "";
             var textField = new TextViewWithEnter(){Text = text};
             textField.ReadOnly = annotation.Get<IAccessAnnotation>()?.IsReadOnly ?? false;
-            
+            if (annotation.Get<IEnabledAnnotation>()?.IsEnabled == false)
+                textField.ReadOnly = true;
             LayoutAttribute layout = annotation.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>();
             if ((layout?.RowHeight ?? 0) > 1)
             {

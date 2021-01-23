@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
-using OpenTap;
-using OpenTap.Tui;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.PropEditProviders;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class PropertiesView : View
     {
@@ -20,11 +20,70 @@ namespace OpenTAP.TUI
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
 
+        public List<MenuItem> ActiveMenuItems { get; private set; } = new List<MenuItem>();
+
+        public Action SelectionChanged { get; set; }
+
+        static readonly TraceSource log = Log.CreateSource("tui");
+        
+        void buildMenuItems(AnnotationCollection selectedMember)
+        {
+            
+            ActiveMenuItems.Clear();
+            
+            var menu = selectedMember?.Get<MenuAnnotation>();
+            if (menu == null) return;
+            
+            foreach (var _member in menu.MenuItems)
+            {
+                var member = _member;
+                if (member.Get<IAccessAnnotation>()?.IsVisible == false)
+                    continue;
+
+                if (ActiveMenuItems.Count == 0)
+                {
+                    var item2 = new MenuItem {Title = $"--- {selectedMember.Get<DisplayAttribute>().Name} ---"};
+                    ActiveMenuItems.Add(item2);
+
+                }
+                
+                var item = new MenuItem();
+                item.Title = member.Get<DisplayAttribute>().Name;
+                item.Action = () =>
+                {
+                    if (member.Get<IEnabledAnnotation>()?.IsEnabled == false)
+                    {
+                        log.Info("'{0}' is not curently enabled.", item.Title);
+                        return;
+                    }
+                    try
+                    {
+                        member.Get<IMethodAnnotation>().Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Error executing action: {0}", e.Message);
+                        log.Debug(e);
+                    }
+
+                    try
+                    {
+                        LoadProperties(obj);
+                    }
+                    catch {  }
+                };
+                item.CanExecute = () => true;
+                ActiveMenuItems.Add(item);
+            }
+        }
+
         public event Action PropertiesChanged;
         public event Action Submit;
         
         public PropertiesView()
         {
+            StringBuilder nameBuilder = new StringBuilder();
+
             treeView = new TreeView(
                 (item) =>
                 {
@@ -32,7 +91,11 @@ namespace OpenTAP.TUI
                     if (x == null)
                         return "";
 
-                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() ?? x.Get<IObjectValueAnnotation>().Value)?.ToString() ?? "...";
+                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value 
+                                 ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value 
+                                 ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() 
+                                 ?? x.Get<IObjectValueAnnotation>()?.Value)?.ToString() 
+                                ?? "...";
                     // replace new lines with spaces for viewing.
                     value = value.Replace("\n", " ").Replace("\r", "");
 
@@ -42,8 +105,24 @@ namespace OpenTAP.TUI
                     // Don't show member name if layout is fullrow
                     if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
                         return value;
-                    
-                    return $"{x.Get<DisplayAttribute>().Name}: {value}";
+                    var icons = x.GetAll<IIconAnnotation>().ToArray();
+                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName));//(y => y.IconName == OpenTap.IconNames.Parameterized);
+                    bool icon(string name) => icons2.Contains(name);
+                    nameBuilder.Clear();
+                    if(icon(IconNames.OutputAssigned))
+                        nameBuilder.Append("●");
+                    else if(icon(IconNames.Output))
+                        nameBuilder.Append("⭘");
+                    if(icon(IconNames.Input))
+                        nameBuilder.Append("●→");
+                    if(icon(IconNames.Parameterized))
+                        nameBuilder.Append("◇");
+                    if(x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
+                        nameBuilder.Append("◆");
+                    nameBuilder.Append(x.Get<DisplayAttribute>().Name);
+                    nameBuilder.Append(": ");
+                    nameBuilder.Append(value);
+                    return nameBuilder.ToString();
                 }, 
                 (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
 
@@ -116,17 +195,49 @@ namespace OpenTAP.TUI
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var description = (treeView.SelectedObject?.obj as AnnotationCollection)?.Get<DisplayAttribute>()?.Description;
-            
+            var memberAnnotqation = treeView.SelectedObject?.obj as AnnotationCollection;
+            var description = memberAnnotqation?.Get<DisplayAttribute>()?.Description;
             if (description != null)
-                descriptionView.Text = Regex.Replace(description, $".{{{descriptionView.Bounds.Width}}}", "$0\n");
+                descriptionView.Text = SplitText(description, descriptionView.Bounds.Width);
             else
                 descriptionView.Text = "";
+
+            buildMenuItems(memberAnnotqation);
+            SelectionChanged?.Invoke();
+        }
+
+        public static string SplitText(string text, int length)
+        {
+            if (length < 2)
+                return text;
+            StringBuilder output = new StringBuilder();
+
+            while (text.Length > length)
+            {
+                for (int i = length; i >= length/2; i--)
+                {
+                    if (char.IsWhiteSpace(text[i]))
+                    {
+                        output.AppendLine(text.Substring(0, i).Trim());
+                        text = text.Substring(i);
+                        break;
+                    }
+
+                    if (length/2 == i)
+                    {
+                        output.AppendLine(text.Substring(0, length).Trim());
+                        text = text.Substring(length);
+                    }
+                }
+            }
+
+            output.AppendLine(text.Trim());
+            return output.ToString().Replace("\r", "");
         }
 
         public void LoadProperties(object obj)
         {
-            this.obj = obj;
+            this.obj = obj ?? new object();
             annotations = AnnotationCollection.Annotate(obj);
             var members = getMembers();
             if (members == null)
@@ -158,7 +269,9 @@ namespace OpenTAP.TUI
 
         public static bool FilterMember(IMemberData member)
         {
-            if (member.GetAttribute<BrowsableAttribute>()?.Browsable ?? false)
+            if (member.GetAttribute<BrowsableAttribute>() is BrowsableAttribute attr)
+                 return attr.Browsable;
+            if (member.HasAttribute<OutputAttribute>())
                 return true;
             return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
         }

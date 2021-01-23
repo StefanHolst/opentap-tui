@@ -7,12 +7,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using OpenTap.Tui;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.Views;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 using TraceSource = OpenTap.TraceSource;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui
 {
     public class MainWindow : Window
     {
@@ -38,7 +38,6 @@ namespace OpenTAP.TUI
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
                     Application.Shutdown();
-                    TUI.Quitting = true;
                 }
             }
 
@@ -108,19 +107,25 @@ namespace OpenTAP.TUI
         public string path { get; set; }
 
         public static TraceSource Log = OpenTap.Log.CreateSource("TUI");
-        public static bool Quitting { get; set; }
-
         public TestPlanView TestPlanView { get; set; }
         public PropertiesView StepSettingsView { get; set; }
         public FrameView LogFrame { get; set; }
 
         public static Toplevel Top { get; set; }
+        
+        /// <summary> When the test plan is selected this is used to not automatically
+        /// switch back to the test step in the properties view.</summary>
+        public bool TestPlanSelected { get; set; }
+
+        /// <summary>  Marks which thread is the main thread. (needed for user input request)</summary>
+        public static TapThread MainThread;
+        
 
         public int Execute(CancellationToken cancellationToken)
         {
+            MainThread = TapThread.Current;
             cancellationToken.Register(() =>
             {
-                Quitting = true;
                 Application.Shutdown();
             });
 
@@ -131,6 +136,9 @@ namespace OpenTAP.TUI
 
             // Stop OpenTAP from taking over the terminal for user inputs.
             UserInput.SetInterface(null);
+            
+            // Add tui user input
+            UserInput.SetInterface(new TuiUserInput());
             
             try
             {
@@ -149,12 +157,21 @@ namespace OpenTAP.TUI
                     else
                         TestPlanView.RunTestPlan();
                 });
+                
+                var editTestPlanSettings = new MenuItem("_Test Plan Settings", "", () =>
+                {
+                    TestPlanSelected = !TestPlanSelected;
+                    loadSelected();
+                    StepSettingsView.FocusFirst();
+                });
+                
                 var filemenu = new MenuBarItem("_File", new MenuItem[]
                 {
                     new MenuItem("_New", "", () =>
                     {
                         TestPlanView.NewTestPlan();
-                        StepSettingsView.LoadProperties(null);
+                        TestPlanSelected = true;
+                        loadSelected();
                     }),
                     new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
                     new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
@@ -170,7 +187,7 @@ namespace OpenTAP.TUI
                         if (newStep.PluginType != null)
                         {
                             TestPlanView.AddNewStep(newStep.PluginType);
-                            StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                            loadSelected();
                         }
                     }),
                     new MenuItem("Insert New Step _Child", "", () =>
@@ -180,10 +197,11 @@ namespace OpenTAP.TUI
                         if (newStep.PluginType != null)
                         {
                             TestPlanView.InsertNewChildStep(newStep.PluginType);
-                            StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                            loadSelected();
                         }
                     }),
-                    runmenuItem
+                    runmenuItem,
+                    editTestPlanSettings
                 });
                 var helpmenu = new MenuBarItem("_Help", new MenuItem[]
                 {
@@ -249,9 +267,20 @@ namespace OpenTAP.TUI
                 
                 // Add menu bar
                 var menu = new MenuBar(menuBars.ToArray());
+                
+                var initEditMenuItemCount = editmenu.Children.Length;
+                void updateEditMenuItems()
+                {
+                    editmenu.Children = editmenu.Children.Take(initEditMenuItemCount)
+                        .Concat(StepSettingsView.ActiveMenuItems).ToArray();
+                }
+
+                StepSettingsView.SelectionChanged += updateEditMenuItems;
+                
                 menu.MenuClosing += () => 
                 {
-                    TestPlanView.FocusFirst();
+                    if(!TestPlanSelected)
+                        TestPlanView.FocusFirst();
                 };
                 Top.Add(menu);
 
@@ -308,10 +337,18 @@ namespace OpenTAP.TUI
                 win.LogFrame = LogFrame;
 
                 // Update StepSettingsView when TestPlanView changes selected step
-                TestPlanView.SelectedItemChanged += args => { StepSettingsView.LoadProperties(TestPlanView.SelectedStep); };
+                TestPlanView.SelectedItemChanged += args =>
+                {
+                    TestPlanSelected = false;
+                    loadSelected();
+                };
                 
                 // Update testplanview when step settings are changed
-                StepSettingsView.PropertiesChanged += TestPlanView.Update;
+                StepSettingsView.PropertiesChanged += () =>
+                {
+                    if(TestPlanSelected == false)
+                        TestPlanView.Update();
+                };
                 
                 // Load plan from args
                 if (path != null)
@@ -327,7 +364,7 @@ namespace OpenTAP.TUI
 
                         TestPlanView.Plan = TestPlan.Load(path);
                         TestPlanView.Update();
-                        StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                        loadSelected();
                     }
                     catch
                     {
@@ -342,15 +379,20 @@ namespace OpenTAP.TUI
             {
                 Log.Error(DefaultExceptionMessages.DefaultExceptionMessage);
                 Log.Debug(ex);
-                
-                if (Quitting == false)
-                    Execute(cancellationToken);
             }
 
             return 0;
         }
 
-        void SetColorScheme()
+        void loadSelected()
+        {
+            if (TestPlanSelected)
+                StepSettingsView.LoadProperties(TestPlanView.Plan);
+            else
+                StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+        }
+        
+        internal static void SetColorScheme()
         {
             var baseScheme = new ColorScheme()
             {

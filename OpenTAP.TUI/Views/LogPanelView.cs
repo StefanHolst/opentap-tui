@@ -5,36 +5,59 @@ using System.Collections.Generic;
 using System.Linq;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class LogPanelView : ListView, ILogListener
     {
         private static List<string> messages = new List<string>();
         private static object lockObj = new object();
+        private static bool listenerAdded = false;
+        private static Action RefreshAction;
+        private View parent;
 
-        public LogPanelView()
+        static LogPanelView()
         {
-            Log.AddListener(this);
+            lock (lockObj)
+            {
+                if (listenerAdded == false)
+                {
+                    listenerAdded = true;
+                    Log.AddListener(new LogPanelView());
+                }
+            }
+        }
+        
+        public LogPanelView(View parent = null)
+        {
+            this.parent = parent;
+            RefreshAction += Refresh;
+            
             CanFocus = true;
+            SetSource(messages);
         }
 
         private void Refresh()
         {
             lock (lockObj)
             {
-                Application.MainLoop.Invoke(Update);
+                if (parent == null || parent == Application.Current)
+                    Application.MainLoop.Invoke(() => Update(true));
+                else
+                    Update(false);
             }
         }
 
-        private void Update()
+        private void Update(bool setNeedsDisplay)
         {
             lock (messages)
             {
-                if (messages.Any()) 
+                if (messages.Any())
                 {
-                    SetSource(messages);
-                    TopItem = Math.Max(0, messages.Count - Bounds.Height);
+                    if (Bounds.Height > 0)
+                        top = Math.Max(0, messages.Count - Bounds.Height);
                     SelectedItem = messages.Count - 1;
+                    if (setNeedsDisplay)
+                        SetNeedsDisplay();
                 }
             }
         }
@@ -45,12 +68,13 @@ namespace OpenTAP.TUI
             {
                 messages.AddRange(Events.Select(e => e.Message));
             }
-            Refresh();
+
+            RefreshAction?.Invoke();
         }
 
         public void Flush()
         {
-            Refresh();
+            RefreshAction?.Invoke();
         }
     }
 }

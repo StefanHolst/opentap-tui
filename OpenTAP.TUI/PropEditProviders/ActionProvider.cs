@@ -2,7 +2,7 @@ using System;
 using OpenTap;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     public class ActionProvider : IPropEditProvider
     {

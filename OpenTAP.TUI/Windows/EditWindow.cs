@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Windows
 {
     public class EditWindow : Window
     {

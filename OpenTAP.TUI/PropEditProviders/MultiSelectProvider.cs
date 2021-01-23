@@ -5,7 +5,7 @@ using OpenTap;
 using OpenTap.Tui;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     public class MultiSelectProvider : IPropEditProvider
     {

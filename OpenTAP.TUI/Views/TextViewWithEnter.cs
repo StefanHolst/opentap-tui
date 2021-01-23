@@ -1,7 +1,7 @@
 using System;
 using Terminal.Gui;
 
-namespace OpenTap.Tui
+namespace OpenTap.Tui.Views
 {
     public class TextViewWithEnter : TextView
     {

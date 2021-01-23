@@ -1,15 +1,13 @@
 using System;
-using System.Collections.ObjectModel;
-using OpenTap;
 using Terminal.Gui;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
 using NStack;
-using System.Xml.Serialization;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.PropEditProviders;
+using OpenTap.Tui.Windows;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class DatagridView : View
     {
@@ -36,12 +34,10 @@ namespace OpenTAP.TUI
             }
         }
 
-        public DatagridView(bool isFixedSize, string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
-        {
-            IsIsFixedSize = isFixedSize;
-            this.deleteRow = deleteRow;
-            this.CellProvider = CellProvider;
+        public static AnnotationCollection FlushColumns = new AnnotationCollection();
 
+        void addMenu()
+        {
             // Add menu
             if (IsIsFixedSize == false)
             {
@@ -55,6 +51,12 @@ namespace OpenTAP.TUI
                 });
                 Add(menu);
             }
+        }
+        public DatagridView(bool isFixedSize, string[] headers, Func<int, int, AnnotationCollection> CellProvider, Action<int> deleteRow) : base()
+        {
+            IsIsFixedSize = isFixedSize;
+            this.deleteRow = deleteRow;
+            this.CellProvider = CellProvider;
 
             SetColumns(headers);
         }
@@ -74,7 +76,12 @@ namespace OpenTAP.TUI
             for (int i = 0; i < Columns; i++)
             {
                 if (cells.ContainsKey((i, Rows - 1)) == false)
-                    cells[(i, Rows - 1)] = CellProvider.Invoke(i, Rows - 1);
+                {
+                    var cell = CellProvider.Invoke(i, Rows - 1);
+                    if (cell == FlushColumns)
+                        return;
+                    cells[(i, Rows - 1)] = cell;
+                }
 
                 UpdateColumn(i);
             }
@@ -105,6 +112,7 @@ namespace OpenTAP.TUI
         {
             ClearDatagrid();
 
+            addMenu();
             for (int i = 0; i < headers.Length; i++)
             {
                 var preColumn = i > 0 ? columns[i - 1].header : null;
@@ -123,7 +131,7 @@ namespace OpenTAP.TUI
                 // Add cells frame
                 var columnFrame = new FramedListView(null)
                 {
-                    Y = Pos.Bottom(headerFrame),
+                    Y = 4,  // this did not seem to work after reloading columns:  Pos.Bottom(headerFrame),
                     X = preColumn == null ? 0 : Pos.Right(preColumn),
                     Height = Dim.Fill(),
                     Width = preColumn == null ? Dim.Percent((float)100 / headers.Length) : Dim.Width(preColumn),
@@ -145,6 +153,7 @@ namespace OpenTAP.TUI
             columns.Clear();
             cells.Clear();
             Rows = 0;
+            RemoveAll();
         }
 
         private void Scroll(FramedListView list)
@@ -208,7 +217,7 @@ namespace OpenTAP.TUI
                             
                             // Find edit provider
                             var cell = cells[(i, listview.SelectedItem)];
-                            var propEditor =   PropEditProvider.GetProvider(cell, out var provider);
+                            var propEditor = PropEditProvider.GetProvider(cell, out var provider);
                             if (propEditor == null)
                                 TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
                             else

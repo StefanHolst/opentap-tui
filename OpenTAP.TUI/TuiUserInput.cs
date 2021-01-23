@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using OpenTap;
+using OpenTap.Tui.Views;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui
 {
     public class TuiUserInput : IUserInputInterface
     {
@@ -21,7 +22,7 @@ namespace OpenTAP.TUI
                 title = typeData.Display?.Name ?? typeData.Name;
             }
 
-            return title;
+            return title;   
         }
 
         public void RequestUserInput(object dataObject, TimeSpan Timeout, bool modal)
@@ -54,12 +55,13 @@ namespace OpenTAP.TUI
             // Show dialog
             var queryRunning = true;
             ManualResetEventSlim resetEvent = new ManualResetEventSlim(false);
-            Application.MainLoop.Invoke(() =>
+
+            void runDialog()
             {
                 Application.Run(dialog);
                 resetEvent.Set();
                 queryRunning = false;
-            });
+            }
 
             // Wait for timeout, then close the dialog
             var timedOut = false;
@@ -75,6 +77,16 @@ namespace OpenTAP.TUI
                     }
                 });
             }
+            
+            if (TUI.MainThread == TapThread.Current)
+            {
+                runDialog();
+            }
+            else
+            {
+                Application.MainLoop.Invoke(runDialog);
+            }
+
             
             resetEvent.Wait();
             if (timedOut)

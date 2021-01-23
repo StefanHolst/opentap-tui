@@ -5,11 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using OpenTap;
-using OpenTAP.TUI.PropEditProviders;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI
+namespace OpenTap.Tui.Views
 {
     public class TestPlanView : ListView
     {
@@ -195,9 +194,7 @@ namespace OpenTAP.TUI
             TestPlanStarted();
             testPlanThread = TapThread.Start(() =>
             {
-
-                // Add tui user input
-                UserInput.SetInterface(new TuiUserInput());
+                
                 
                 // Run testplan and show progress bar
                 testPlanRun = Plan.Execute();

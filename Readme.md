@@ -1,9 +1,10 @@
 # OpenTAP TUI (Textual User Interface)
-The OpenTAP TUI is a textual based user interface that can be used from a terminal. It gives you a graphical way to create OpenTAP test plans (`.TapPlan`).
+The OpenTAP TUI is a textual based user interface that can be used from a terminal. It gives you a graphical way to create OpenTAP test plans (`.TapPlan`) and install OpenTAP packages.
 
 It supports running in almost every terminal including in Docker containers.
 
 ![](doc/images/TUI.jpg)
+![](doc/images/Tui-Pm.gif)
 
 ## Install
 Either build it from source or install it from the OpenTAP package repository ([packages.opentap.io](https://packages.opentap.io)).
@@ -11,10 +12,12 @@ Either build it from source or install it from the OpenTAP package repository ([
 ### Install from Repository
 - Install: `tap package install TUI --version any`
 - Run: `tap tui`
+- Run Package Manager: `tap tui-pm`
 
 ### From source
 - Build: `dotnet build`
 - Run: `OpenTAP.TUI/bin/Debug/tap tui`
+- Run Package Manager: `OpenTAP.TUI/bin/Debug/tap tui-pm`
 
 
 ## Documentation

@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     public interface IPropEditProvider
     {
