@@ -1,9 +1,7 @@
-using System.ComponentModel;
-using OpenTap;
-using OpenTap.Tui;
+using OpenTap.Tui.Views;
 using Terminal.Gui;
 
-namespace OpenTAP.TUI.PropEditProviders
+namespace OpenTap.Tui.PropEditProviders
 {
     public class ColorSchemeEditProvider : IPropEditProvider
     {
@@ -17,17 +15,7 @@ namespace OpenTAP.TUI.PropEditProviders
             var propertiesView = new PropertiesView();
             propertiesView.LoadProperties(vm);
             
-            propertiesView.Removed += view =>
-            {
-                // coloredit.Value = vm;
-                // var test = (ColorSchemeViewmodel) coloredit.Value;
-                // test.FocusBackground = vm.FocusBackground;
-                // annotation.Write();
-                // annotation.Read();
-            };
-            
             return propertiesView;
         }
     }
-    
 }

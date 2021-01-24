@@ -67,31 +67,11 @@ namespace OpenTap.Tui
                 errorColor = null;
                 menuColor = null;
                 
-                setDefaultColors();
-            };
-
-            setDefaultColors();
-            
-            PropertyChanged += (sender, args) =>
-            {
-                if (args.PropertyName == "Color")
-                {
-                    Colors.Base = BaseColor.ToColorScheme();
-                    Colors.Dialog = DialogColor.ToColorScheme();
-                    Colors.Error = ErrorColor.ToColorScheme();
-                    Colors.Menu = MenuColor.ToColorScheme();
-
-                    // Colors.Base = baseScheme;
-                    // OpenTAP.TUI.TUI.ColorChanged();
-                    Application.Current.ColorScheme = Colors.Base;
-                    
-                    OpenTAP.TUI.TUI.Top.SetNeedsDisplay();
-                    Application.Top.SetNeedsDisplay();
-                }
+                SetDefaultColors();
             };
         }
 
-        void setDefaultColors()
+        void SetDefaultColors()
         {
             if (baseColor == null)
             {
@@ -126,8 +106,26 @@ namespace OpenTap.Tui
 
             if (errorColor == null)
                 errorColor = new ColorSchemeViewmodel(Colors.Base);
+        }
 
-            OnPropertyChanged("Color");
+        public void LoadSettings()
+        {
+            SetDefaultColors();
+            
+            Colors.Base = BaseColor.ToColorScheme();
+            Colors.Dialog = DialogColor.ToColorScheme();
+            Colors.Error = ErrorColor.ToColorScheme();
+            Colors.Menu = MenuColor.ToColorScheme();
+
+            foreach (var view in Application.Top.Subviews)
+            {
+                if (view is Toplevel)
+                    view.ColorScheme = Colors.Base;
+                if (view is MenuBar)
+                    view.ColorScheme = Colors.Menu;
+            }
+            
+            Application.Refresh();
         }
     }
     

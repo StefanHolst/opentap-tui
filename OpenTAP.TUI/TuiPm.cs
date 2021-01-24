@@ -38,7 +38,7 @@ namespace OpenTap.Tui
                 Application.Init();
                 
                 var top = Application.Top;
-                TUI.SetColorScheme();
+                TuiSettings.Current.LoadSettings();
                 
                 // Add settings menu
                 var setting = TypeData.FromType(typeof(PackageManagerSettings));

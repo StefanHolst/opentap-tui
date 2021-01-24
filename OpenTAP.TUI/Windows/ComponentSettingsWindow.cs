@@ -23,6 +23,11 @@ namespace OpenTap.Tui.Windows
             {
                 setting.Save();
                 Application.RequestStop();
+                
+                // If changes were made to the tui's own settings we should reload the settings
+                if (setting is TuiSettings tuiSettings)
+                    tuiSettings.LoadSettings();
+                
                 return true;
             }
 
