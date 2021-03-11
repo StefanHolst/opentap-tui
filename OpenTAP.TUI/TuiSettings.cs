@@ -76,139 +76,44 @@ namespace OpenTap.Tui
             {
                 case Theme.Dark:
                 {
-                    baseColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Gray, Color.Black),
-                        Focus = Application.Driver.MakeAttribute(Color.White, Color.DarkGray),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Gray, Color.Black),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Gray, Color.Black)
-                    });
-                    dialogColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.White, Color.DarkGray),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.DarkGray)
-                    });
-                    menuColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.White, Color.DarkGray),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.DarkGray)
-                    });
-                    errorColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Red, Color.DarkGray),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.DarkGray)
-                    });
+                    baseColor = new ColorSchemeViewmodel(Color.Gray, Color.Black, Color.White, Color.DarkGray, Color.Gray, Color.Black, Color.Gray, Color.Black);
+                    dialogColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
+                    menuColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
                     break;
                 }
                 case Theme.Light:
                 {
-                    baseColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Black, Color.Gray)
-                    });
-                    dialogColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-                    });
-                    menuColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-                    });
-                    errorColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Red, Color.Gray),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-                    });
+                    baseColor = new ColorSchemeViewmodel(Color.Black, Color.White, Color.Black, Color.Gray, Color.Black, Color.Gray, Color.Black, Color.Gray);
+                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    menuColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
                     break;
                 }
                 case Theme.Blue:
                 {
-                    baseColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.White, Color.Blue),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Blue, Color.Gray),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Cyan, Color.Blue)
-                    });
-                    dialogColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                        Focus = Application.Driver.MakeAttribute(Color.Black, Color.DarkGray),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Blue, Color.DarkGray),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Blue, Color.Gray)
-                    });
-                    menuColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.White, Color.DarkGray),
-                        Focus = Application.Driver.MakeAttribute(Color.White, Color.Black),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightYellow, Color.Black),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightYellow, Color.DarkGray)
-                    });
-                    errorColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Red, Color.White),
-                        Focus = Application.Driver.MakeAttribute(Color.White, Color.Red),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Black, Color.Red),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Black, Color.White)
-                    });
+                    baseColor = new ColorSchemeViewmodel(Color.White, Color.Blue, Color.Black, Color.Gray, Color.Blue, Color.Gray, Color.Cyan, Color.Blue);
+                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.DarkGray, Color.Blue, Color.DarkGray, Color.Blue, Color.Gray);
+                    menuColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.White, Color.Black, Color.BrightYellow, Color.Black, Color.BrightYellow, Color.DarkGray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.White, Color.White, Color.Red, Color.Black, Color.Red, Color.Black, Color.White);
                     break;
                 }
                 case Theme.Hacker:
                 {
-                    baseColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.BrightGreen, Color.Black),
-                        Focus = Application.Driver.MakeAttribute(Color.BrightRed, Color.Black),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Cyan, Color.Black),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Cyan, Color.Black)
-                    });
-                    dialogColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.BrightGreen, Color.Black),
-                        Focus = Application.Driver.MakeAttribute(Color.BrightRed, Color.Black),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Cyan, Color.Black),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Cyan, Color.Black)
-                    });
-                    menuColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.Cyan, Color.Black),
-                        Focus = Application.Driver.MakeAttribute(Color.BrightRed, Color.Black),
-                        HotFocus = Application.Driver.MakeAttribute(Color.BrightGreen, Color.Black),
-                        HotNormal = Application.Driver.MakeAttribute(Color.BrightGreen, Color.Black)
-                    });
-                    errorColor = new ColorSchemeViewmodel(new ColorScheme()
-                    {
-                        Normal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Black),
-                        Focus = Application.Driver.MakeAttribute(Color.Red, Color.Black),
-                        HotFocus = Application.Driver.MakeAttribute(Color.Cyan, Color.Black),
-                        HotNormal = Application.Driver.MakeAttribute(Color.Cyan, Color.Black)
-                    });
+                    baseColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
+                    dialogColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
+                    menuColor = new ColorSchemeViewmodel(Color.Cyan, Color.Black, Color.BrightRed, Color.Black, Color.BrightGreen, Color.Black, Color.BrightGreen, Color.Black);
+                    errorColor = new ColorSchemeViewmodel(Color.BrightRed, Color.Black, Color.Red, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
                     break;
                 }
                 case Theme.Default:
-                    baseColor = null;
-                    dialogColor = null;
-                    menuColor = null;
-                    errorColor = null;
-                    SetDefaultColors();
+                {
+                    baseColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.Black, Color.Gray, Color.Black, Color.Gray);
+                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    menuColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
                     break;
+                }
             }
         }
 
@@ -216,63 +121,14 @@ namespace OpenTap.Tui
         {
             Reset += () =>
             {
-                baseColor = null;
-                dialogColor = null;
-                errorColor = null;
-                menuColor = null;
-                theme = Theme.Default;
-                
-                SetDefaultColors();
+                Theme = Theme.Default;
+                SetTheme();
             };
-        }
-
-        void SetDefaultColors()
-        {
-            if (baseColor == null)
-            {
-                baseColor = new ColorSchemeViewmodel(new ColorScheme()
-                {
-                    Normal = Application.Driver.MakeAttribute(Color.White, Color.DarkGray),
-                    Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                    HotFocus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                    HotNormal = Application.Driver.MakeAttribute(Color.Black, Color.Gray)
-                });
-            }
-            if (dialogColor == null)
-            {
-                dialogColor = new ColorSchemeViewmodel(new ColorScheme()
-                {
-                    Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                    Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                    HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                    HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-                });
-            }
-            if (menuColor == null)
-            {
-                menuColor = new ColorSchemeViewmodel(new ColorScheme()
-                {
-                    Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                    Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                    HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                    HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-                });
-            }
-            if (errorColor == null)
-            {
-                errorColor = new ColorSchemeViewmodel(new ColorScheme()
-                {
-                    Normal = Application.Driver.MakeAttribute(Color.Red, Color.Gray),
-                    Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                    HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                    HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-                });
-            }
         }
 
         public void LoadSettings()
         {
-            SetDefaultColors();
+            SetTheme();
             
             Colors.Base = BaseColor.ToColorScheme();
             Colors.Dialog = DialogColor.ToColorScheme();
@@ -311,23 +167,17 @@ namespace OpenTap.Tui
         {
             
         }
-        
-        public ColorSchemeViewmodel(ColorScheme colorScheme)
-        {
-            if (colorScheme == null)
-                colorScheme = new ColorScheme();
-            
-            NormalForeground = colorScheme.Normal.Foreground;
-            NormalBackground = colorScheme.Normal.Background;
 
-            FocusForeground = colorScheme.Focus.Foreground;
-            FocusBackground = colorScheme.Focus.Background;
-            
-            HotNormalForeground = colorScheme.HotNormal.Foreground;
-            HotNormalBackground = colorScheme.HotNormal.Background;
-            
-            HotFocusForeground = colorScheme.HotFocus.Foreground;
-            HotFocusBackground = colorScheme.HotFocus.Background;
+        public ColorSchemeViewmodel(Color NormalForeground, Color NormalBackground, Color FocusForeground, Color FocusBackground, Color HotFocusForeground, Color HotFocusBackground, Color HotNormalForeground, Color HotNormalBackground)
+        {
+            this.NormalForeground = NormalForeground;
+            this.NormalBackground = NormalBackground;
+            this.HotNormalForeground = HotNormalForeground;
+            this.HotNormalBackground = HotNormalBackground;
+            this.FocusForeground = FocusForeground;
+            this.FocusBackground = FocusBackground;
+            this.HotFocusForeground = HotFocusForeground;
+            this.HotFocusBackground = HotFocusBackground;
         }
 
         public ColorScheme ToColorScheme()
