@@ -127,8 +127,8 @@ namespace OpenTap.Tui.Views
 
                     // Check validation rules
                     var step = x.Source as TestStep;
-                    var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName);
-                    if (rule?.IsValid() == false)
+                    var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
+                    if (rule != null)
                         nameBuilder.Append(" !");
                     
                     return nameBuilder.ToString();
@@ -204,14 +204,30 @@ namespace OpenTap.Tui.Views
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var memberAnnotqation = treeView.SelectedObject?.obj as AnnotationCollection;
-            var description = memberAnnotqation?.Get<DisplayAttribute>()?.Description;
+            var memberAnnotation = treeView.SelectedObject?.obj as AnnotationCollection;
+            var display = memberAnnotation?.Get<DisplayAttribute>();
+            var description = display?.Description;
+            var propertyName = display?.Name;
+
+            // Check validation rules
+            if (memberAnnotation != null)
+            {
+                var step = memberAnnotation.Source as TestStep;
+                var rules = step?.Rules.Where(r => r.PropertyName == display?.Name && r?.IsValid() == false).ToList();
+                if (rules?.Any() == true)
+                {
+                    var messages = rules.Select(r => r.ErrorMessage);
+                    description = $"! {string.Join("\n", messages)}\n{new String('-', descriptionView.Bounds.Width - 1)}\n{description}";
+                }
+            }
+
             if (description != null)
                 descriptionView.Text = SplitText(description, descriptionView.Bounds.Width);
             else
                 descriptionView.Text = "";
+            
 
-            buildMenuItems(memberAnnotqation);
+            buildMenuItems(memberAnnotation);
             SelectionChanged?.Invoke();
         }
 
