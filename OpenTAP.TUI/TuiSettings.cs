@@ -128,7 +128,8 @@ namespace OpenTap.Tui
 
         public void LoadSettings()
         {
-            SetTheme();
+            if (baseColor == null)
+                SetTheme();
             
             Colors.Base = BaseColor.ToColorScheme();
             Colors.Dialog = DialogColor.ToColorScheme();

@@ -22,7 +22,7 @@ namespace OpenTap.Tui
             CancellationToken = cancellationToken;
             cancellationToken.Register(() =>
             {
-                Application.RequestStop();
+                Application.Shutdown();
             });
 
             try

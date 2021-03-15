@@ -41,7 +41,7 @@ namespace OpenTap.Tui.Views
             lock (lockObj)
             {
                 if (parent == null || parent == Application.Current)
-                    Application.MainLoop.Invoke(() => Update(true));
+                    Application.MainLoop?.Invoke(() => Update(true));
                 else
                     Update(false);
             }
