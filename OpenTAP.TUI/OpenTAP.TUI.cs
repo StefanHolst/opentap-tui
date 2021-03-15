@@ -144,7 +144,7 @@ namespace OpenTap.Tui
             {
                 Application.Init();
                 Top = Application.Top;
-                SetColorScheme();
+                TuiSettings.Current.LoadSettings();
 
                 TestPlanView = new TestPlanView();
                 StepSettingsView = new PropertiesView();
@@ -390,36 +390,6 @@ namespace OpenTap.Tui
                 StepSettingsView.LoadProperties(TestPlanView.Plan);
             else
                 StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
-        }
-        
-        internal static void SetColorScheme()
-        {
-            var baseScheme = new ColorScheme()
-            {
-                Normal = Application.Driver.MakeAttribute(Color.White, Color.DarkGray),
-                Focus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                HotFocus = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                HotNormal = Application.Driver.MakeAttribute(Color.Black, Color.Gray)
-            };
-            var dialogScheme = new ColorScheme()
-            {
-                Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-            };
-            var menuScheme = new ColorScheme()
-            {
-                Normal = Application.Driver.MakeAttribute(Color.Black, Color.Gray),
-                Focus = Application.Driver.MakeAttribute(Color.Black, Color.White),
-                HotFocus = Application.Driver.MakeAttribute(Color.BrightRed, Color.White),
-                HotNormal = Application.Driver.MakeAttribute(Color.BrightRed, Color.Gray)
-            };
-
-            Colors.Base = baseScheme;
-            Colors.Dialog = dialogScheme;
-            // Colors.Error = errorScheme;
-            Colors.Menu = menuScheme;
         }
     }
 }
