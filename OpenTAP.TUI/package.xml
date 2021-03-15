@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Package Name="TUI" xmlns="http://opentap.io/schemas/package" Version="$(GitVersion)" OS="Windows,Linux,Mac">
+<Package Name="TUI" xmlns="http://opentap.io/schemas/package" Version="$(GitVersion)" OS="Windows,Linux">
   <Description>
 The OpenTAP TUI is a textual based user interface that can be used from a terminal. It gives you a graphical way to create OpenTAP test plans (.TapPlan). As well, as editing OpenTAP settings.
 
