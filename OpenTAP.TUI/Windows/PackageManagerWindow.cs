@@ -16,7 +16,7 @@ namespace OpenTap.Tui.Windows
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
-                    Application.RequestStop();
+                    Application.Shutdown();
                 }
             }
             
