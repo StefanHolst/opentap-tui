@@ -120,13 +120,13 @@ namespace OpenTap.Tui.Views
                     if(x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
                         nameBuilder.Append("◆");
 
-                    var propertyName = x.Get<DisplayAttribute>().Name;
-                    nameBuilder.Append(propertyName);
+                    nameBuilder.Append(x.Get<DisplayAttribute>().Name);
                     nameBuilder.Append(": ");
                     nameBuilder.Append(value);
 
                     // Check validation rules
-                    var step = x.Source as TestStep;
+                    var step = x.Source as IValidatingObject;
+                    var propertyName = x.Get<IMemberAnnotation>()?.Member?.Name;
                     var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
                     if (rule != null)
                         nameBuilder.Append(" !");
@@ -212,7 +212,7 @@ namespace OpenTap.Tui.Views
             // Check validation rules
             if (memberAnnotation != null)
             {
-                var step = memberAnnotation.Source as TestStep;
+                var step = memberAnnotation.Source as IValidatingObject;
                 var rules = step?.Rules.Where(r => r.PropertyName == display?.Name && r?.IsValid() == false).ToList();
                 if (rules?.Any() == true)
                 {
