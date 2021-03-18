@@ -175,16 +175,13 @@ namespace OpenTap.Tui.Views
                 var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
                 foreach (var availableValue in availableValuesAnnotation.AvailableValues)
                 {
-                    var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue)
+                    var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue);
+                    button.Clicked += () =>
                     {
-                        Clicked = () =>
-                        {
-                            availableValuesAnnotation.SelectedValue = availableValue;
-                            submit.Write();
-                            Submit();
-                        }
+                        availableValuesAnnotation.SelectedValue = availableValue;
+                        submit.Write();
+                        Submit();
                     };
-
                     
                     buttons.Add(button);
                 }
@@ -335,7 +332,7 @@ namespace OpenTap.Tui.Views
             }
             if (keyEvent.Key == Key.F2)
             {
-                descriptionView.SetFocus(); //TODO: test
+                descriptionView.SetFocus();
                 return true;
             }
 

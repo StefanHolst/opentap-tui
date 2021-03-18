@@ -287,19 +287,19 @@ namespace OpenTap.Tui.Views
             if (kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
                 return true;
 
-            if (kb.Key == Key.ControlS)
+            if (kb.Key == (Key.S | Key.CtrlMask))
             {
                 SaveTestPlan(kb.IsShift ? null : Plan.Path);
                 return true;
             }
 
-            if (kb.Key == Key.ControlO)
+            if (kb.Key == (Key.O | Key.CtrlMask))
             {
                 LoadTestPlan();
                 return true;
             }
 
-            if (kb.Key == Key.ControlT)
+            if (kb.Key == (Key.T | Key.CtrlMask))
             {
                 var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Add New Step");
                 Application.Run(newStep);

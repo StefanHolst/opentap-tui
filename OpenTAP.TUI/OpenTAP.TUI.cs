@@ -33,7 +33,7 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
+            if (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
@@ -86,14 +86,14 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (TestPlanView.PlanIsRunning && keyEvent.Key == Key.F5 && keyEvent.IsShift)
+            if (TestPlanView.PlanIsRunning && keyEvent.Key == (Key.F5 | Key.ShiftMask))
             {
                 // Abort plan?
                 if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?", "Yes", "No") == 0)
                     TestPlanView.AbortTestPlan();
             }
 
-            if (keyEvent.Key == Key.ControlS)
+            if (keyEvent.Key == (Key.S | Key.CtrlMask))
                 return TestPlanView.ProcessKey(keyEvent);
 
             return base.ProcessKey(keyEvent);

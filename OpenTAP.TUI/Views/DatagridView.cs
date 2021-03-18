@@ -86,7 +86,7 @@ namespace OpenTap.Tui.Views
                 UpdateColumn(i);
             }
 
-            columns[0].column.SetFocus(); // TODO: Test
+            columns[0].column.SetFocus();
             LayoutSubviews();
         }
 
