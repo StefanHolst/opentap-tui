@@ -119,12 +119,21 @@ namespace OpenTap.Tui.Views
                         nameBuilder.Append("◇");
                     if(x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
                         nameBuilder.Append("◆");
+
                     nameBuilder.Append(x.Get<DisplayAttribute>().Name);
                     nameBuilder.Append(": ");
                     nameBuilder.Append(value);
+
+                    // Check validation rules
+                    var step = x.Source as IValidatingObject;
+                    var propertyName = x.Get<IMemberAnnotation>()?.Member?.Name;
+                    var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
+                    if (rule != null)
+                        nameBuilder.Append(" !");
+                    
                     return nameBuilder.ToString();
                 }, 
-                (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
+                (item) => (item as AnnotationCollection)?.Get<DisplayAttribute>().Group);
 
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
@@ -195,14 +204,30 @@ namespace OpenTap.Tui.Views
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var memberAnnotqation = treeView.SelectedObject?.obj as AnnotationCollection;
-            var description = memberAnnotqation?.Get<DisplayAttribute>()?.Description;
+            var memberAnnotation = treeView.SelectedObject?.obj as AnnotationCollection;
+            var display = memberAnnotation?.Get<DisplayAttribute>();
+            var description = display?.Description;
+            var propertyName = display?.Name;
+
+            // Check validation rules
+            if (memberAnnotation != null)
+            {
+                var step = memberAnnotation.Source as IValidatingObject;
+                var rules = step?.Rules.Where(r => r.PropertyName == display?.Name && r?.IsValid() == false).ToList();
+                if (rules?.Any() == true)
+                {
+                    var messages = rules.Select(r => r.ErrorMessage);
+                    description = $"! {string.Join("\n", messages)}\n{new String('-', descriptionView.Bounds.Width - 1)}\n{description}";
+                }
+            }
+
             if (description != null)
                 descriptionView.Text = SplitText(description, descriptionView.Bounds.Width);
             else
                 descriptionView.Text = "";
+            
 
-            buildMenuItems(memberAnnotqation);
+            buildMenuItems(memberAnnotation);
             SelectionChanged?.Invoke();
         }
 
