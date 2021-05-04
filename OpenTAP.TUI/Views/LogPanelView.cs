@@ -33,6 +33,11 @@ namespace OpenTap.Tui.Views
         private static Action RefreshAction;
         private View parent;
 
+        private ColorScheme debugScheme = new ColorScheme();
+        private ColorScheme infoScheme = new ColorScheme();
+        private ColorScheme warningScheme = new ColorScheme();
+        private ColorScheme errorScheme = new ColorScheme();
+
         static LogPanelView()
         {
             lock (lockObj)
@@ -47,6 +52,20 @@ namespace OpenTap.Tui.Views
         
         public LogPanelView(View parent = null)
         {
+            var currentColor = TuiSettings.Current.BaseColor;
+            debugScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.NormalBackground);
+            debugScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.FocusBackground);
+
+            infoScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.White ? Color.Gray : Color.White, currentColor.NormalBackground);
+            infoScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.White || currentColor.FocusBackground == Color.Gray ? Color.DarkGray : Color.White, currentColor.FocusBackground);
+
+            warningScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.BrightYellow ? Color.Brown : Color.BrightYellow, currentColor.NormalBackground);
+            warningScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.BrightYellow ? Color.Brown : Color.BrightYellow, currentColor.FocusBackground);
+
+            errorScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.NormalBackground);
+            errorScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.FocusBackground);
+
+            
             this.parent = parent;
             RefreshAction += Refresh;
             
@@ -113,29 +132,26 @@ namespace OpenTap.Tui.Views
             for (int row = 0; row < f.Height; row++, item++) {
                 bool isSelected = item == selected;
 
-                var newcolor = focused ? (isSelected ? ColorScheme.Focus : ColorScheme.Normal) : ColorScheme.Normal;
                 if (item < messages.Count && TuiSettings.Current.UseLogColors)
                 {
                     var message = messages[item];
                     switch (message.EventType)
                     {
                         case (int)LogEventType.Debug:
-                            newcolor = Attribute.Make(newcolor.Background == Color.DarkGray ? Color.Gray : Color.DarkGray, newcolor.Background);
+                            Driver.SetAttribute(isSelected ? debugScheme.Focus : debugScheme.Normal);
                             break;
                         case (int)LogEventType.Information:
-                            newcolor = Attribute.Make(newcolor.Background == Color.White ? Color.Gray : Color.White, newcolor.Background);
+                            Driver.SetAttribute(isSelected ? infoScheme.Focus : infoScheme.Normal);
                             break;
                         case (int)LogEventType.Warning:
-                            newcolor = Attribute.Make(newcolor.Background == Color.BrightYellow ? Color.Brown : Color.BrightYellow, newcolor.Background);
+                            Driver.SetAttribute(isSelected ? warningScheme.Focus : warningScheme.Normal);
                             break;
                         case (int)LogEventType.Error:
-                            newcolor = Attribute.Make(newcolor.Background == Color.BrightRed ? Color.Red : Color.BrightRed, newcolor.Background);
+                            Driver.SetAttribute(isSelected ? errorScheme.Focus : errorScheme.Normal);
                             break;
                     }
                 }
                 
-                Driver.SetAttribute (newcolor);
-
                 Move (0, row);
                 if (Source == null || item >= Source.Count) {
                     for (int c = 0; c < f.Width; c++)
