@@ -4,16 +4,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terminal.Gui;
+using Attribute = Terminal.Gui.Attribute;
 
 namespace OpenTap.Tui.Views
 {
+    class LogEvent
+    {
+        public string Message { get; set; }
+        public int EventType { get; set; }
+
+        public LogEvent(Event e)
+        {
+            Message = e.Message;
+            EventType = e.EventType;
+        }
+        
+        public override string ToString()
+        {
+            return Message;
+        }
+    }
+    
     public class LogPanelView : ListView, ILogListener
     {
-        private static List<string> messages = new List<string>();
+        private static List<LogEvent> messages = new List<LogEvent>();
         private static object lockObj = new object();
         private static bool listenerAdded = false;
         private static Action RefreshAction;
         private View parent;
+
+        private ColorScheme debugScheme = new ColorScheme();
+        private ColorScheme infoScheme = new ColorScheme();
+        private ColorScheme warningScheme = new ColorScheme();
+        private ColorScheme errorScheme = new ColorScheme();
 
         static LogPanelView()
         {
@@ -29,6 +52,20 @@ namespace OpenTap.Tui.Views
         
         public LogPanelView(View parent = null)
         {
+            var currentColor = TuiSettings.Current.BaseColor;
+            debugScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.NormalBackground);
+            debugScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.FocusBackground);
+
+            infoScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.White ? Color.Gray : Color.White, currentColor.NormalBackground);
+            infoScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.White || currentColor.FocusBackground == Color.Gray ? Color.DarkGray : Color.White, currentColor.FocusBackground);
+
+            warningScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.BrightYellow ? Color.Brown : Color.BrightYellow, currentColor.NormalBackground);
+            warningScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.BrightYellow ? Color.Brown : Color.BrightYellow, currentColor.FocusBackground);
+
+            errorScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.NormalBackground);
+            errorScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.FocusBackground);
+
+            
             this.parent = parent;
             RefreshAction += Refresh;
             
@@ -66,7 +103,7 @@ namespace OpenTap.Tui.Views
         {
             lock (messages)
             {
-                messages.AddRange(Events.Select(e => e.Message));
+                messages.AddRange(Events.Select(e => new LogEvent(e)));
             }
 
             RefreshAction?.Invoke();
@@ -75,6 +112,57 @@ namespace OpenTap.Tui.Views
         public void Flush()
         {
             RefreshAction?.Invoke();
+        }
+        
+        public override void Redraw (Rect bounds)
+        {
+            var current = ColorScheme.Focus;
+            Driver.SetAttribute (current);
+            Move (0, 0);
+            var f = Frame;
+            if (selected < top) {
+                top = selected;
+            } else if (selected >= top + f.Height) {
+                top = selected;
+            }
+            var item = top;
+            bool focused = HasFocus;
+            int col = AllowsMarking ? 4 : 0;
+
+            for (int row = 0; row < f.Height; row++, item++) {
+                bool isSelected = item == selected;
+
+                if (item < messages.Count && TuiSettings.Current.UseLogColors)
+                {
+                    var message = messages[item];
+                    switch (message.EventType)
+                    {
+                        case (int)LogEventType.Debug:
+                            Driver.SetAttribute(isSelected ? debugScheme.Focus : debugScheme.Normal);
+                            break;
+                        case (int)LogEventType.Information:
+                            Driver.SetAttribute(isSelected ? infoScheme.Focus : infoScheme.Normal);
+                            break;
+                        case (int)LogEventType.Warning:
+                            Driver.SetAttribute(isSelected ? warningScheme.Focus : warningScheme.Normal);
+                            break;
+                        case (int)LogEventType.Error:
+                            Driver.SetAttribute(isSelected ? errorScheme.Focus : errorScheme.Normal);
+                            break;
+                    }
+                }
+                
+                Move (0, row);
+                if (Source == null || item >= Source.Count) {
+                    for (int c = 0; c < f.Width; c++)
+                        Driver.AddRune (' ');
+                } else {
+                    if (AllowsMarking) {
+                        Driver.AddStr (Source.IsMarked (item) ? (AllowsMultipleSelection ? "[x] " : "(o)") : (AllowsMultipleSelection ? "[ ] " : "( )"));
+                    }
+                    Source.Render (this, Driver, isSelected, item, col, row, f.Width - col);
+                }
+            }
         }
     }
 }

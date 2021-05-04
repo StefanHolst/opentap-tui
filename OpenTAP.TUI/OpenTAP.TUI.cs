@@ -176,7 +176,7 @@ namespace OpenTap.Tui
                     new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
                     new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
                     new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                    new MenuItem("_Quit", "", () => Application.RequestStop())
+                    new MenuItem("_Quit", "", () => Application.Shutdown())
                 });
                 var editmenu = new MenuBarItem("_Edit", new MenuItem[]
                 {

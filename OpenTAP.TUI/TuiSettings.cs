@@ -7,6 +7,7 @@ namespace OpenTap.Tui
     [Display("TUI Settings")]
     public class TuiSettings : ComponentSettings<TuiSettings>
     {
+        
         private Theme theme;
         [Display("Color Theme", Group: "Colors", Order: 0)]
         public Theme Theme
@@ -67,7 +68,10 @@ namespace OpenTap.Tui
         }
         private ColorSchemeViewmodel menuColor;
 
-        [Display("Restore Colors", Group: "Colors", Order: 2)]
+        [Display("Use Log Level Colors", Group: "Colors", Order: 2)]
+        public bool UseLogColors { get; set; } = true;
+        
+        [Display("Restore Colors", Group: "Colors", Order: 3)]
         public Action Reset { get; set; }
 
         private void SetTheme()
