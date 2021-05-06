@@ -209,6 +209,11 @@ namespace OpenTap.Tui
                     {
                         var helpWin = new HelpWindow();
                         Application.Run(helpWin);
+                    }),
+                    new MenuItem("_Something", "", () =>
+                    {
+                        var someWin = new SomthingWindow();
+                        Application.Run(someWin);
                     })
                 });
                 
