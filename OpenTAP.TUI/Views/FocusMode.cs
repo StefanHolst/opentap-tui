@@ -6,7 +6,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Views
 {
-    class SomthingWindow : Window
+    class FocusModeWindow : Window
     {
         private static StatsView _Stats;
         public static StatsView stats
@@ -45,7 +45,7 @@ namespace OpenTap.Tui.Views
             }
         }
 
-        public SomthingWindow()
+        public FocusModeWindow()
         {
             Title = "Diiiiig!";
             stats = new StatsView();
@@ -337,7 +337,7 @@ namespace OpenTap.Tui.Views
                     {
                         // Collision
                         Map.Remove(p);
-                        SomthingWindow.stats.UpdateStats(item.Value);
+                        FocusModeWindow.stats.UpdateStats(item.Value);
                     }
                 }
             }
@@ -491,23 +491,23 @@ namespace OpenTap.Tui.Views
         {
             Height = 4;
             Width = 12 + 20;
-            SomthingWindow.figure.FigureMoved += FigureMoved;
+            FocusModeWindow.figure.FigureMoved += FigureMoved;
 
             sellButton = new Button("Offload");
             sellButton.X = 14;
-            sellButton.Clicked += SomthingWindow.stats.Sell;
+            sellButton.Clicked += FocusModeWindow.stats.Sell;
             Add(sellButton);
 
             repairButton = new Button("Repair (1000g)");
             repairButton.X = 14;
             repairButton.Y = 1;
-            repairButton.Clicked += SomthingWindow.stats.Repair;
+            repairButton.Clicked += FocusModeWindow.stats.Repair;
             Add(repairButton);
 
             nextButton = new Button("Next Mission (10000g)");
             nextButton.X = 14;
             nextButton.Y = 2;
-            nextButton.Clicked += SomthingWindow.NextMission;
+            nextButton.Clicked += FocusModeWindow.NextMission;
             Add(nextButton);
 
             EnableShop(false);
@@ -684,11 +684,11 @@ namespace OpenTap.Tui.Views
         private void CheckViolations()
         {
             if (Load >= 1.0)
-                SomthingWindow.GameOver($"Your digger got crushed by the load!\nYou can retire with {Money} on your account.");
+                FocusModeWindow.GameOver($"Your digger got crushed by the load!\nYou can retire with {Money} on your account.");
             else if (Wear <= 0.0)
-                SomthingWindow.GameOver($"Your digger broke down, you are forever stuck...\nYou can retire with {Money} on your account.");
+                FocusModeWindow.GameOver($"Your digger broke down, you are forever stuck...\nYou can retire with {Money} on your account.");
             else if (Health <= 0)
-                SomthingWindow.GameOver($"Your digger blew up. You ded...\nYou can retire with {Money} on your account.");
+                FocusModeWindow.GameOver($"Your digger blew up. You ded...\nYou can retire with {Money} on your account.");
         }
 
         private void UpdateViews()

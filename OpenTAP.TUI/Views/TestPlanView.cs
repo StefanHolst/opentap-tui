@@ -228,8 +228,8 @@ namespace OpenTap.Tui.Views
                         {
                             if (MessageBox.Query("Focus Mode", "Do you want to enter focus mode?", "Yes", "No") == 0)
                             {
-                                var someWin = new SomthingWindow();
-                                Application.Run(someWin);
+                                var focusModeWindow = new FocusModeWindow();
+                                Application.Run(focusModeWindow);
                             }
                         });
                     }
