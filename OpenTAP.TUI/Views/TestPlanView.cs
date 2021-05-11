@@ -78,10 +78,14 @@ namespace OpenTap.Tui.Views
             var index = SelectedItem;
             var top = TopItem;
             SetSource(ExpandItems());
-            if (top > 0)
+            if (top > 0 && top < Source.Count)
                 TopItem = top;
             if (Source.Count > 0)
                 SelectedItem = (index > Source.Count - 1 ? Source.Count - 1 : index);
+            
+            // Make sure to invoke event when the last item is deleted
+            if (Source.Count == 0)
+                SelectedItemChanged.Invoke(null);
         }
         public void LoadTestPlan()
         {
