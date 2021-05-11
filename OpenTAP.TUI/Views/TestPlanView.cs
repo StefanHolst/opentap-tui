@@ -204,6 +204,8 @@ namespace OpenTap.Tui.Views
             
             Task.Run(() =>
             {
+                int count = 0;
+
                 while (PlanIsRunning)
                 {
                     Application.MainLoop.Invoke(() => Frame.Title = $"Test Plan - Running ");
@@ -213,6 +215,19 @@ namespace OpenTap.Tui.Views
                     {
                         Application.MainLoop.Invoke(() => Frame.Title += ">");
                         Thread.Sleep(1000);
+                    }
+
+                    count++;
+                    if (TuiSettings.Current.DisableFocusMode == false && count > 15) // Around 1 minute
+                    {
+                        Application.MainLoop.Invoke(() => 
+                        {
+                            if (MessageBox.Query("Focus Mode", "Do you want to enter focus mode?", "Yes", "No") == 0)
+                            {
+                                var someWin = new SomthingWindow();
+                                Application.Run(someWin);
+                            }
+                        });
                     }
                 }
                 

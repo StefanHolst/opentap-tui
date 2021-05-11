@@ -27,6 +27,15 @@ namespace OpenTap.Tui
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
+            if (keyEvent.Key == (Key.CtrlMask|Key.ShiftMask|Key.Enter))
+            {
+                if (MessageBox.Query("Focus Mode", "Do you want to enter focus mode?", "Yes", "No") == 0)
+                {
+                    var someWin = new SomthingWindow();
+                    Application.Run(someWin);
+                }
+            }
+
             if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView)
             {
                 FocusNext();
@@ -210,7 +219,7 @@ namespace OpenTap.Tui
                         var helpWin = new HelpWindow();
                         Application.Run(helpWin);
                     }),
-                    new MenuItem("_Something", "", () =>
+                    new MenuItem("_Focus Mode", "", () =>
                     {
                         var someWin = new SomthingWindow();
                         Application.Run(someWin);

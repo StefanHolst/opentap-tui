@@ -129,11 +129,12 @@ namespace OpenTap.Tui.Views
 
         public Canvas()
         {
-            rockScheme.Normal = Application.Driver.MakeAttribute(Color.Brown, Color.BrightBlue);
-            silverScheme.Normal = Application.Driver.MakeAttribute(Color.Gray, Color.BrightBlue);
-            diamondScheme.Normal = Application.Driver.MakeAttribute(Color.White, Color.BrightBlue);
-            bombScheme.Normal = Application.Driver.MakeAttribute(Color.BrightRed, Color.BrightBlue);
-            dollarScheme.Normal = Application.Driver.MakeAttribute(Color.BrightGreen, Color.BrightBlue);
+            var backgroundColor = TuiSettings.Current.BaseColor.NormalBackground;
+            rockScheme.Normal = Application.Driver.MakeAttribute(Color.Brown, backgroundColor);
+            silverScheme.Normal = Application.Driver.MakeAttribute(Color.Gray, backgroundColor);
+            diamondScheme.Normal = Application.Driver.MakeAttribute(Color.White, backgroundColor);
+            bombScheme.Normal = Application.Driver.MakeAttribute(Color.BrightRed, backgroundColor);
+            dollarScheme.Normal = Application.Driver.MakeAttribute(Color.BrightGreen, backgroundColor);
 
             LayoutComplete += (e) =>
             {
@@ -568,12 +569,13 @@ namespace OpenTap.Tui.Views
 
         public StatsView()
         {
+            var backgroundColor = TuiSettings.Current.BaseColor.NormalBackground;
             normalScheme = new ColorScheme();
-            normalScheme.Normal = Application.Driver.MakeAttribute(Color.White, Color.BrightBlue);
+            normalScheme.Normal = Application.Driver.MakeAttribute(Color.White, backgroundColor);
             yellowScheme = new ColorScheme();
-            yellowScheme.Normal = Application.Driver.MakeAttribute(Color.BrightYellow, Color.BrightBlue);
+            yellowScheme.Normal = Application.Driver.MakeAttribute(Color.BrightYellow, backgroundColor);
             redScheme = new ColorScheme();
-            redScheme.Normal = Application.Driver.MakeAttribute(Color.BrightRed, Color.BrightBlue);
+            redScheme.Normal = Application.Driver.MakeAttribute(Color.BrightRed, backgroundColor);
 
             var moneyLabel = new Label("Money: ")
             {

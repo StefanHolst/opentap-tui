@@ -70,6 +70,9 @@ namespace OpenTap.Tui
         [Display("Restore Colors", Group: "Colors", Order: 2)]
         public Action Reset { get; set; }
 
+        [Display("Disable Focus Mode")]
+        public bool DisableFocusMode { get; set; }
+
         private void SetTheme()
         {
             switch (Theme)
