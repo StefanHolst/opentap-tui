@@ -403,7 +403,7 @@ namespace OpenTap.Tui.Views
             int radio = area / 1300;
 
             // Generate Silver
-            var count = rand.Next(5 * radio, 15 * radio);
+            var count = rand.Next(10 * radio, 15 * radio);
             for (int i = 0; i < count; i++)
                 GenerateMaterial(Material.Silver, 0.5);
             
@@ -413,7 +413,7 @@ namespace OpenTap.Tui.Views
                 GenerateMaterial(Material.Bomb, 0.15);
 
             // Generate diamonds
-            count = rand.Next(1 * radio, 3 * radio);
+            count = rand.Next(2 * radio, 4 * radio);
             for (int i = 0; i < count; i++)
                 GenerateMaterial(Material.Diamonds, 0.2);
 
