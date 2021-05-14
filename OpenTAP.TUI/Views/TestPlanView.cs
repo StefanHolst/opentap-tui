@@ -14,6 +14,9 @@ namespace OpenTap.Tui.Views
     {
         private int moveIndex = -1;
         private bool injectStep = false;
+        private List<MenuItem> actions;
+        private MenuItem insertAction;
+        private MenuItem runAction;
         public TestPlan Plan { get; set; } = new TestPlan();
         public FrameView Frame { get; set; }
 
@@ -71,6 +74,49 @@ namespace OpenTap.Tui.Views
         public TestPlanView()
         {
             CanFocus = true;
+            
+            actions = new List<MenuItem>();
+            actions.Add(new MenuItem("Insert New Step", "", () =>
+            {
+                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+                Application.Run(newStep);
+                if (newStep.PluginType != null)
+                {
+                    AddNewStep(newStep.PluginType);
+                }
+            }));
+            insertAction = new MenuItem("Insert New Step Child", "", () =>
+            {
+                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+                Application.Run(newStep);
+                if (newStep.PluginType != null)
+                {
+                    InsertNewChildStep(newStep.PluginType);
+                }
+            });
+            insertAction.CanExecute += () => SelectedStep?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
+            actions.Add(insertAction);
+            runAction = new MenuItem("Run Test Plan", "", () =>
+            {
+                if (PlanIsRunning)
+                {
+                    if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?", "Yes", "No") == 0)
+                        AbortTestPlan();
+                }
+                else
+                    RunTestPlan();
+            });
+            actions.Add(runAction);
+            actions.Add(new MenuItem("Test Plan Settings", "", () =>
+            {
+                SelectedItemChanged.Invoke(null);
+            }));
+        }
+
+        public override bool OnEnter(View view)
+        {
+            Update();
+            return base.OnEnter(view);
         }
 
         public void Update()
@@ -86,6 +132,8 @@ namespace OpenTap.Tui.Views
             // Make sure to invoke event when the last item is deleted
             if (Source.Count == 0)
                 SelectedItemChanged.Invoke(null);
+
+            HelperButtons.SetActions(actions);
         }
         public void LoadTestPlan()
         {
@@ -180,30 +228,28 @@ namespace OpenTap.Tui.Views
         public bool PlanIsRunning = false;
         private TapThread testPlanThread;
 
-        public Action TestPlanStarted;
-        public Action TestPlanStopped;
-
         public void AbortTestPlan()
         {
             if (Plan.IsRunning)
             {
                 testPlanThread.Abort();
-                TestPlanStarted();
+                runAction.Title = "Run Test Plan";
+                Update();
             }
         }
         
         public void RunTestPlan()
         {
             PlanIsRunning = true;
-            TestPlanStarted();
+            runAction.Title = "Abort Test Plan";
+            Update();
             testPlanThread = TapThread.Start(() =>
             {
-                
-                
                 // Run testplan and show progress bar
                 testPlanRun = Plan.Execute();
                 PlanIsRunning = false;
-                TestPlanStopped();
+                runAction.Title = "Run Test Plan";
+                Update();
             });
             
             Task.Run(() =>
@@ -229,7 +275,9 @@ namespace OpenTap.Tui.Views
             if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
             {
                 injectStep = false;
+                base.ProcessKey(kb);
                 Update();
+                return true;
             }
             
             if (Plan.IsRunning)

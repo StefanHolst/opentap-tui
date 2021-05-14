@@ -78,8 +78,11 @@ namespace OpenTap.Tui.Views
                 if (cells.ContainsKey((i, Rows - 1)) == false)
                 {
                     var cell = CellProvider.Invoke(i, Rows - 1);
-                    if (cell == FlushColumns)
+                    if (cell == null || cell == FlushColumns)
+                    {
+                        Rows--;
                         return;
+                    }
                     cells[(i, Rows - 1)] = cell;
                 }
 
@@ -92,6 +95,8 @@ namespace OpenTap.Tui.Views
 
         public void RemoveRow(int index)
         {
+            if (Rows <= 0)
+                return;
             deleteRow(index);
             Rows--;
             for (int i = 0; i < Columns; i++)
@@ -240,6 +245,7 @@ namespace OpenTap.Tui.Views
                 if (keyEvent.Key == Key.DeleteChar)
                 {
                     RemoveRow(listview.SelectedItem);
+                    return true;
                 }
             }
 
@@ -251,7 +257,7 @@ namespace OpenTap.Tui.Views
     {
         public ListView Source { get; set; }
 
-        public FramedListView(ustring title) : base(title)
+        public FramedListView(ustring title = null) : base(title)
         {
             Source = new ListView();
             Source.CanFocus = true;
