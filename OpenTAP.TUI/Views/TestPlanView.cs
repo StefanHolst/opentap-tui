@@ -109,7 +109,7 @@ namespace OpenTap.Tui.Views
             actions.Add(runAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
-                SelectedItemChanged.Invoke(null);
+                SelectedItemChanged.Invoke(new ListViewItemEventArgs(0, Plan));
             }));
         }
 
@@ -197,6 +197,7 @@ namespace OpenTap.Tui.Views
                 
                 Update();
                 SelectedItem = flatplan.IndexOf(step) + 1;
+                HelperButtons.SetActions(actions);
             }
             catch(Exception ex)
             {

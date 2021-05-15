@@ -272,7 +272,7 @@ namespace OpenTap.Tui
                 // Update StepSettingsView when TestPlanView changes selected step
                 TestPlanView.SelectedItemChanged += args =>
                 {
-                    if (args == null)
+                    if (args?.Value is TestPlan)
                     {
                         StepSettingsView.LoadProperties(TestPlanView.Plan);
                         StepSettingsView.SetFocus();
