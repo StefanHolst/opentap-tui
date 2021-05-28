@@ -80,7 +80,7 @@ namespace OpenTap.Tui.Windows
                 var length = lastSpace > 0 ? lastSpace + 1 : 0;
                 Filter = Filter.Substring(0, length);
             }
-            else if (keyEvent.Key == Key.Backspace && Filter.Length > 0)
+            else if ((keyEvent.Key == Key.Backspace || keyEvent.Key == Key.Delete) && Filter.Length > 0)
                 Filter = Filter.Substring(0, Filter.Length - 1);
             else
                 return base.ProcessKey(keyEvent);

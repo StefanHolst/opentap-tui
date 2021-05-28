@@ -140,246 +140,255 @@ namespace OpenTap.Tui
             // Add tui user input
             UserInput.SetInterface(new TuiUserInput());
             
-            try
+            Application.Init();
+            Top = Application.Top;
+            TuiSettings.Current.LoadSettings();
+            
+            TestPlanView = new TestPlanView();
+            StepSettingsView = new PropertiesView();
+
+            // menu items
+            var runmenuItem = new MenuItem("_Run Test Plan", "", () =>
             {
-                Application.Init();
-                Top = Application.Top;
-                TuiSettings.Current.LoadSettings();
-
-                TestPlanView = new TestPlanView();
-                StepSettingsView = new PropertiesView();
-
-                // menu items
-                var runmenuItem = new MenuItem("_Run Test Plan", "", () =>
+                if (TestPlanView.PlanIsRunning)
+                    TestPlanView.AbortTestPlan();
+                else
+                    TestPlanView.RunTestPlan();
+            });
+            
+            var editTestPlanSettings = new MenuItem("_Test Plan Settings", "", () =>
+            {
+                TestPlanSelected = !TestPlanSelected;
+                loadSelected();
+                StepSettingsView.FocusFirst();
+            });
+            
+            var filemenu = new MenuBarItem("_File", new MenuItem[]
+            {
+                new MenuItem("_New", "", () =>
                 {
-                    if (TestPlanView.PlanIsRunning)
-                        TestPlanView.AbortTestPlan();
-                    else
-                        TestPlanView.RunTestPlan();
-                });
-                
-                var editTestPlanSettings = new MenuItem("_Test Plan Settings", "", () =>
-                {
-                    TestPlanSelected = !TestPlanSelected;
+                    TestPlanView.NewTestPlan();
+                    TestPlanSelected = true;
                     loadSelected();
-                    StepSettingsView.FocusFirst();
-                });
-                
-                var filemenu = new MenuBarItem("_File", new MenuItem[]
+                }),
+                new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
+                new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
+                new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
+                new MenuItem("_Quit", "", () => Application.Shutdown())
+            });
+            var editmenu = new MenuBarItem("_Edit", new MenuItem[]
+            {
+                new MenuItem("_Insert New Step", "", () =>
                 {
-                    new MenuItem("_New", "", () =>
+                    var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+                    Application.Run(newStep);
+                    if (newStep.PluginType != null)
                     {
-                        TestPlanView.NewTestPlan();
-                        TestPlanSelected = true;
-                        loadSelected();
-                    }),
-                    new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
-                    new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
-                    new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                    new MenuItem("_Quit", "", () => Application.Shutdown())
-                });
-                var editmenu = new MenuBarItem("_Edit", new MenuItem[]
-                {
-                    new MenuItem("_Insert New Step", "", () =>
-                    {
-                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
-                        Application.Run(newStep);
-                        if (newStep.PluginType != null)
-                        {
-                            TestPlanView.AddNewStep(newStep.PluginType);
-                            loadSelected();
-                        }
-                    }),
-                    new MenuItem("Insert New Step _Child", "", () =>
-                    {
-                        var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
-                        Application.Run(newStep);
-                        if (newStep.PluginType != null)
-                        {
-                            TestPlanView.InsertNewChildStep(newStep.PluginType);
-                            loadSelected();
-                        }
-                    }),
-                    runmenuItem,
-                    editTestPlanSettings
-                });
-                var helpmenu = new MenuBarItem("_Help", new MenuItem[]
-                {
-                    new MenuItem("_Help", "", () =>
-                    {
-                        var helpWin = new HelpWindow();
-                        Application.Run(helpWin);
-                    })
-                });
-                
-                // Settings menu
-                var settings = TypeData.GetDerivedTypes<ComponentSettings>()
-                    .Where(x => x.CanCreateInstance && (x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true));
-                Dictionary<MenuItem, string> groupItems = new Dictionary<MenuItem, string>();
-                foreach (var setting in settings.OfType<TypeData>())
-                {
-                    ComponentSettings obj = null;
-                    try
-                    {
-                        obj = ComponentSettings.GetCurrent(setting.Load());
-                        if(obj == null) continue;
-
-                        var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
-                        var name = setting.GetDisplayAttribute().Name;
-
-                        var menuItem = new MenuItem("_" + name, "", () =>
-                        {
-                            Window settingsView;
-                            if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
-                            {
-                                settingsView = new ConnectionSettingsWindow(name);
-                            }
-                            else if (setting.DescendsTo(TypeData.FromType(typeof(ComponentSettingsList<,>))))
-                            {
-                                settingsView = new ResourceSettingsWindow(name,(IList)obj);
-                            }
-                            else
-                            {
-                                settingsView = new ComponentSettingsWindow(obj);
-                            }
-                            Application.Run(settingsView);
-                        });
-                        groupItems[menuItem] = setgroup;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex);
-                    }
-                }
-                
-                // Create list of all menu items, used in menu bar
-                List<MenuBarItem> menuBars = new List<MenuBarItem>();
-                menuBars.Add(filemenu);
-                menuBars.Add(editmenu);
-                foreach (var group in groupItems.GroupBy(x => x.Value))
-                {
-                    var m = new MenuBarItem("_" + group.Key,
-                        group.OrderBy(x => x.Key.Title).Select(x => x.Key).ToArray()
-                    );
-                    menuBars.Add(m);
-                }
-                menuBars.Add(helpmenu);
-                
-                // Add menu bar
-                var menu = new MenuBar(menuBars.ToArray());
-                
-                var initEditMenuItemCount = editmenu.Children.Length;
-                void updateEditMenuItems()
-                {
-                    editmenu.Children = editmenu.Children.Take(initEditMenuItemCount)
-                        .Concat(StepSettingsView.ActiveMenuItems).ToArray();
-                }
-
-                StepSettingsView.SelectionChanged += updateEditMenuItems;
-                
-                menu.MenuClosing += () => 
-                {
-                    if(!TestPlanSelected)
-                        TestPlanView.FocusFirst();
-                };
-                Top.Add(menu);
-
-                // Create main window and add it to top item of application
-                var win = new MainWindow("OpenTAP TUI")
-                {
-                    X = 0,
-                    Y = 1,
-                    Width = Dim.Fill(),
-                    Height = Dim.Fill(),
-                    StepSettingsView = StepSettingsView,
-                    TestPlanView = TestPlanView
-                };
-                Top.Add(win);
-
-                // Add testplan view
-                var testPlanFrame = new FrameView("Test Plan")
-                {
-                    Width = Dim.Percent(75),
-                    Height = Dim.Percent(75)
-                };
-                testPlanFrame.Add(TestPlanView);
-                TestPlanView.Frame = testPlanFrame;
-                win.Add(testPlanFrame);
-
-                TestPlanView.TestPlanStarted = () =>
-                {
-                    runmenuItem.Title = "_Abort Test Plan";
-                };
-                TestPlanView.TestPlanStopped = () =>
-                {
-                    runmenuItem.Title = "_Run Test Plan";
-                };
-
-                // Add step settings view
-                var settingsFrame = new FrameView("Settings")
-                {
-                    X = Pos.Percent(75),
-                    Width = Dim.Fill(),
-                    Height = Dim.Percent(75)
-                };
-                settingsFrame.Add(StepSettingsView);
-                win.Add(settingsFrame);
-
-                // Add log panel
-                LogFrame = new FrameView("Log Panel")
-                {
-                    Y = Pos.Percent(75),
-                    Width = Dim.Fill(),
-                    Height = Dim.Fill()
-                };
-                LogFrame.Add(new LogPanelView());
-                win.Add(LogFrame);
-                win.LogFrame = LogFrame;
-
-                // Update StepSettingsView when TestPlanView changes selected step
-                TestPlanView.SelectedItemChanged += args =>
-                {
-                    TestPlanSelected = false;
-                    loadSelected();
-                };
-                
-                // Update testplanview when step settings are changed
-                StepSettingsView.PropertiesChanged += () =>
-                {
-                    if(TestPlanSelected == false)
-                        TestPlanView.Update();
-                };
-                
-                // Load plan from args
-                if (path != null)
-                {
-                    try
-                    {
-                        if (File.Exists(path) == false)
-                        {
-                            // file does not exist, lets just create it.
-                            var plan = new TestPlan();
-                            plan.Save(path);
-                        }
-
-                        TestPlanView.Plan = TestPlan.Load(path);
-                        TestPlanView.Update();
+                        TestPlanView.AddNewStep(newStep.PluginType);
                         loadSelected();
                     }
-                    catch
+                }),
+                new MenuItem("Insert New Step _Child", "", () =>
+                {
+                    var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+                    Application.Run(newStep);
+                    if (newStep.PluginType != null)
                     {
-                        Log.Warning("Unable to load plan {0}.", path);
+                        TestPlanView.InsertNewChildStep(newStep.PluginType);
+                        loadSelected();
                     }
-                }
-
-                // Run application
-                Application.Run();
-            }
-            catch (Exception ex)
+                }),
+                runmenuItem,
+                editTestPlanSettings
+            });
+            var helpmenu = new MenuBarItem("_Help", new MenuItem[]
             {
-                Log.Error(DefaultExceptionMessages.DefaultExceptionMessage);
-                Log.Debug(ex);
+                new MenuItem("_Help", "", () =>
+                {
+                    var helpWin = new HelpWindow();
+                    Application.Run(helpWin);
+                })
+            });
+            
+            // Settings menu
+            var settings = TypeData.GetDerivedTypes<ComponentSettings>()
+                .Where(x => x.CanCreateInstance && (x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true));
+            Dictionary<MenuItem, string> groupItems = new Dictionary<MenuItem, string>();
+            foreach (var setting in settings.OfType<TypeData>())
+            {
+                ComponentSettings obj = null;
+                try
+                {
+                    obj = ComponentSettings.GetCurrent(setting.Load());
+                    if(obj == null) continue;
+
+                    var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
+                    var name = setting.GetDisplayAttribute().Name;
+
+                    var menuItem = new MenuItem("_" + name, "", () =>
+                    {
+                        Window settingsView;
+                        if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
+                        {
+                            settingsView = new ConnectionSettingsWindow(name);
+                        }
+                        else if (setting.DescendsTo(TypeData.FromType(typeof(ComponentSettingsList<,>))))
+                        {
+                            settingsView = new ResourceSettingsWindow(name,(IList)obj);
+                        }
+                        else
+                        {
+                            settingsView = new ComponentSettingsWindow(obj);
+                        }
+                        Application.Run(settingsView);
+                    });
+                    groupItems[menuItem] = setgroup;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex);
+                }
             }
+            
+            // Create list of all menu items, used in menu bar
+            List<MenuBarItem> menuBars = new List<MenuBarItem>();
+            menuBars.Add(filemenu);
+            menuBars.Add(editmenu);
+            foreach (var group in groupItems.GroupBy(x => x.Value))
+            {
+                var m = new MenuBarItem("_" + group.Key,
+                    group.OrderBy(x => x.Key.Title).Select(x => x.Key).ToArray()
+                );
+                menuBars.Add(m);
+            }
+            menuBars.Add(helpmenu);
+            
+            // Add menu bar
+            var menu = new MenuBar(menuBars.ToArray());
+            
+            var initEditMenuItemCount = editmenu.Children.Length;
+            void updateEditMenuItems()
+            {
+                editmenu.Children = editmenu.Children.Take(initEditMenuItemCount)
+                    .Concat(StepSettingsView.ActiveMenuItems).ToArray();
+            }
+
+            StepSettingsView.SelectionChanged += updateEditMenuItems;
+            
+            menu.MenuClosing += () => 
+            {
+                if(!TestPlanSelected)
+                    TestPlanView.FocusFirst();
+            };
+            Top.Add(menu);
+
+            // Create main window and add it to top item of application
+            var win = new MainWindow("OpenTAP TUI")
+            {
+                X = 0,
+                Y = 1,
+                Width = Dim.Fill(),
+                Height = Dim.Fill(),
+                StepSettingsView = StepSettingsView,
+                TestPlanView = TestPlanView
+            };
+            Top.Add(win);
+
+            // Add testplan view
+            var testPlanFrame = new FrameView("Test Plan")
+            {
+                Width = Dim.Percent(75),
+                Height = Dim.Percent(75)
+            };
+            testPlanFrame.Add(TestPlanView);
+            TestPlanView.Frame = testPlanFrame;
+            win.Add(testPlanFrame);
+
+            TestPlanView.TestPlanStarted = () =>
+            {
+                runmenuItem.Title = "_Abort Test Plan";
+            };
+            TestPlanView.TestPlanStopped = () =>
+            {
+                runmenuItem.Title = "_Run Test Plan";
+            };
+
+            // Add step settings view
+            var settingsFrame = new FrameView("Settings")
+            {
+                X = Pos.Percent(75),
+                Width = Dim.Fill(),
+                Height = Dim.Percent(75)
+            };
+            settingsFrame.Add(StepSettingsView);
+            win.Add(settingsFrame);
+
+            // Add log panel
+            LogFrame = new FrameView("Log Panel")
+            {
+                Y = Pos.Percent(75),
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
+            LogFrame.Add(new LogPanelView());
+            win.Add(LogFrame);
+            win.LogFrame = LogFrame;
+
+            // Update StepSettingsView when TestPlanView changes selected step
+            TestPlanView.SelectedItemChanged += args =>
+            {
+                TestPlanSelected = false;
+                loadSelected();
+            };
+            
+            // Update testplanview when step settings are changed
+            StepSettingsView.PropertiesChanged += () =>
+            {
+                if(TestPlanSelected == false)
+                    TestPlanView.Update();
+            };
+            
+            // Load plan from args
+            if (path != null)
+            {
+                try
+                {
+                    if (File.Exists(path) == false)
+                    {
+                        // file does not exist, lets just create it.
+                        var plan = new TestPlan();
+                        plan.Save(path);
+                    }
+
+                    TestPlanView.Plan = TestPlan.Load(path);
+                    TestPlanView.Update();
+                    loadSelected();
+                }
+                catch
+                {
+                    Log.Warning("Unable to load plan {0}.", path);
+                }
+            }
+            
+
+            bool retry = false;
+            do
+            {
+                try
+                {
+                    // Run application
+                    Application.Run();
+                    retry = false;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(DefaultExceptionMessages.DefaultExceptionMessage);
+                    Log.Debug(ex);
+                 
+                    if (Application.Current?.Running == true)
+                       retry = true;
+                }
+            } while (retry);
 
             return 0;
         }
