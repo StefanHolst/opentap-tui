@@ -49,11 +49,6 @@ namespace OpenTap.Tui.Views
                 item.Title = member.Get<DisplayAttribute>().Name;
                 item.Action = () =>
                 {
-                    if (member.Get<IEnabledAnnotation>()?.IsEnabled == false)
-                    {
-                        log.Info("'{0}' is not curently enabled.", item.Title);
-                        return;
-                    }
                     try
                     {
                         member.Get<IMethodAnnotation>().Invoke();
@@ -70,7 +65,7 @@ namespace OpenTap.Tui.Views
                     }
                     catch {  }
                 };
-                item.CanExecute = () => true;
+                item.CanExecute = () => member.Get<IEnabledAnnotation>()?.IsEnabled == true;
                 list.Add(item);
             }
 
