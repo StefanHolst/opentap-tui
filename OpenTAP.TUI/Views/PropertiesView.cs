@@ -101,20 +101,26 @@ namespace OpenTap.Tui.Views
                     if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
                         return value;
                     var icons = x.GetAll<IIconAnnotation>().ToArray();
-                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName));//(y => y.IconName == OpenTap.IconNames.Parameterized);
+                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName)); //(y => y.IconName == OpenTap.IconNames.Parameterized);
                     bool icon(string name) => icons2.Contains(name);
                     nameBuilder.Clear();
-                    if(icon(IconNames.OutputAssigned))
-                        nameBuilder.Append("●");
-                    else if(icon(IconNames.Output))
-                        nameBuilder.Append("⭘");
-                    if(icon(IconNames.Input))
-                        nameBuilder.Append("●→");
+                    if (icon(IconNames.OutputAssigned))
+                        nameBuilder.Append('\u25cf'); // ●
+                    else if (icon(IconNames.Output))
+                        nameBuilder.Append('\u25cb'); // ⃝
+                    if (icon(IconNames.Input))
+                    {
+                        nameBuilder.Append('\u25cf'); // ●
+                        nameBuilder.Append('\u2192'); // →
+                    }
                     if(icon(IconNames.Parameterized))
-                        nameBuilder.Append("◇");
-                    if(x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
-                        nameBuilder.Append("◆");
+                        nameBuilder.Append('\u25ca');// ◊
+                    if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
+                        nameBuilder.Append('\u2666');// ♦
 
+                    if (nameBuilder.Length > 0)
+                        nameBuilder.Append(" ");
+                    
                     nameBuilder.Append(x.Get<DisplayAttribute>().Name);
                     nameBuilder.Append(": ");
                     nameBuilder.Append(value);
