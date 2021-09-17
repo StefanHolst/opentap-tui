@@ -207,6 +207,7 @@ namespace OpenTap.Tui.Windows
 
         List<PackageViewModel> GetFilePackages(FilePackageRepository repository)
         {
+            TuiPm.log.Info("Loading packages from: " + repository.Url);
             var list = new List<PackageViewModel>();
             
             var versions = repository.GetPackageVersions(package.Name, TuiPm.CancellationToken, installedOpentap);

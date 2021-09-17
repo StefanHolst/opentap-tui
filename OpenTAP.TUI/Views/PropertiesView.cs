@@ -20,42 +20,35 @@ namespace OpenTap.Tui.Views
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
 
-        public List<MenuItem> ActiveMenuItems { get; private set; } = new List<MenuItem>();
-
         public Action SelectionChanged { get; set; }
 
         static readonly TraceSource log = Log.CreateSource("tui");
         
         void buildMenuItems(AnnotationCollection selectedMember)
         {
+            // Only update the helperbuttons if we have focus
+            if (HasFocus == false)
+                return;
             
-            ActiveMenuItems.Clear();
+            var list = new List<MenuItem>();
             
             var menu = selectedMember?.Get<MenuAnnotation>();
-            if (menu == null) return;
+            if (menu == null)
+            {
+                HelperButtons.SetActions(list);
+                return;
+            }
             
             foreach (var _member in menu.MenuItems)
             {
                 var member = _member;
                 if (member.Get<IAccessAnnotation>()?.IsVisible == false)
                     continue;
-
-                if (ActiveMenuItems.Count == 0)
-                {
-                    var item2 = new MenuItem {Title = $"--- {selectedMember.Get<DisplayAttribute>().Name} ---"};
-                    ActiveMenuItems.Add(item2);
-
-                }
                 
                 var item = new MenuItem();
                 item.Title = member.Get<DisplayAttribute>().Name;
                 item.Action = () =>
                 {
-                    if (member.Get<IEnabledAnnotation>()?.IsEnabled == false)
-                    {
-                        log.Info("'{0}' is not curently enabled.", item.Title);
-                        return;
-                    }
                     try
                     {
                         member.Get<IMethodAnnotation>().Invoke();
@@ -72,9 +65,11 @@ namespace OpenTap.Tui.Views
                     }
                     catch {  }
                 };
-                item.CanExecute = () => true;
-                ActiveMenuItems.Add(item);
+                item.CanExecute = () => member.Get<IEnabledAnnotation>()?.IsEnabled != false;
+                list.Add(item);
             }
+
+            HelperButtons.SetActions(list);
         }
 
         public event Action PropertiesChanged;

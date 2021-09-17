@@ -18,7 +18,6 @@ namespace OpenTap.Tui
 
         public int Execute(CancellationToken cancellationToken)
         {
-            new LogPanelView(); // Just to subscribe to log as soon as possible
             CancellationToken = cancellationToken;
             cancellationToken.Register(() =>
             {
@@ -36,6 +35,7 @@ namespace OpenTap.Tui
                 UserInput.SetInterface(null);
                 
                 Application.Init();
+                new LogPanelView(); // Just to subscribe to log as soon as possible
                 
                 var top = Application.Top;
                 TuiSettings.Current.LoadSettings();
