@@ -65,7 +65,7 @@ namespace OpenTap.Tui.Views
                     }
                     catch {  }
                 };
-                item.CanExecute = () => member.Get<IEnabledAnnotation>()?.IsEnabled == true;
+                item.CanExecute = () => member.Get<IEnabledAnnotation>()?.IsEnabled != false;
                 list.Add(item);
             }
 
