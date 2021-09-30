@@ -17,6 +17,7 @@ namespace OpenTap.Tui
             {
                 theme = value;
                 SetTheme();
+                OnPropertyChanged(nameof(Theme));
             }
         }
         
@@ -125,7 +126,7 @@ namespace OpenTap.Tui
         {
             Reset += () =>
             {
-                Theme = Theme.Default;
+                Theme = Theme.Default;
                 SetTheme();
             };
         }
