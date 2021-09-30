@@ -76,6 +76,17 @@ namespace OpenTap.Tui.Views
             CanFocus = true;
             
             actions = new List<MenuItem>();
+            runAction = new MenuItem("Run Test Plan", "", () =>
+            {
+                if (PlanIsRunning)
+                {
+                    if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?", "Yes", "No") == 0)
+                        AbortTestPlan();
+                }
+                else
+                    RunTestPlan();
+            });
+            actions.Add(runAction);
             actions.Add(new MenuItem("Insert New Step", "", () =>
             {
                 var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
@@ -96,17 +107,6 @@ namespace OpenTap.Tui.Views
             });
             insertAction.CanExecute += () => SelectedStep?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
             actions.Add(insertAction);
-            runAction = new MenuItem("Run Test Plan", "", () =>
-            {
-                if (PlanIsRunning)
-                {
-                    if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?", "Yes", "No") == 0)
-                        AbortTestPlan();
-                }
-                else
-                    RunTestPlan();
-            });
-            actions.Add(runAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
                 SelectedItemChanged.Invoke(new ListViewItemEventArgs(0, Plan));

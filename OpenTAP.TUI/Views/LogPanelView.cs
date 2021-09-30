@@ -33,6 +33,7 @@ namespace OpenTap.Tui.Views
         private static Action RefreshAction;
         private View parent;
 
+        private ColorScheme backgroundScheme = new ColorScheme();
         private ColorScheme debugScheme = new ColorScheme();
         private ColorScheme infoScheme = new ColorScheme();
         private ColorScheme warningScheme = new ColorScheme();
@@ -52,7 +53,37 @@ namespace OpenTap.Tui.Views
         
         public LogPanelView(View parent = null)
         {
+            UpdateColorTheme();
+            TuiSettings.Current.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(Theme))
+                    UpdateColorTheme();
+            };
+            
+            this.parent = parent;
+            RefreshAction += Refresh;
+            
+            CanFocus = true;
+            SetSource(messages);
+        }
+
+        private void UpdateColorTheme()
+        {
             var currentColor = TuiSettings.Current.BaseColor;
+            backgroundScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalForeground, currentColor.NormalBackground);
+
+            Color debugFocus = Color.DarkGray;
+            Color infoFocus = Color.White;
+            Color warningFocus = Color.BrightYellow;
+            Color errorFocus = Color.BrightRed;
+            switch (currentColor.FocusBackground)
+            {
+                case Color.DarkGray:
+                    debugFocus = Color.Gray;
+                    break;
+            }
+            
+            
             debugScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.NormalBackground);
             debugScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.FocusBackground);
 
@@ -64,13 +95,6 @@ namespace OpenTap.Tui.Views
 
             errorScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.NormalBackground);
             errorScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.FocusBackground);
-
-            
-            this.parent = parent;
-            RefreshAction += Refresh;
-            
-            CanFocus = true;
-            SetSource(messages);
         }
 
         private void Refresh()
@@ -138,18 +162,22 @@ namespace OpenTap.Tui.Views
                     switch (message.EventType)
                     {
                         case (int)LogEventType.Debug:
-                            Driver.SetAttribute(isSelected ? debugScheme.Focus : debugScheme.Normal);
+                            Driver.SetAttribute(focused && isSelected ? debugScheme.Focus : debugScheme.Normal);
                             break;
                         case (int)LogEventType.Information:
-                            Driver.SetAttribute(isSelected ? infoScheme.Focus : infoScheme.Normal);
+                            Driver.SetAttribute(focused ? (isSelected ? infoScheme.Focus : infoScheme.Normal) : infoScheme.Normal);
                             break;
                         case (int)LogEventType.Warning:
-                            Driver.SetAttribute(isSelected ? warningScheme.Focus : warningScheme.Normal);
+                            Driver.SetAttribute(focused ? (isSelected ? warningScheme.Focus : warningScheme.Normal) : warningScheme.Normal);
                             break;
                         case (int)LogEventType.Error:
-                            Driver.SetAttribute(isSelected ? errorScheme.Focus : errorScheme.Normal);
+                            Driver.SetAttribute(focused ? (isSelected ? errorScheme.Focus : errorScheme.Normal) : errorScheme.Normal);
                             break;
                     }
+                }
+                else
+                {
+                    Driver.SetAttribute(backgroundScheme.Normal);
                 }
                 
                 Move (0, row);
