@@ -207,7 +207,7 @@ namespace OpenTap.Tui.Windows
 
         List<PackageViewModel> GetFilePackages(FilePackageRepository repository)
         {
-            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             var list = new List<PackageViewModel>();
             
             var versions = repository.GetPackageVersions(package.Name, TuiPm.CancellationToken, installedOpentap);
@@ -225,7 +225,7 @@ namespace OpenTap.Tui.Windows
         {
             var list = new List<PackageViewModel>();
             
-            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             HttpClient hc = new HttpClient();
             hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var content = new StringContent(@"query Query {

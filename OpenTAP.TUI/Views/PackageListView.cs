@@ -92,13 +92,13 @@ namespace OpenTap.Tui.Views
 
         List<PackageViewModel> GetFilePackages(FilePackageRepository repository)
         {
-            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             return repository.GetPackages(new PackageSpecifier(null, null), TuiPm.CancellationToken).Select(p => new PackageViewModel(p)).ToList();
         }
 
         List<PackageViewModel> GetHttpPackages(HttpPackageRepository repository)
         {
-            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             var list = new List<PackageViewModel>();
 
             // Get packages from repo

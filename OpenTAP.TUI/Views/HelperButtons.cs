@@ -6,19 +6,19 @@ namespace OpenTap.Tui.Views
 {
     public class HelperButtons : View
     {
-        private static HelperButtons instance = null;
+        public static HelperButtons Instance = null;
         private static List<MenuItem> actions = null;
         
         public HelperButtons()
         {
-            instance = this;
+            Instance = this;
         }
 
         public static void SetActions(List<MenuItem> actions)
         {
-            if (instance == null)
+            if (Instance == null)
                 return;
-            instance.RemoveAll();
+            Instance.RemoveAll();
             
             int offset = 0;
             for (int i = 0; i < actions.Count; i++)
@@ -35,12 +35,12 @@ namespace OpenTap.Tui.Views
                 };
                 b.Clicked += item.Action;
                 
-                instance.Add(b);
+                Instance.Add(b);
                 offset += title.Length + 4;
             }
 
             HelperButtons.actions = actions;
-            instance.SetNeedsDisplay();
+            Instance.SetNeedsDisplay();
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)

@@ -71,18 +71,6 @@ namespace OpenTap.Tui.Views
         {
             var currentColor = TuiSettings.Current.BaseColor;
             backgroundScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalForeground, currentColor.NormalBackground);
-
-            Color debugFocus = Color.DarkGray;
-            Color infoFocus = Color.White;
-            Color warningFocus = Color.BrightYellow;
-            Color errorFocus = Color.BrightRed;
-            switch (currentColor.FocusBackground)
-            {
-                case Color.DarkGray:
-                    debugFocus = Color.Gray;
-                    break;
-            }
-            
             
             debugScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.NormalBackground);
             debugScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.DarkGray ? Color.Gray : Color.DarkGray, currentColor.FocusBackground);

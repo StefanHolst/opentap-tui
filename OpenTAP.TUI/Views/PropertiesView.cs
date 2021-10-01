@@ -208,7 +208,6 @@ namespace OpenTap.Tui.Views
             var memberAnnotation = treeView.SelectedObject?.obj as AnnotationCollection;
             var display = memberAnnotation?.Get<DisplayAttribute>();
             var description = display?.Description;
-            var propertyName = display?.Name;
 
             // Check validation rules
             if (memberAnnotation != null)
