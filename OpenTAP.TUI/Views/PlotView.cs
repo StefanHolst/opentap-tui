@@ -36,9 +36,10 @@ namespace OpenTap.Tui
             // Set X and Y axis values
             var YWidth = Math.Max(((int)maxY).ToString().Length, ((int)minY).ToString().Length);
             // Size of box
-            var size = new Rect(1 + YWidth, 0, Frame.Width - YWidth, Frame.Height - 1);
+            var size = new Rect(1 + YWidth, 0, Frame.Width - YWidth, Frame.Height - 2);
             
             DrawYAxis(minY, maxY, YWidth, size);
+            DrawXAxis(minX, maxX, size);
             
             
             for (int i = 0; i < Plots.Count; i++)
@@ -52,15 +53,13 @@ namespace OpenTap.Tui
         void DrawYAxis(double min, double max, int axisWidth, Rect size)
         {
             var difference = max - min;
-            var linesToPrint = (size.Height) / YLINECOUNT + 1;
             var interval = difference / size.Height;
 
             for (int i = 0; i < size.Height; i++)
             {
                 if (i % YLINECOUNT == 0) // Every 5 lines print y value
                 {
-                    var index = i / YLINECOUNT;
-                    var num = string.Format("{0," + axisWidth + "}", Math.Round(max - index * interval));
+                    var num = string.Format("{0," + axisWidth + "}", Math.Round(max - i * interval));
                     
                     for (int j = 0; j < num.Length; j++)
                     {
@@ -68,12 +67,40 @@ namespace OpenTap.Tui
                         Driver.AddRune(num[j]);
                     }
                     Move(num.Length, i);
-                    Driver.AddRune('\u251c');
+                    Driver.AddRune(Driver.RightTee);
                 }
                 else
                 {
                     Move(axisWidth, i);
-                    Driver.AddRune('\u2502');
+                    Driver.AddRune(Driver.VLine);
+                }
+            }
+        }
+
+        private const int XLINECOUNT = 15;
+        void DrawXAxis(double min, double max, Rect size)
+        {
+            var difference = max - min;
+            var interval = difference / size.Width;
+
+            for (var i = size.Width; i > size.X; i--)
+            {
+                if (i % XLINECOUNT == 0) // Every 15 lines print x value
+                {
+                    var num = Math.Round(min + i * interval).ToString();
+                    
+                    for (var j = 0; j < num.Length; j++)
+                    {
+                        Move(i + j - num.Length/2, size.Height + 1);
+                        Driver.AddRune(num[j]);
+                    }
+                    Move(i, size.Height);
+                    Driver.AddRune(Driver.TopTee);
+                }
+                else
+                {
+                    Move(i, size.Height);
+                    Driver.AddRune(Driver.HLine);
                 }
             }
         }
