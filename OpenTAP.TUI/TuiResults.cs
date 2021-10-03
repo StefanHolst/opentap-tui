@@ -14,7 +14,6 @@ namespace OpenTap.Tui
     [Display("tui-results")]
     public class TuiResults : TuiAction
     {
-        
         public override int TuiExecute(CancellationToken cancellationToken)
         {
             var win = new ResultViewerWindow("Results Viewer")
@@ -31,7 +30,7 @@ namespace OpenTap.Tui
         }
     }
 
-    public class ResultViewerWindow : Window
+    public class ResultViewerWindow : EditWindow
     {
         private ResultsLoadView resultsLoadView;
         private PropertiesView propsView;
@@ -134,6 +133,14 @@ namespace OpenTap.Tui
         
         public override bool ProcessKey(KeyEvent keyEvent)
         {
+            if (TuiAction.CurrentAction is TuiResults && (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || keyEvent.Key == Key.Esc))
+            {
+                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
+                {
+                    Application.Shutdown();
+                }
+            }
+            
             HelperButtons.Instance?.ProcessKey(keyEvent);
             return base.ProcessKey(keyEvent);
         }

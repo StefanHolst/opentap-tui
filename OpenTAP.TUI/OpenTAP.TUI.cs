@@ -127,6 +127,31 @@ namespace OpenTap.Tui
                 new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
                 new MenuItem("_Quit", "", () => Application.Shutdown())
             });
+            var toolsmenu = new MenuBarItem("_Tools", new MenuItem[]
+            {
+                new MenuItem("_Results Viewer", "", () =>
+                {
+                    var reswin = new ResultViewerWindow("Results Viewer")
+                    {
+                        Width = Dim.Fill(),
+                        Height = Dim.Fill(),
+                    };
+            
+                    // Run application
+                    Application.Run(reswin);
+                }),
+                new MenuItem("_Package Manager", "", () =>
+                {
+                    var pmwin = new PackageManagerWindow()
+                    {
+                        Width = Dim.Fill(),
+                        Height = Dim.Fill(),
+                    };
+            
+                    // Run application
+                    Application.Run(pmwin);
+                })
+            });
             var helpmenu = new MenuBarItem("_Help", new MenuItem[]
             {
                 new MenuItem("_Help", "", () =>
@@ -186,6 +211,7 @@ namespace OpenTap.Tui
                 );
                 menuBars.Add(m);
             }
+            menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
             
             // Add menu bar

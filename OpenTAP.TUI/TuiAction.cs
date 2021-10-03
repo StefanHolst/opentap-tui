@@ -14,9 +14,11 @@ namespace OpenTap.Tui
         public static TapThread MainThread;
         public static CancellationToken CancellationToken;
         public static Toplevel Top { get; set; }
+        public static ICliAction CurrentAction { get; private set; }
         
         public int Execute(CancellationToken cancellationToken)
         {
+            CurrentAction = this;
             MainThread = TapThread.Current;
             
             CancellationToken = cancellationToken;

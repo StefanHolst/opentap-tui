@@ -17,28 +17,11 @@ namespace OpenTap.Tui
         {
             new LogPanelView(); // Just to subscribe to log as soon as possible
             
-            // Add settings menu
-            var setting = TypeData.FromType(typeof(PackageManagerSettings));
-            var obj = ComponentSettings.GetCurrent(setting.Load());
-            var name = setting.GetDisplayAttribute().Name;
-            var menu = new MenuBar(new []
-            {
-                new MenuBarItem("Settings", new []
-                {
-                    new MenuItem("Settings", name, () =>
-                    {
-                        var settingsView = new ComponentSettingsWindow(obj);
-                        Application.Run(settingsView);
-                    })
-                })
-            });
-            Top.Add(menu);
 
             // Add pm window
             Top.Add(new PackageManagerWindow()
             {
                 X = 0,
-                Y = 1,
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
             });
