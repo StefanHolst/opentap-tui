@@ -14,18 +14,30 @@ namespace OpenTap.Tui
     [Display("tui-results")]
     public class TuiResults : TuiAction
     {
-        private ResultsLoadView resultsLoadView;
-        private PropertiesView propsView;
         
         public override int TuiExecute(CancellationToken cancellationToken)
         {
-            var win = new Window("Results Viewer")
+            var win = new ResultViewerWindow("Results Viewer")
             {
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
             };
             Top.Add(win);
+            
+            // Run application
+            Application.Run();
 
+            return 0;
+        }
+    }
+
+    public class ResultViewerWindow : Window
+    {
+        private ResultsLoadView resultsLoadView;
+        private PropertiesView propsView;
+
+        public ResultViewerWindow(string title) : base(title)
+        {
             // Add results load view
             resultsLoadView = new ResultsLoadView()
             {
@@ -34,7 +46,7 @@ namespace OpenTap.Tui
                 Width = Dim.Percent(75),
                 Height = Dim.Fill(1)
             };
-            win.Add(resultsLoadView);
+            Add(resultsLoadView);
             resultsLoadView.SelectedItemChanged += SelectionChanged;
 
             // Add props view
@@ -51,7 +63,7 @@ namespace OpenTap.Tui
                 Height = Dim.Fill(1)
             };
             settingsFrame.Add(propsView);
-            win.Add(settingsFrame);
+            Add(settingsFrame);
             
             // Add helper buttons
             var helperButtons = new HelperButtons
@@ -60,7 +72,7 @@ namespace OpenTap.Tui
                 Height = 1,
                 Y = Pos.Bottom(resultsLoadView)
             };
-            win.Add(helperButtons);
+            Add(helperButtons);
             
             // Add actions
             var actions = new List<MenuItem>();
@@ -75,13 +87,8 @@ namespace OpenTap.Tui
                     HelperButtons.SetActions(new List<MenuItem>());
                 }
             });
-            
-            // Run application
-            Application.Run();
-
-            return 0;
         }
-
+        
         void SelectionChanged(ListViewItemEventArgs args)
         {
             if (args.Value is ResultsLoadView.IDataViewModel dvm)
@@ -92,6 +99,9 @@ namespace OpenTap.Tui
 
         void PlotResults()
         {
+            if (Application.Current is EditWindow)
+                return;
+            
             // Add plot view
             var plotView = new PlotView()
             {
@@ -100,19 +110,14 @@ namespace OpenTap.Tui
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
             };
-            // plotView.Plot(plot);
-            // win.Add(plotView);
             
             var markedItems = resultsLoadView.GetMarkedItems();
             for (var i = 0; i < markedItems.Count; i++)
             {
                 var plots = markedItems[i].Settings.PlotCharts();
                 foreach (var plot in plots)
-                {
                     plotView.Plot(plot);
-                }
             }
-            
             
             var dialog = new EditWindow(markedItems.FirstOrDefault()?.Data.Name ?? "Chart")
             {
@@ -126,5 +131,12 @@ namespace OpenTap.Tui
 
             Application.Run(dialog);
         }
+        
+        public override bool ProcessKey(KeyEvent keyEvent)
+        {
+            HelperButtons.Instance?.ProcessKey(keyEvent);
+            return base.ProcessKey(keyEvent);
+        }
+
     }
 }

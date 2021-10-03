@@ -57,27 +57,6 @@ namespace OpenTap.Tui.Views
             LoadEntries();
         }
 
-        public override bool ProcessKey(KeyEvent keyEvent)
-        {
-            // if (keyEvent.Key == Key.Enter && MostFocused == resultsList)
-            // {
-            //     // Create a plot
-            //     var plot = new Plot();
-            //     for (double x = 0; x < 100; x++)
-            //         plot.Points[x] = Math.Sin((double)x / 100 * 2 * Math.PI);
-            //
-            //     var plotView = new PlotView();
-            //     plotView.Plot(plot);
-            //     
-            //     var win = new EditWindow("Plot");
-            //     win.Add(plotView);
-            //     Application.Run(win);
-            // }
-            
-            HelperButtons.Instance?.ProcessKey(keyEvent);
-            return base.ProcessKey(keyEvent);
-        }
-
         private void LoadEntries()
         {
             var list = new List<IDataViewModel>();
@@ -115,10 +94,6 @@ namespace OpenTap.Tui.Views
                         }
                     }
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
                 finally
                 {
                     store.Close();
@@ -131,8 +106,12 @@ namespace OpenTap.Tui.Views
         {
             internal IData Run { get; set; }
             
-            public List<Enabled<IDataViewModel>> Series { get; set; } = new List<Enabled<IDataViewModel>>();
-
+            [Browsable(false)]
+            public List<IDataViewModel> AvailableSeries { get; set; } = new List<IDataViewModel>();
+            
+            [AvailableValues(nameof(AvailableSeries))]
+            public List<IDataViewModel> Series { get; set; } = new List<IDataViewModel>();
+            
             [Display("X-Axis")]
             [AvailableValues(nameof(AvailableResultColumns))]
             public string xAxis { get; set; }
@@ -146,7 +125,7 @@ namespace OpenTap.Tui.Views
             {
                 get
                 {
-                    return Series.Where(s => s.IsEnabled).Select(s => s.Value).SelectMany(r => (r.Data as IResultTable)?.Columns).Select(c => c.Name).Distinct().ToList();
+                    return Series.SelectMany(r => (r.Data as IResultTable)?.Columns).Select(c => c.Name).Distinct().ToList();
                 }
             }
             
@@ -154,9 +133,9 @@ namespace OpenTap.Tui.Views
             {
                 var list = new List<Plot>();
                 
-                foreach (var serie in Series.Where(s => s.IsEnabled))
+                foreach (var serie in Series)
                 {
-                    var resultTable = serie.Value.Data as IResultTable;
+                    var resultTable = serie.Data as IResultTable;
 
                     var xaxis = resultTable.Columns.FirstOrDefault(c => c.Name == xAxis);
                     var yaxis = resultTable.Columns.FirstOrDefault(c => c.Name == yAxis);
@@ -178,7 +157,14 @@ namespace OpenTap.Tui.Views
             
             public void AddSeries(IResultTable result)
             {
-                Series.Add(new Enabled<IDataViewModel>(){ Value = new IDataViewModel(result, null), IsEnabled = true });
+                var vm = new IDataViewModel(result, null);
+                AvailableSeries.Add(vm);
+                Series.Add(vm);
+
+                if (xAxis == null)
+                    xAxis = result.Columns.FirstOrDefault()?.Name;
+                if (yAxis == null)
+                    yAxis = result.Columns.FirstOrDefault(c => c.Name != xAxis)?.Name;
             }
         }
         
