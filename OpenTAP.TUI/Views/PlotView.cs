@@ -8,9 +8,10 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui
 {
-    public class PlotView : FrameView
+    public class PlotView : View
     {
         private List<Plot> Plots { get; set; } = new List<Plot>();
+        private char[] Symbols = { '#', '+', '*', '\u25c6' };
 
         public void Plot(Plot plot)
         {
@@ -23,25 +24,72 @@ namespace OpenTap.Tui
 
             Driver.SetAttribute(ColorScheme.Normal);
 
-            foreach (var plot in Plots)
+            
+            // Find max values for scaling
+            var allXValues = Plots.SelectMany(p => p.Points.Keys).ToList();
+            var allYValues = Plots.SelectMany(p => p.Points.Values).ToList();
+            var minX = allXValues.Min();
+            var maxX = allXValues.Max();
+            var minY = allYValues.Min();
+            var maxY = allYValues.Max();
+            
+            // Set X and Y axis values
+            var YWidth = Math.Max(((int)maxY).ToString().Length, ((int)minY).ToString().Length);
+            // Size of box
+            var size = new Rect(1 + YWidth, 0, Frame.Width - YWidth, Frame.Height - 1);
+            
+            DrawYAxis(minY, maxY, YWidth, size);
+            
+            
+            for (int i = 0; i < Plots.Count; i++)
             {
-                var scaledPlot = new ScaledPlot(plot, new Rect(1,1,Frame.Width - 2, Frame.Height - 2));
-                DrawPlot(scaledPlot);
+                var scaledPlot = new ScaledPlot(Plots[i], size, minX, maxX, minY, maxY);
+                DrawPlot(scaledPlot, Symbols[i % Symbols.Length], size);
             }
         }
 
-        void DrawPlot(ScaledPlot plot)
+        private const int YLINECOUNT = 5;
+        void DrawYAxis(double min, double max, int axisWidth, Rect size)
         {
-            for (int y = 0; y < Frame.Height; y++)
+            var difference = max - min;
+            var linesToPrint = (size.Height) / YLINECOUNT + 1;
+            var interval = difference / size.Height;
+
+            for (int i = 0; i < size.Height; i++)
             {
-                for (int x = 0; x < Frame.Width; x++) 
+                if (i % YLINECOUNT == 0) // Every 5 lines print y value
+                {
+                    var index = i / YLINECOUNT;
+                    var num = string.Format("{0," + axisWidth + "}", Math.Round(max - index * interval));
+                    
+                    for (int j = 0; j < num.Length; j++)
+                    {
+                        Move(j, i);
+                        Driver.AddRune(num[j]);
+                    }
+                    Move(num.Length, i);
+                    Driver.AddRune('\u251c');
+                }
+                else
+                {
+                    Move(axisWidth, i);
+                    Driver.AddRune('\u2502');
+                }
+            }
+        }
+
+        void DrawPlot(ScaledPlot plot, char symbol, Rect size)
+        {
+            for (int y = 0; y < size.Height; y++)
+            {
+                for (int x = 0; x < size.Width; x++) 
                 {
                     var material = plot.IsPoint(x, y);
                     if (material)
                     {
                         Move(x, y);
 
-                        var rune = new Rune(plot.Symbol);
+                        var rune = new Rune(symbol);
                         Driver.AddRune(rune);
                     }
                 }
@@ -52,48 +100,31 @@ namespace OpenTap.Tui
     public class Plot
     {
         public Dictionary<double, double> Points { get; set; }
-        public char Symbol { get; set; }
         
-        public Plot(Dictionary<double, double> points, char symbol = '*')
-        {
-            Points = points;
-            this.Symbol = symbol;
-        }
-
         public Plot()
         {
             Points = new Dictionary<double, double>();
-            Symbol = '*';
         }
     }
 
     public class ScaledPlot
     {
-        public Dictionary<int, int> Points { get; set; }
-        public char Symbol { get; set; }
-        public Rect Size { get; set; }
+        private Dictionary<int, int> Points { get; set; }
 
         public bool IsPoint(int x, int y)
         {
             return Points.Contains(new KeyValuePair<int, int>(x, y));
         }
         
-        public ScaledPlot(Plot plot, Rect size)
+        public ScaledPlot(Plot plot, Rect size, double minX, double maxX, double minY, double maxY)
         {
-            Symbol = plot.Symbol;
-            Size = size;
             Points = new Dictionary<int, int>();
-
-            // Scale the points
-            var maxX = plot.Points.Keys.Max();
-            var minX = plot.Points.Keys.Min();
-            var maxY = plot.Points.Values.Max();
-            var minY = plot.Points.Values.Min();
             
             foreach (var point in plot.Points)
             {
-                var x = (int)(size.X + (size.Width - size.X) * ((point.Key - minX) / (maxX - minX)));
-                var y = (int)(size.Y + (size.Height - size.Y) * ((point.Value-minY) / (maxY - minY)));
+                var value = maxY - point.Value + minY;
+                var x = (int) Math.Round(size.X + (size.Width - size.X - 1) * ((point.Key - minX) / (maxX - minX)));
+                var y = (int) Math.Round(size.Y + (size.Height - size.Y - 1) * ((value-minY) / (maxY - minY)));
                 Points[x] = y;
             }
         }

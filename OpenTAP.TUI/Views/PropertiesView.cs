@@ -19,6 +19,7 @@ namespace OpenTap.Tui.Views
         private TextView descriptionView { get; set; }
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
+        internal bool DisableHelperButtons { get; set; }
 
         public Action SelectionChanged { get; set; }
 
@@ -27,7 +28,7 @@ namespace OpenTap.Tui.Views
         void buildMenuItems(AnnotationCollection selectedMember)
         {
             // Only update the helperbuttons if we have focus
-            if (HasFocus == false)
+            if (HasFocus == false || DisableHelperButtons)
                 return;
             
             var list = new List<MenuItem>();
