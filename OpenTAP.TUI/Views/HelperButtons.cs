@@ -51,6 +51,7 @@ namespace OpenTap.Tui.Views
                 var action = actions[keyValue];
                 if (action.IsEnabled())
                     action.Action.Invoke();
+                return true;
             }
             
             return base.ProcessKey(keyEvent);

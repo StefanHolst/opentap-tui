@@ -93,8 +93,9 @@ namespace OpenTap.Tui
             if (keyEvent.Key == Key.ControlS)
                 return TestPlanView.ProcessKey(keyEvent);
 
-            
-            helperButtons.ProcessKey(keyEvent);
+
+            if (HelperButtons.Instance?.ProcessKey(keyEvent) == true)
+                return true;
             
             return base.ProcessKey(keyEvent);
         }
@@ -131,7 +132,7 @@ namespace OpenTap.Tui
             {
                 new MenuItem("_Results Viewer", "", () =>
                 {
-                    var reswin = new ResultViewerWindow("Results Viewer")
+                    var reswin = new ResultsViewerWindow("Results Viewer")
                     {
                         Width = Dim.Fill(),
                         Height = Dim.Fill(),

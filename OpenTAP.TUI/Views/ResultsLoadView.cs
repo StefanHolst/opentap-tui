@@ -9,7 +9,7 @@ using OpenTap.Plugins;
 
 namespace OpenTap.Tui.Views
 {
-    public class ResultsLoadView : View
+    public class RunExplorerView : View
     {
         public static string[] Headers =  { "Run ID", "Name", "Verdict", "Tags" };
         
@@ -21,7 +21,7 @@ namespace OpenTap.Tui.Views
             return runList.MarkedItems().Select(i => i as IDataViewModel).ToList();
         }
 
-        public ResultsLoadView()
+        public RunExplorerView()
         {
             var frames = new List<FrameView>();
             for (int i = 0; i < Headers.Length; i++)
