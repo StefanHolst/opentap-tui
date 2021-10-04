@@ -22,8 +22,10 @@ namespace OpenTap.Tui
         {
             base.Redraw(bounds);
 
+            if (Plots.Any() == false)
+                return;
+            
             Driver.SetAttribute(ColorScheme.Normal);
-
             
             // Find max values for scaling
             var allXValues = Plots.SelectMany(p => p.Points.Keys).ToList();

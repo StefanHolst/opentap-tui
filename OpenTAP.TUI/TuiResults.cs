@@ -85,6 +85,8 @@ namespace OpenTap.Tui
                 {
                     HelperButtons.SetActions(new List<MenuItem>());
                 }
+                
+                Application.Refresh();
             });
         }
         
@@ -98,8 +100,8 @@ namespace OpenTap.Tui
 
         void PlotResults()
         {
-            if (Application.Current is EditWindow)
-                return;
+            // if (Application.Current is EditWindow)
+            //     return;
             
             // Add plot view
             var plotView = new PlotView()

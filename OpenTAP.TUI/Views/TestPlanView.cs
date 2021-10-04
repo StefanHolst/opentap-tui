@@ -359,7 +359,6 @@ namespace OpenTap.Tui.Views
                 if (newStep.PluginType != null)
                 {
                     AddNewStep(newStep.PluginType);
-                    Update();
                 }
             }
 

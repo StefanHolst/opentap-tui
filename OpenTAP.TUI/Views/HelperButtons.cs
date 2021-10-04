@@ -41,7 +41,6 @@ namespace OpenTap.Tui.Views
 
             HelperButtons.actions = actions;
             Instance.SetNeedsDisplay();
-            Application.Refresh();
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
