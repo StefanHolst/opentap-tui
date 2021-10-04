@@ -7,6 +7,7 @@ namespace OpenTap.Tui.Views
     public class HelperButtons : View
     {
         public static HelperButtons Instance = null;
+        private static View Owner = null;
         private static List<MenuItem> actions = null;
         
         public HelperButtons()
@@ -14,11 +15,12 @@ namespace OpenTap.Tui.Views
             Instance = this;
         }
 
-        public static void SetActions(List<MenuItem> actions)
+        public static void SetActions(List<MenuItem> actions, View owner)
         {
             if (Instance == null)
                 return;
             Instance.RemoveAll();
+            Owner = owner;
             
             int offset = 0;
             for (int i = 0; i < actions.Count; i++)
@@ -45,6 +47,9 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
+            if (isOwnerFocused(Application.Current.MostFocused) == false)
+                return base.ProcessKey(keyEvent);
+            
             var keyValue = keyEvent.KeyValue - (int) Key.F5;
             if (keyValue <= 4 && keyValue >= 0 && actions.Count > keyValue)
             {
@@ -55,6 +60,16 @@ namespace OpenTap.Tui.Views
             }
             
             return base.ProcessKey(keyEvent);
+        }
+
+        bool isOwnerFocused(View view)
+        {
+            if (view == null)
+                return false;
+            if (Owner == view)
+                return true;
+
+            return isOwnerFocused(view.SuperView);
         }
     }
 }

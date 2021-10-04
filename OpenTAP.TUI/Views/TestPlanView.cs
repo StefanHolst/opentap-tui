@@ -133,7 +133,7 @@ namespace OpenTap.Tui.Views
             if (Source.Count == 0)
                 SelectedItemChanged.Invoke(null);
 
-            HelperButtons.SetActions(actions);
+            HelperButtons.SetActions(actions, this);
         }
         public void LoadTestPlan()
         {
@@ -197,7 +197,7 @@ namespace OpenTap.Tui.Views
                 
                 Update();
                 SelectedItem = flatplan.IndexOf(step) + 1;
-                HelperButtons.SetActions(actions);
+                HelperButtons.SetActions(actions, this);
             }
             catch(Exception ex)
             {
@@ -273,6 +273,9 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent kb)
         {
+            if (Application.Current.MostFocused != this)
+                return base.ProcessKey(kb);
+            
             if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
             {
                 injectStep = false;

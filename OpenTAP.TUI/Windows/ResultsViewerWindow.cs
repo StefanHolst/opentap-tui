@@ -55,10 +55,10 @@ namespace OpenTap.Tui.Windows
             resultsLoadView.ItemMarkedChanged += (args =>
             {
                 if (resultsLoadView.GetMarkedItems().Any())
-                    HelperButtons.SetActions(actions);
+                    HelperButtons.SetActions(actions, this);
                 else
                 {
-                    HelperButtons.SetActions(new List<MenuItem>());
+                    HelperButtons.SetActions(new List<MenuItem>(), this);
                 }
                 
                 Application.Refresh();
