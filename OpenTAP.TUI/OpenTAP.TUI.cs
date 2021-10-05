@@ -50,6 +50,8 @@ namespace OpenTap.Tui
                 {
                     Application.Shutdown();
                 }
+
+                return true;
             }
 
             if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
@@ -88,6 +90,7 @@ namespace OpenTap.Tui
             if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false)
             {
                 FocusPrev();
+                return true;
             }
             
             if (keyEvent.Key == Key.ControlS)

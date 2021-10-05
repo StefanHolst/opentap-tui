@@ -37,6 +37,8 @@ namespace OpenTap.Tui.Views
                 installedPackages = installation.GetPackages();
                 packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();
                 treeView.SetTreeViewSource(packages);
+
+                return true;
             }
             
             return base.ProcessKey(keyEvent);

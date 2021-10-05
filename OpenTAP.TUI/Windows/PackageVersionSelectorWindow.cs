@@ -280,6 +280,8 @@ namespace OpenTap.Tui.Windows
                     versionsView.Source.SetMark(i, false);
                 
                 installButton.Text = versions[versionsView.SelectedItem].Version == installedVersion?.Version ? "Uninstall" : "Install";
+
+                return true;
             }
             
             if (keyEvent.Key == Key.Esc)

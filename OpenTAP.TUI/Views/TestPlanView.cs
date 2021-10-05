@@ -297,11 +297,14 @@ namespace OpenTap.Tui.Views
                     step.Parent.ChildTestSteps.Remove(step);
                     Update();
                 }
+
+                return true;
             }
             if (kb.Key == Key.CursorRight && moveIndex > -1 && FlattenPlan()[SelectedItem].GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
                 Update();
+                return true;
             }
             if (kb.Key == Key.Space)
             {
@@ -312,6 +315,7 @@ namespace OpenTap.Tui.Views
                 {
                     moveIndex = SelectedItem;
                     Update();
+                    return true;
                 }
                 else
                 {
@@ -337,6 +341,7 @@ namespace OpenTap.Tui.Views
                     moveIndex = -1;
                     Update();
                     SelectedItem = flatIndex;
+                    return true;
                 }
             }
 
@@ -363,6 +368,7 @@ namespace OpenTap.Tui.Views
                 {
                     AddNewStep(newStep.PluginType);
                 }
+                return true;
             }
 
             return base.ProcessKey(kb);
