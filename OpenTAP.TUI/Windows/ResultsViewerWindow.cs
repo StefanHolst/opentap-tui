@@ -117,6 +117,8 @@ namespace OpenTap.Tui.Windows
                 {
                     Application.Shutdown();
                 }
+
+                return true;
             }
 
             if (HelperButtons.Instance?.ProcessKey(keyEvent) == true)

@@ -8,7 +8,6 @@ namespace OpenTap.Tui.Windows
 {
     public class PackageManagerWindow : EditWindow
     {
-        private TreeView treeView { get; set; }
         private PackageDetailsView detailsView { get; set; }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -19,6 +18,8 @@ namespace OpenTap.Tui.Windows
                 {
                     Application.Shutdown();
                 }
+
+                return true;
             }
             
             return base.ProcessKey(keyEvent);
