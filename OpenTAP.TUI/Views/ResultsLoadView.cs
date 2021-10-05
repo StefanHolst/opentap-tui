@@ -129,13 +129,15 @@ namespace OpenTap.Tui.Views
                 }
             }
             
-            public List<Plot> PlotCharts(string symbol = "*")
+            public List<Plot> PlotCharts()
             {
                 var list = new List<Plot>();
                 
                 foreach (var serie in Series)
                 {
                     var resultTable = serie.Data as IResultTable;
+                    if (resultTable == null)
+                        continue;
 
                     var xaxis = resultTable.Columns.FirstOrDefault(c => c.Name == xAxis);
                     var yaxis = resultTable.Columns.FirstOrDefault(c => c.Name == yAxis);
@@ -144,6 +146,7 @@ namespace OpenTap.Tui.Views
                         continue;
                     
                     var plot = new Plot();
+                    plot.Name = resultTable.Parent?.Name ?? resultTable.Name;
                     for (int i = 0; i < xaxis.Data.Length; i++)
                     {
                         var x = Convert.ToDouble(xaxis.Data.GetValue(i));
@@ -190,7 +193,7 @@ namespace OpenTap.Tui.Views
                 
                 var spacing = (Owner.Bounds.Width) / (Headers.Length);
                 
-                var id = Data.GetID().ToString();
+                var id = Data.Parameters.FirstOrDefault(p => p.Name == "Run ID")?.Value.ToString() ?? Data.GetID().ToString();
                 var name = Data.Name;
                 var verdict = Data.Parameters.FirstOrDefault(p => p.Name == "Verdict")?.Value.ToString();
                 var tags = Data.Parameters.FirstOrDefault(p => p.Name == "Tags")?.Value.ToString();

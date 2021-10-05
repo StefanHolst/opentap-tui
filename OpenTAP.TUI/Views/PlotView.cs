@@ -11,11 +11,13 @@ namespace OpenTap.Tui
     public class PlotView : View
     {
         private List<Plot> Plots { get; set; } = new List<Plot>();
-        private char[] Symbols = { '#', '+', '*', '\u25c6' };
+        private char[] Symbols = {  (char)Driver.Selected, (char)Driver.UnSelected, (char)Driver.Diamond, (char)Driver.Lozenge, '#', '+', '*' };
+        public List<string> Legends = new List<string>();
 
         public void Plot(Plot plot)
         {
             Plots.Add(plot);
+            Legends.Add($"{Symbols[(Plots.Count-1) % Symbols.Length]} {plot.Name}");
         }
         
         public override void Redraw(Rect bounds)
@@ -42,7 +44,6 @@ namespace OpenTap.Tui
             
             DrawYAxis(minY, maxY, YWidth, size);
             DrawXAxis(minX, maxX, size);
-            
             
             for (int i = 0; i < Plots.Count; i++)
             {
@@ -128,6 +129,7 @@ namespace OpenTap.Tui
 
     public class Plot
     {
+        public string Name { get; set; }
         public Dictionary<double, double> Points { get; set; }
         
         public Plot()

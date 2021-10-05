@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTap.Tui.Views;
@@ -95,7 +96,7 @@ namespace OpenTap.Tui.Windows
                     plotView.Plot(plot);
             }
             
-            var dialog = new EditWindow(markedItems.FirstOrDefault()?.Data.Name ?? "Chart")
+            var dialog = new EditWindow((markedItems.FirstOrDefault()?.Data.Name ?? "Chart") + " - " + String.Join("  ", plotView.Legends))
             {
                 Width = Dim.Fill(2),
                 Height = Dim.Fill(2),
