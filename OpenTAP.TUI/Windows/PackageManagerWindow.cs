@@ -34,6 +34,8 @@ namespace OpenTap.Tui.Windows
         
         public PackageManagerWindow() : base("Package Manager")
         {
+            Modal = true;
+            
             // Add settings menu
             var setting = TypeData.FromType(typeof(PackageManagerSettings));
             var obj = ComponentSettings.GetCurrent(setting.Load());

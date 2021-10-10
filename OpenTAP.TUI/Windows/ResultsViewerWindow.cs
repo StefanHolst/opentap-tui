@@ -13,6 +13,8 @@ namespace OpenTap.Tui.Windows
 
         public ResultsViewerWindow(string title) : base(title)
         {
+            Modal = true;
+
             // Add results load view
             resultsLoadView = new RunExplorerView()
             {
