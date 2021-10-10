@@ -6,7 +6,7 @@ using OpenTap.Tui.Views;
 
 namespace OpenTap.Tui.Windows
 {
-    public class PackageManagerWindow : EditWindow
+    public class PackageManagerWindow : Window
     {
         private PackageDetailsView detailsView { get; set; }
 
@@ -19,6 +19,13 @@ namespace OpenTap.Tui.Windows
                     Application.Shutdown();
                 }
 
+                return true;
+            }
+            else if (keyEvent.Key == Key.Esc)
+            {
+                var handled = base.ProcessKey(keyEvent);
+                if (handled) return true;
+                Application.RequestStop();
                 return true;
             }
             

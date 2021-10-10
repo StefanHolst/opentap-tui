@@ -6,7 +6,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class ResultsViewerWindow : EditWindow
+    public class ResultsViewerWindow : Window
     {
         private RunExplorerView resultsLoadView;
         private PropertiesView propsView;
@@ -118,6 +118,13 @@ namespace OpenTap.Tui.Windows
                     Application.Shutdown();
                 }
 
+                return true;
+            }
+            else if (keyEvent.Key == Key.Esc)
+            {
+                var handled = base.ProcessKey(keyEvent);
+                if (handled) return true;
+                Application.RequestStop();
                 return true;
             }
 
