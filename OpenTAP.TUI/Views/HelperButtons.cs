@@ -19,8 +19,12 @@ namespace OpenTap.Tui.Views
         {
             if (Instance == null)
                 return;
-            Instance.RemoveAll();
+
+            if (actions == HelperButtons.actions)
+                return;
+
             Owner = owner;
+            Instance.RemoveAll();
             
             int offset = 0;
             for (int i = 0; i < actions.Count; i++)

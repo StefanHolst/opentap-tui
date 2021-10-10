@@ -197,7 +197,6 @@ namespace OpenTap.Tui.Views
                 
                 Update();
                 SelectedItem = flatplan.IndexOf(step) + 1;
-                HelperButtons.SetActions(actions, this);
             }
             catch(Exception ex)
             {
