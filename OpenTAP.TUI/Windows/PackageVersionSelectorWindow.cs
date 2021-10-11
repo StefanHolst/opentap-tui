@@ -44,7 +44,8 @@ namespace OpenTap.Tui.Windows
             // versions = GetVersions(package);
             versionsView = new ListView()
             {
-                AllowsMarking = true
+                AllowsMarking = true,
+                AllowsMultipleSelection = false
             };
             versionsView.SelectedItemChanged += args =>
             {
@@ -275,14 +276,7 @@ namespace OpenTap.Tui.Windows
         public override bool ProcessKey (KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Space)
-            {
-                for (int i = 0; i < versionsView.Source.Count; i++)
-                    versionsView.Source.SetMark(i, false);
-                
                 installButton.Text = versions[versionsView.SelectedItem].Version == installedVersion?.Version ? "Uninstall" : "Install";
-
-                return true;
-            }
             
             if (keyEvent.Key == Key.Esc)
             {
