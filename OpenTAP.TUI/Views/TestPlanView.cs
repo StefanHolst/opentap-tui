@@ -244,6 +244,7 @@ namespace OpenTap.Tui.Views
             PlanIsRunning = true;
             runAction.Title = "Abort Test Plan";
             Update();
+            this.Plan.PrintTestPlanRunSummary = true;
             testPlanThread = TapThread.Start(() =>
             {
                 // Run testplan and show progress bar
