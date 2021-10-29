@@ -19,6 +19,7 @@ namespace OpenTap.Tui.Views
         private TextView descriptionView { get; set; }
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
+        internal bool DisableHelperButtons { get; set; }
 
         public Action SelectionChanged { get; set; }
 
@@ -27,7 +28,7 @@ namespace OpenTap.Tui.Views
         void buildMenuItems(AnnotationCollection selectedMember)
         {
             // Only update the helperbuttons if we have focus
-            if (HasFocus == false)
+            if (HasFocus == false || DisableHelperButtons)
                 return;
             
             var list = new List<MenuItem>();
@@ -35,7 +36,7 @@ namespace OpenTap.Tui.Views
             var menu = selectedMember?.Get<MenuAnnotation>();
             if (menu == null)
             {
-                HelperButtons.SetActions(list);
+                HelperButtons.SetActions(list, this);
                 return;
             }
             
@@ -69,7 +70,7 @@ namespace OpenTap.Tui.Views
                 list.Add(item);
             }
 
-            HelperButtons.SetActions(list);
+            HelperButtons.SetActions(list, this);
         }
 
         public event Action PropertiesChanged;
@@ -101,22 +102,22 @@ namespace OpenTap.Tui.Views
                     if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
                         return value;
                     var icons = x.GetAll<IIconAnnotation>().ToArray();
-                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName)); //(y => y.IconName == OpenTap.IconNames.Parameterized);
+                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName));
                     bool icon(string name) => icons2.Contains(name);
                     nameBuilder.Clear();
                     if (icon(IconNames.OutputAssigned))
-                        nameBuilder.Append('\u25cf'); // ●
+                        nameBuilder.Append((char)Driver.Selected); // ●
                     else if (icon(IconNames.Output))
-                        nameBuilder.Append('\u25cb'); // ⃝
+                        nameBuilder.Append((char)Driver.UnSelected); // ⃝
                     if (icon(IconNames.Input))
                     {
-                        nameBuilder.Append('\u25cf'); // ●
-                        nameBuilder.Append('\u2192'); // →
+                        nameBuilder.Append((char)Driver.Selected); // ●
+                        nameBuilder.Append((char)Driver.RightArrow); // →
                     }
                     if(icon(IconNames.Parameterized))
-                        nameBuilder.Append('\u25ca');// ◊
+                        nameBuilder.Append((char)Driver.Lozenge);// ◊
                     if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
-                        nameBuilder.Append('\u2666');// ♦
+                        nameBuilder.Append((char)Driver.Diamond);// ♦
 
                     if (nameBuilder.Length > 0)
                         nameBuilder.Append(" ");
@@ -208,7 +209,6 @@ namespace OpenTap.Tui.Views
             var memberAnnotation = treeView.SelectedObject?.obj as AnnotationCollection;
             var display = memberAnnotation?.Get<DisplayAttribute>();
             var description = display?.Description;
-            var propertyName = display?.Name;
 
             // Check validation rules
             if (memberAnnotation != null)

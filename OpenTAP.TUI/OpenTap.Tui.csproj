@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="OpenTAP" Version="$(OpenTapVersion)"/>
+    <PackageReference Include="OpenTAP" Version="$(OpenTapVersion)" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
@@ -21,6 +21,9 @@
   <ItemGroup>
     <Reference Include="OpenTap.Package">
       <HintPath>$(NugetPackageRoot)\opentap\$(OpenTapVersion)\build\payload\OpenTap.Package.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTap.Plugins.BasicSteps">
+      <HintPath>$(NugetPackageRoot)\opentap\$(OpenTapVersion)\build\payload\Packages\OpenTAP\OpenTap.Plugins.BasicSteps.dll</HintPath>
     </Reference>
   </ItemGroup>
 

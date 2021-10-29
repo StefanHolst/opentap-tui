@@ -21,7 +21,7 @@ namespace OpenTap.Tui.PropEditProviders
             
             var enabled = members[enabledIndex];
             var value = members[enabledIndex == 0 ? 1 : 0];
-            var check = new CheckBox("", (bool)enabled.Get<IObjectValueAnnotation>().Value);
+            var check = new CheckBox("", enabled.Get<IObjectValueAnnotation>()?.Value != null && (bool)enabled.Get<IObjectValueAnnotation>().Value);
             check.Toggled += b => 
             {
                 try

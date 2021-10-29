@@ -69,7 +69,7 @@ namespace OpenTap.Tui.Views
             }
         }
         
-        public void AddRow()
+        public bool AddRow()
         {
             Rows++;
 
@@ -81,7 +81,7 @@ namespace OpenTap.Tui.Views
                     if (cell == null || cell == FlushColumns)
                     {
                         Rows--;
-                        return;
+                        return false;
                     }
                     cells[(i, Rows - 1)] = cell;
                 }
@@ -89,8 +89,11 @@ namespace OpenTap.Tui.Views
                 UpdateColumn(i);
             }
 
-            columns[0].column.SetFocus(); // TODO: Test
+            if (columns.Any())
+                columns[0].column.SetFocus(); // TODO: Test
             LayoutSubviews();
+
+            return true;
         }
 
         public void RemoveRow(int index)
@@ -214,7 +217,8 @@ namespace OpenTap.Tui.Views
                             {
                                 while (cells.ContainsKey((i, listview.SelectedItem)) == false)
                                 {
-                                    AddRow();
+                                    if (AddRow() == false)
+                                        return false;
                                 }
 
                                 return true;
@@ -224,7 +228,7 @@ namespace OpenTap.Tui.Views
                             var cell = cells[(i, listview.SelectedItem)];
                             var propEditor = PropEditProvider.GetProvider(cell, out var provider);
                             if (propEditor == null)
-                                TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
+                                TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>()?.ReflectionInfo.Name}");
                             else
                             {
                                 var win = new EditWindow(cell.ToString());

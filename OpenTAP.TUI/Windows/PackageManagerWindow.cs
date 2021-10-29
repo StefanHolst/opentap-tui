@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTap.Package;
 using Terminal.Gui;
 using OpenTap.Tui.Views;
 
@@ -12,12 +13,21 @@ namespace OpenTap.Tui.Windows
         private readonly PackageListView packageList;
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.ControlX || (keyEvent.Key == Key.Esc))
+            if (TuiAction.CurrentAction is TuiPm && (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || keyEvent.Key == Key.Esc))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
                     Application.MainLoop.Invoke(Application.RequestStop);
                 }
+
+                return true;
+            }
+            else if (keyEvent.Key == Key.Esc)
+            {
+                var handled = base.ProcessKey(keyEvent);
+                if (handled) return true;
+                Application.RequestStop();
+                return true;
             }
             
             return base.ProcessKey(keyEvent);
@@ -49,14 +59,34 @@ namespace OpenTap.Tui.Windows
             });
         }
         
-        public PackageManagerWindow() : base("OpenTAP TUI - Package Manager")
+        public PackageManagerWindow() : base("Package Manager")
         {
+            Modal = true;
+            
+            // Add settings menu
+            var setting = TypeData.FromType(typeof(PackageManagerSettings));
+            var obj = ComponentSettings.GetCurrent(setting.Load());
+            var name = setting.GetDisplayAttribute().Name;
+            var menu = new MenuBar(new []
+            {
+                new MenuBarItem("Settings", new []
+                {
+                    new MenuItem("Settings", name, () =>
+                    {
+                        var settingsView = new ComponentSettingsWindow(obj);
+                        Application.Run(settingsView);
+                    }),
+                    new MenuItem("Refresh", "Refreshes the view by reloading packages from all repositories.", () => LoadPackages())
+                })
+            });
+            
             // Package Details
             var detailsFrame = new FrameView("Package Details")
             {
                 X = Pos.Percent(33),
+                Y = 1,
                 Width = Dim.Fill(),
-                Height = Dim.Percent(75)
+                Height = Dim.Percent(75) - 1
             };
             detailsView = new PackageDetailsView();
             detailsFrame.Add(detailsView);
@@ -64,7 +94,7 @@ namespace OpenTap.Tui.Windows
             // Log panel
             var logsFrame = new FrameView("Log Panel")
             {
-                Y = Pos.Percent(75),
+                Y = Pos.Bottom(detailsFrame),
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
             };
@@ -73,8 +103,9 @@ namespace OpenTap.Tui.Windows
             // Packages
             packageFrame = new FrameView("Packages")
             {
+                Y = 1,
                 Width = Dim.Percent(33),
-                Height = Dim.Percent(75)
+                Height = Dim.Percent(75) - 1
             };
             packageList = new PackageListView();
             packageList.SelectionChanged += () =>
@@ -84,6 +115,7 @@ namespace OpenTap.Tui.Windows
             detailsView.LoadPackage(packageList.SelectedPackage,packageList.installation, packageList.installedOpentap);
             packageFrame.Add(packageList);
             
+            Add(menu);
             Add(packageFrame);
             Add(detailsFrame);
             Add(logsFrame);
