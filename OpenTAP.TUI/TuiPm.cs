@@ -74,6 +74,10 @@ namespace OpenTap.Tui
                 Console.WriteLine(e);
                 throw;
             }
+            finally
+            {
+                Application.Shutdown();
+            }
 
             return 0;
         }

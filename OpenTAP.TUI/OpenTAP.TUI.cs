@@ -1,4 +1,3 @@
-using OpenTap;
 using OpenTap.Cli;
 using System;
 using System.Collections;
@@ -10,7 +9,6 @@ using System.Threading;
 using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
-using TraceSource = OpenTap.TraceSource;
 
 namespace OpenTap.Tui
 {
@@ -155,7 +153,7 @@ namespace OpenTap.Tui
                     new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
                     new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
                     new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                    new MenuItem("_Quit", "", () => Application.Shutdown())
+                    new MenuItem("_Quit", "", Application.RequestStop)
                 });
                 var helpmenu = new MenuBarItem("_Help", new MenuItem[]
                 {
@@ -316,6 +314,10 @@ namespace OpenTap.Tui
             {
                 Log.Error(DefaultExceptionMessages.DefaultExceptionMessage);
                 Log.Debug(ex);
+            }
+            finally
+            {
+                Application.Shutdown();
             }
 
             return 0;
