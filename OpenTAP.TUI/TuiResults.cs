@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using OpenTap.Cli;
 using OpenTap.Package;
@@ -10,21 +11,17 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui
 {
-    [Display("tui-pm")]
-    public class TuiPm : TuiAction
+    [Display("tui-results")]
+    public class TuiResults : TuiAction
     {
         public override int TuiExecute(CancellationToken cancellationToken)
         {
-            new LogPanelView(); // Just to subscribe to log as soon as possible
-            
-
-            // Add pm window
-            Top.Add(new PackageManagerWindow()
+            var win = new ResultsViewerWindow()
             {
-                X = 0,
                 Width = Dim.Fill(),
-                Height = Dim.Fill()
-            });
+                Height = Dim.Fill(),
+            };
+            Top.Add(win);
             
             // Run application
             Application.Run();

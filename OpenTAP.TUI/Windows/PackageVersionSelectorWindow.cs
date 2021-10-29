@@ -43,7 +43,8 @@ namespace OpenTap.Tui.Windows
             // versions = GetVersions(package);
             versionsView = new ListView()
             {
-                AllowsMarking = true
+                AllowsMarking = true,
+                AllowsMultipleSelection = false
             };
             versionsView.SelectedItemChanged += args =>
             {
@@ -216,7 +217,7 @@ namespace OpenTap.Tui.Windows
 
         List<PackageViewModel> GetFilePackages(FilePackageRepository repository)
         {
-            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             var list = new List<PackageViewModel>();
             
             var versions = repository.GetPackageVersions(package.Name, TuiPm.CancellationToken, installedOpentap);
@@ -234,7 +235,7 @@ namespace OpenTap.Tui.Windows
         {
             var list = new List<PackageViewModel>();
             
-            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             HttpClient hc = new HttpClient();
             hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var content = new StringContent(@"query Query {
@@ -284,12 +285,7 @@ namespace OpenTap.Tui.Windows
         public override bool ProcessKey (KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Space)
-            {
-                for (int i = 0; i < versionsView.Source.Count; i++)
-                    versionsView.Source.SetMark(i, false);
-                
                 installButton.Text = versions[versionsView.SelectedItem].Version == installedVersion?.Version ? "Uninstall" : "Install";
-            }
             
             if (keyEvent.Key == Key.Esc)
             {

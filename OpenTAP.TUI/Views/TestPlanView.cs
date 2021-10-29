@@ -18,7 +18,7 @@ namespace OpenTap.Tui.Views
         private MenuItem insertAction;
         private MenuItem runAction;
         public TestPlan Plan { get; set; } = new TestPlan();
-        public FrameView Frame { get; set; }
+        public FrameView TestPlanFrame { get; set; }
 
         private List<string> ExpandItems()
         {
@@ -133,7 +133,7 @@ namespace OpenTap.Tui.Views
             if (Source.Count == 0)
                 SelectedItemChanged.Invoke(null);
 
-            HelperButtons.SetActions(actions);
+            HelperButtons.SetActions(actions, this);
         }
         public void LoadTestPlan()
         {
@@ -197,7 +197,6 @@ namespace OpenTap.Tui.Views
                 
                 Update();
                 SelectedItem = flatplan.IndexOf(step) + 1;
-                HelperButtons.SetActions(actions);
             }
             catch(Exception ex)
             {
@@ -258,22 +257,25 @@ namespace OpenTap.Tui.Views
             {
                 while (PlanIsRunning)
                 {
-                    Application.MainLoop.Invoke(() => Frame.Title = $"Test Plan - Running ");
+                    Application.MainLoop.Invoke(() => TestPlanFrame.Title = $"Test Plan - Running ");
                     Thread.Sleep(1000);
                     
                     for (int i = 0; i < 3 && PlanIsRunning; i++)
                     {
-                        Application.MainLoop.Invoke(() => Frame.Title += ">");
+                        Application.MainLoop.Invoke(() => TestPlanFrame.Title += ">");
                         Thread.Sleep(1000);
                     }
                 }
                 
-                Application.MainLoop.Invoke(() => Frame.Title = "Test Plan");
+                Application.MainLoop.Invoke(() => TestPlanFrame.Title = "Test Plan");
             });
         }
 
         public override bool ProcessKey(KeyEvent kb)
         {
+            if (Application.Current.MostFocused != this)
+                return base.ProcessKey(kb);
+            
             if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
             {
                 injectStep = false;
@@ -295,11 +297,14 @@ namespace OpenTap.Tui.Views
                     step.Parent.ChildTestSteps.Remove(step);
                     Update();
                 }
+
+                return true;
             }
             if (kb.Key == Key.CursorRight && moveIndex > -1 && FlattenPlan()[SelectedItem].GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
                 Update();
+                return true;
             }
             if (kb.Key == Key.Space)
             {
@@ -310,6 +315,7 @@ namespace OpenTap.Tui.Views
                 {
                     moveIndex = SelectedItem;
                     Update();
+                    return true;
                 }
                 else
                 {
@@ -335,6 +341,7 @@ namespace OpenTap.Tui.Views
                     moveIndex = -1;
                     Update();
                     SelectedItem = flatIndex;
+                    return true;
                 }
             }
 
@@ -360,8 +367,8 @@ namespace OpenTap.Tui.Views
                 if (newStep.PluginType != null)
                 {
                     AddNewStep(newStep.PluginType);
-                    Update();
                 }
+                return true;
             }
 
             return base.ProcessKey(kb);

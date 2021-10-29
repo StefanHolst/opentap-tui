@@ -156,7 +156,7 @@ namespace OpenTap.Tui.PropEditProviders
 
             DatagridView view = null;
             view = new DatagridView(fixedSize, Columns.ToArray(), (x, y) =>
-                {
+            {
                 if (y >= items.Length)
                 {
                     var lst = items.ToList();
@@ -211,6 +211,9 @@ namespace OpenTap.Tui.PropEditProviders
                 var cell = row.Get<IMembersAnnotation>().Members
                     .FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns2[x]);
 
+                if (cell == null)
+                    cell = row;
+                
                 return cell;
             },
             i =>

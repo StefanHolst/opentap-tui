@@ -20,17 +20,20 @@ namespace OpenTap.Tui.PropEditProviders
                 p.Get<IStringReadOnlyValueAnnotation>()?.Value ?? 
                 p.Get<IObjectValueAnnotation>().Value).ToList());
 
-            listView.Removed += view =>
+            listView.KeyPress += args =>
             {
-                try
+                if (args.KeyEvent.Key == Key.Enter)
                 {
-                    if (availableValues.Any())
-                        availableValue.SelectedValue = availableValues[listView.SelectedItem];
-                }
-                catch (Exception exception)
-                {
-                    TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
-                    TUI.Log.Debug(exception);
+                    try
+                    {
+                        if (availableValues.Any())
+                            availableValue.SelectedValue = availableValues[listView.SelectedItem];
+                    }
+                    catch (Exception exception)
+                    {
+                        TUI.Log.Error($"{exception.Message} {DefaultExceptionMessages.DefaultExceptionMessage}");
+                        TUI.Log.Debug(exception);
+                    }
                 }
             };
 
