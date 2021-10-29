@@ -72,14 +72,14 @@ namespace OpenTap.Tui.Windows
 
             if (keyEvent.KeyValue >= 32 && keyEvent.KeyValue < 127) // any non-special character is in this range
                 Filter += (char) keyEvent.KeyValue;
-            else if (keyEvent.Key == (Key.Backspace|Key.CtrlMask))
+            else if (keyEvent.Key == (Key.Backspace|Key.CtrlMask) || keyEvent.Key == (Key.Delete|Key.CtrlMask))
             {
                 Filter = Filter.TrimEnd();
                 var lastSpace = Filter.LastIndexOf(' ');
                 var length = lastSpace > 0 ? lastSpace + 1 : 0;
                 Filter = Filter.Substring(0, length);
             }
-            else if (keyEvent.Key == Key.Backspace && Filter.Length > 0)
+            else if ((keyEvent.Key == Key.Backspace || keyEvent.Key == Key.Delete) && Filter.Length > 0)
                 Filter = Filter.Substring(0, Filter.Length - 1);
             else
                 return base.ProcessKey(keyEvent);
