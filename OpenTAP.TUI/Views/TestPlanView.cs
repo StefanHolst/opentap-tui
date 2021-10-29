@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTap.Plugins;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
@@ -42,21 +43,22 @@ namespace OpenTap.Tui.Views
 
             return allsteps;
         }
+        
+        
+        List<ITestStep> FlattenSteps(IEnumerable<ITestStep> steps)
+        {
+            var list = new List<ITestStep>();
+            foreach (var item in steps)
+            {
+                list.Add(item);
+                if (item.ChildTestSteps.Any())
+                    list.AddRange(FlattenSteps(item.ChildTestSteps));
+            }
+            return list;
+        }
         private List<ITestStep> FlattenPlan()
         {
-            List<ITestStep> _FlattenSteps(TestStepList steps)
-            {
-                var list = new List<ITestStep>();
-                foreach (var item in steps)
-                {
-                    list.Add(item);
-                    if (item.ChildTestSteps.Any())
-                        list.AddRange(_FlattenSteps(item.ChildTestSteps));
-                }
-                return list;
-            }
-
-            return _FlattenSteps(Plan.ChildTestSteps);
+            return FlattenSteps(Plan.ChildTestSteps);
         }
 
         public ITestStep SelectedStep
@@ -371,6 +373,47 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
+            if (kb.IsShift && kb.Key == Key.ControlC || kb.KeyValue == 67) // 67 = C
+            {
+                // Copy
+                var flatPlan = FlattenPlan();
+                var copyStep = flatPlan[SelectedItem];
+                var serializer = new TapSerializer();
+                var xml = serializer.SerializeToString(copyStep);
+
+                Clipboard.Contents = xml;
+                
+                return true;
+            }
+
+            if ((kb.IsShift && kb.Key == Key.ControlV || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
+            {
+                // Paste
+                var flatPlan = FlattenPlan();
+                if (flatPlan.Count == 0)
+                    return true;
+                
+                var toItem = flatPlan[SelectedItem];
+                var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem) + 1;
+                var flatIndex = flatPlan.IndexOf(toItem);
+
+                // Serialize Deserialize step to get a new instance
+                var serializer = new TapSerializer();
+                serializer.GetSerializer<TestStepSerializer>().AddKnownStepHeirarchy(Plan);
+                var newStep = serializer.DeserializeFromString(Clipboard.Contents.ToString(), TypeData.FromType(typeof(TestPlan)), path: Plan.Path) as ITestStep;
+                
+                if (newStep != null)
+                {
+                    var existingStep = toItem.Parent.ChildTestSteps.ElementAtOrDefault(toIndex-1);
+                    toItem.Parent.ChildTestSteps.Insert(toIndex, newStep);
+                    Update();
+                    var addedSteps = FlattenSteps(new[] {existingStep}).Count;
+                    SelectedItem = flatIndex + addedSteps;
+                }
+                
+                return true;
+            }
+            
             return base.ProcessKey(kb);
         }
 
