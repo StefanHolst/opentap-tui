@@ -67,6 +67,8 @@ namespace OpenTap.Tui.Views
 
         public void LoadPackages()
         {
+            // on refresh, clear the view to indicate that new things are being loaded.
+            treeView.SetTreeViewSource(new List<PackageViewModel>());
             // Get packages from repo
             packages = GetPackages();
             packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();

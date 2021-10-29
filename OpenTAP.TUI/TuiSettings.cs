@@ -124,6 +124,11 @@ namespace OpenTap.Tui
 
         public TuiSettings()
         {
+            // make sure a default theme is configured.
+            // normally this will be overwritten when the 
+            // settings are loaded from XML.
+            Theme = Theme.Default;
+            SetTheme();
             Reset += () =>
             {
                 Theme = Theme.Default;
