@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -115,7 +114,17 @@ namespace OpenTap.Tui.Windows
                         Thread.Sleep(100);
                     }
                 }
-                Application.MainLoop.Invoke(() => versionsFrame.Title = $"Versions");
+                Application.MainLoop.Invoke(() =>
+                {
+                    versionsFrame.Title = $"Versions";
+                    
+                    if (versions.Count == 0)
+                    {  // this occurs if the architecture or OS does not match any of the packages.
+                        MessageBox.Query("No Plugin Packages Available", "No compatible plugin packages available.",
+                            "OK");
+                        Application.RequestStop();
+                    }
+                });
             });
         }
 

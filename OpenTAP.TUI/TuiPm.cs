@@ -52,6 +52,11 @@ namespace OpenTap.Tui
                         {
                             var settingsView = new ComponentSettingsWindow(obj);
                             Application.Run(settingsView);
+                        }),
+                        new MenuItem("Refresh", "Refreshes the view by reloading packages from all repositories.", () =>
+                        {
+                            var pm = top.Subviews.OfType<PackageManagerWindow>().First();
+                            pm.LoadPackages();
                         })
                     })
                 });
