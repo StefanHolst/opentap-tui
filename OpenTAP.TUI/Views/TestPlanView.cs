@@ -353,7 +353,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if (kb.Key == Key.ControlT)
+            if (TuiSettings.Current.IsKeyMap(kb, TuiSettings.Current.AddStepKeyMap))
             {
                 var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Add New Step");
                 Application.Run(newStep);
