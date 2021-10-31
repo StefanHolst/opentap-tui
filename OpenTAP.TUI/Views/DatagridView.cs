@@ -90,7 +90,7 @@ namespace OpenTap.Tui.Views
             }
 
             if (columns.Any())
-                columns[0].column.SetFocus(); // TODO: Test
+                columns[0].column.SetFocus();
             LayoutSubviews();
 
             return true;
