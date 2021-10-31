@@ -69,7 +69,7 @@ namespace OpenTap.Tui.Views
             }
         }
         
-        public void AddRow()
+        public bool AddRow()
         {
             Rows++;
 
@@ -78,20 +78,28 @@ namespace OpenTap.Tui.Views
                 if (cells.ContainsKey((i, Rows - 1)) == false)
                 {
                     var cell = CellProvider.Invoke(i, Rows - 1);
-                    if (cell == FlushColumns)
-                        return;
+                    if (cell == null || cell == FlushColumns)
+                    {
+                        Rows--;
+                        return false;
+                    }
                     cells[(i, Rows - 1)] = cell;
                 }
 
                 UpdateColumn(i);
             }
 
-            columns[0].column.SetFocus();
+            if (columns.Any())
+                columns[0].column.SetFocus(); // TODO: Test
             LayoutSubviews();
+
+            return true;
         }
 
         public void RemoveRow(int index)
         {
+            if (Rows <= 0)
+                return;
             deleteRow(index);
             Rows--;
             for (int i = 0; i < Columns; i++)
@@ -209,7 +217,8 @@ namespace OpenTap.Tui.Views
                             {
                                 while (cells.ContainsKey((i, listview.SelectedItem)) == false)
                                 {
-                                    AddRow();
+                                    if (AddRow() == false)
+                                        return false;
                                 }
 
                                 return true;
@@ -219,7 +228,7 @@ namespace OpenTap.Tui.Views
                             var cell = cells[(i, listview.SelectedItem)];
                             var propEditor = PropEditProvider.GetProvider(cell, out var provider);
                             if (propEditor == null)
-                                TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>().ReflectionInfo.Name}");
+                                TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>()?.ReflectionInfo.Name}");
                             else
                             {
                                 var win = new EditWindow(cell.ToString());
@@ -240,6 +249,7 @@ namespace OpenTap.Tui.Views
                 if (keyEvent.Key == Key.DeleteChar)
                 {
                     RemoveRow(listview.SelectedItem);
+                    return true;
                 }
             }
 
@@ -251,7 +261,7 @@ namespace OpenTap.Tui.Views
     {
         public ListView Source { get; set; }
 
-        public FramedListView(ustring title) : base(title)
+        public FramedListView(ustring title = null) : base(title)
         {
             Source = new ListView();
             Source.CanFocus = true;

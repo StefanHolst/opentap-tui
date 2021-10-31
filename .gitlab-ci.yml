@@ -29,7 +29,7 @@ PublishAlpha:
 
 Publish:
   stage: publish
-  image: opentapio/opentap:9.9-ubuntu18.04
+  image: opentapio/opentap:9.16-ubuntu18.04
   tags: [ docker, gce ]
   only:
     - master

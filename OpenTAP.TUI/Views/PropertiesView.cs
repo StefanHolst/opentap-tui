@@ -19,8 +19,7 @@ namespace OpenTap.Tui.Views
         private TextView descriptionView { get; set; }
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
-
-        public List<MenuItem> ActiveMenuItems { get; private set; } = new List<MenuItem>();
+        internal bool DisableHelperButtons { get; set; }
 
         public Action SelectionChanged { get; set; }
 
@@ -28,34 +27,29 @@ namespace OpenTap.Tui.Views
         
         void buildMenuItems(AnnotationCollection selectedMember)
         {
+            // Only update the helperbuttons if we have focus
+            if (HasFocus == false || DisableHelperButtons)
+                return;
             
-            ActiveMenuItems.Clear();
+            var list = new List<MenuItem>();
             
             var menu = selectedMember?.Get<MenuAnnotation>();
-            if (menu == null) return;
+            if (menu == null)
+            {
+                HelperButtons.SetActions(list, this);
+                return;
+            }
             
             foreach (var _member in menu.MenuItems)
             {
                 var member = _member;
                 if (member.Get<IAccessAnnotation>()?.IsVisible == false)
                     continue;
-
-                if (ActiveMenuItems.Count == 0)
-                {
-                    var item2 = new MenuItem {Title = $"--- {selectedMember.Get<DisplayAttribute>().Name} ---"};
-                    ActiveMenuItems.Add(item2);
-
-                }
                 
                 var item = new MenuItem();
                 item.Title = member.Get<DisplayAttribute>().Name;
                 item.Action = () =>
                 {
-                    if (member.Get<IEnabledAnnotation>()?.IsEnabled == false)
-                    {
-                        log.Info("'{0}' is not curently enabled.", item.Title);
-                        return;
-                    }
                     try
                     {
                         member.Get<IMethodAnnotation>().Invoke();
@@ -72,9 +66,11 @@ namespace OpenTap.Tui.Views
                     }
                     catch {  }
                 };
-                item.CanExecute = () => true;
-                ActiveMenuItems.Add(item);
+                item.CanExecute = () => member.Get<IEnabledAnnotation>()?.IsEnabled != false;
+                list.Add(item);
             }
+
+            HelperButtons.SetActions(list, this);
         }
 
         public event Action PropertiesChanged;
@@ -106,25 +102,40 @@ namespace OpenTap.Tui.Views
                     if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
                         return value;
                     var icons = x.GetAll<IIconAnnotation>().ToArray();
-                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName));//(y => y.IconName == OpenTap.IconNames.Parameterized);
+                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName));
                     bool icon(string name) => icons2.Contains(name);
                     nameBuilder.Clear();
-                    if(icon(IconNames.OutputAssigned))
-                        nameBuilder.Append("●");
-                    else if(icon(IconNames.Output))
-                        nameBuilder.Append("⭘");
-                    if(icon(IconNames.Input))
-                        nameBuilder.Append("●→");
+                    if (icon(IconNames.OutputAssigned))
+                        nameBuilder.Append((char)Driver.Selected); // ●
+                    else if (icon(IconNames.Output))
+                        nameBuilder.Append((char)Driver.UnSelected); // ⃝
+                    if (icon(IconNames.Input))
+                    {
+                        nameBuilder.Append((char)Driver.Selected); // ●
+                        nameBuilder.Append((char)Driver.RightArrow); // →
+                    }
                     if(icon(IconNames.Parameterized))
-                        nameBuilder.Append("◇");
-                    if(x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
-                        nameBuilder.Append("◆");
+                        nameBuilder.Append((char)Driver.Lozenge);// ◊
+                    if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
+                        nameBuilder.Append((char)Driver.Diamond);// ♦
+
+                    if (nameBuilder.Length > 0)
+                        nameBuilder.Append(" ");
+                    
                     nameBuilder.Append(x.Get<DisplayAttribute>().Name);
                     nameBuilder.Append(": ");
                     nameBuilder.Append(value);
+
+                    // Check validation rules
+                    var step = x.Source as IValidatingObject;
+                    var propertyName = x.Get<IMemberAnnotation>()?.Member?.Name;
+                    var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
+                    if (rule != null)
+                        nameBuilder.Append(" !");
+                    
                     return nameBuilder.ToString();
                 }, 
-                (item) => (item as AnnotationCollection).Get<DisplayAttribute>().Group);
+                (item) => (item as AnnotationCollection)?.Get<DisplayAttribute>().Group);
 
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
@@ -192,14 +203,29 @@ namespace OpenTap.Tui.Views
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var memberAnnotqation = treeView.SelectedObject?.obj as AnnotationCollection;
-            var description = memberAnnotqation?.Get<DisplayAttribute>()?.Description;
+            var memberAnnotation = treeView.SelectedObject?.obj as AnnotationCollection;
+            var display = memberAnnotation?.Get<DisplayAttribute>();
+            var description = display?.Description;
+
+            // Check validation rules
+            if (memberAnnotation != null)
+            {
+                var step = memberAnnotation.Source as IValidatingObject;
+                var rules = step?.Rules.Where(r => r.PropertyName == display?.Name && r?.IsValid() == false).ToList();
+                if (rules?.Any() == true)
+                {
+                    var messages = rules.Select(r => r.ErrorMessage);
+                    description = $"! {string.Join("\n", messages)}\n{new String('-', descriptionView.Bounds.Width - 1)}\n{description}";
+                }
+            }
+
             if (description != null)
                 descriptionView.Text = SplitText(description, descriptionView.Bounds.Width);
             else
                 descriptionView.Text = "";
+            
 
-            buildMenuItems(memberAnnotqation);
+            buildMenuItems(memberAnnotation);
             SelectionChanged?.Invoke();
         }
 

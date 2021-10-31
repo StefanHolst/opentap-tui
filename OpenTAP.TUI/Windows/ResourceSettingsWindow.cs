@@ -106,9 +106,12 @@ namespace OpenTap.Tui.Windows
                     listView.SelectedItem = (index > Resources.Count - 1 ? Resources.Count - 1 : index);
                     detailsView.LoadProperties(Resources[listView.SelectedItem]);
                 }
-                else{
+                else
+                {
                     detailsView.LoadProperties(null);
                 }
+
+                return true;
             }
 
             if (keyEvent.Key == Key.Esc)

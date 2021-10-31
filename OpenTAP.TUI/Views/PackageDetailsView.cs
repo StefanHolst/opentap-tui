@@ -82,14 +82,11 @@ namespace OpenTap.Tui.Views
             }
 
             var isCompatible = package.IsPlatformCompatible();
-            if (package.Dependencies != null)
+            var opentapDependency = package.Dependencies?.FirstOrDefault(d => d.Name.Equals("opentap", StringComparison.OrdinalIgnoreCase));
+            if (opentapDependency != null)
             {
-                var opentapDependency = package.Dependencies.FirstOrDefault(d => d.Name.Equals("opentap", StringComparison.OrdinalIgnoreCase));
-                if (opentapDependency != null)
-                {
-                    if (opentapDependency.Version.IsCompatible(installedOpentap.Version) == false)
-                        isCompatible = false;
-                }
+                if (opentapDependency.Version.IsCompatible(installedOpentap.Version) == false)
+                    isCompatible = false;
             }
 
             var installedPackages = installation.GetPackages();

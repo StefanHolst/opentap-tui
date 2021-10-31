@@ -7,6 +7,7 @@ namespace OpenTap.Tui
     [Display("TUI Settings")]
     public class TuiSettings : ComponentSettings<TuiSettings>
     {
+        
         private Theme theme;
         [Display("Color Theme", Group: "Colors", Order: 0)]
         public Theme Theme
@@ -16,6 +17,7 @@ namespace OpenTap.Tui
             {
                 theme = value;
                 SetTheme();
+                OnPropertyChanged(nameof(Theme));
             }
         }
         
@@ -67,7 +69,10 @@ namespace OpenTap.Tui
         }
         private ColorSchemeViewmodel menuColor;
 
-        [Display("Restore Colors", Group: "Colors", Order: 2)]
+        [Display("Use Log Level Colors", Group: "Colors", Order: 2)]
+        public bool UseLogColors { get; set; } = true;
+        
+        [Display("Restore Colors", Group: "Colors", Order: 3)]
         public Action Reset { get; set; }
 
         private void SetTheme()
@@ -119,9 +124,14 @@ namespace OpenTap.Tui
 
         public TuiSettings()
         {
+            // make sure a default theme is configured.
+            // normally this will be overwritten when the 
+            // settings are loaded from XML.
+            Theme = Theme.Default;
+            SetTheme();
             Reset += () =>
             {
-                Theme = Theme.Default;
+                Theme = Theme.Default;
                 SetTheme();
             };
         }

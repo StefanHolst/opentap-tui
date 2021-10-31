@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTap.Package;
 using Terminal.Gui;
 using OpenTap.Tui.Views;
 
@@ -7,69 +8,41 @@ namespace OpenTap.Tui.Windows
 {
     public class PackageManagerWindow : Window
     {
-        private TreeView treeView { get; set; }
         private PackageDetailsView detailsView { get; set; }
-
+        private readonly FrameView packageFrame;
+        private readonly PackageListView packageList;
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == (Key.CtrlMask | Key.X) || keyEvent.Key == Key.Esc)
+            if (TuiAction.CurrentAction is TuiPm && (keyEvent.Key == (Key.CtrlMask | Key.X) || keyEvent.Key == (Key.CtrlMask | Key.C) || keyEvent.Key == Key.Esc))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
-                    Application.Shutdown();
+                    Application.MainLoop.Invoke(() => Application.RequestStop());
                 }
+
+                return true;
+            }
+            else if (keyEvent.Key == Key.Esc)
+            {
+                var handled = base.ProcessKey(keyEvent);
+                if (handled) return true;
+                Application.RequestStop();
+                return true;
             }
             
             return base.ProcessKey(keyEvent);
         }
-        
-        public PackageManagerWindow() : base("OpenTAP TUI - Package Manager")
-        {
-            // Package Details
-            var detailsFrame = new FrameView("Package Details")
-            {
-                X = Pos.Percent(33),
-                Width = Dim.Fill(),
-                Height = Dim.Percent(75)
-            };
-            detailsView = new PackageDetailsView();
-            detailsFrame.Add(detailsView);
-            
-            // Log panel
-            var logsFrame = new FrameView("Log Panel")
-            {
-                Y = Pos.Percent(75),
-                Width = Dim.Fill(),
-                Height = Dim.Fill()
-            };
-            logsFrame.Add(new LogPanelView(Application.Top));
-            
-            // Packages
-            var packageFrame = new FrameView("Packages")
-            {
-                Width = Dim.Percent(33),
-                Height = Dim.Percent(75)
-            };
-            var packageList = new PackageListView();
-            packageList.SelectionChanged += () =>
-            {
-                detailsView.LoadPackage(packageList.SelectedPackage, packageList.installation, packageList.installedOpentap);
-            };
-            detailsView.LoadPackage(packageList.SelectedPackage,packageList.installation, packageList.installedOpentap);
-            packageFrame.Add(packageList);
-            
-            Add(packageFrame);
-            Add(detailsFrame);
-            Add(logsFrame);
 
-            // Load packages in parallel
+        /// <summary> Reloads the packages asynchronously. </summary>
+        public Task LoadPackages()
+        {
             bool running = true;
             Task.Run(() =>
             {
                 packageList.LoadPackages();
                 running = false;
             });
-            Task.Run(() =>
+            return Task.Run(() =>
             {
                 while (running)
                 {
@@ -84,6 +57,71 @@ namespace OpenTap.Tui.Windows
                 }
                 Application.MainLoop.Invoke(() => packageFrame.Title = $"Packages");
             });
+        }
+        
+        public PackageManagerWindow() : base("Package Manager")
+        {
+            Modal = true;
+            
+            // Add settings menu
+            var setting = TypeData.FromType(typeof(PackageManagerSettings));
+            var obj = ComponentSettings.GetCurrent(setting.Load());
+            var name = setting.GetDisplayAttribute().Name;
+            var menu = new MenuBar(new []
+            {
+                new MenuBarItem("Settings", new []
+                {
+                    new MenuItem("Settings", name, () =>
+                    {
+                        var settingsView = new ComponentSettingsWindow(obj);
+                        Application.Run(settingsView);
+                    }),
+                    new MenuItem("Refresh", "Refreshes the view by reloading packages from all repositories.", () => LoadPackages())
+                })
+            });
+            
+            // Package Details
+            var detailsFrame = new FrameView("Package Details")
+            {
+                X = Pos.Percent(33),
+                Y = 1,
+                Width = Dim.Fill(),
+                Height = Dim.Percent(75) - 1
+            };
+            detailsView = new PackageDetailsView();
+            detailsFrame.Add(detailsView);
+            
+            // Log panel
+            var logsFrame = new FrameView("Log Panel")
+            {
+                Y = Pos.Bottom(detailsFrame),
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
+            logsFrame.Add(new LogPanelView(Application.Top));
+            
+            // Packages
+            packageFrame = new FrameView("Packages")
+            {
+                Y = 1,
+                Width = Dim.Percent(33),
+                Height = Dim.Percent(75) - 1
+            };
+            packageList = new PackageListView();
+            packageList.SelectionChanged += () =>
+            {
+                detailsView.LoadPackage(packageList.SelectedPackage, packageList.installation, packageList.installedOpentap);
+            };
+            detailsView.LoadPackage(packageList.SelectedPackage,packageList.installation, packageList.installedOpentap);
+            packageFrame.Add(packageList);
+            
+            Add(menu);
+            Add(packageFrame);
+            Add(detailsFrame);
+            Add(logsFrame);
+
+            // Load packages in parallel
+            LoadPackages();
         }
     }
 }

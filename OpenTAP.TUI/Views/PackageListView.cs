@@ -37,6 +37,8 @@ namespace OpenTap.Tui.Views
                 installedPackages = installation.GetPackages();
                 packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();
                 treeView.SetTreeViewSource(packages);
+
+                return true;
             }
             
             return base.ProcessKey(keyEvent);
@@ -67,6 +69,8 @@ namespace OpenTap.Tui.Views
 
         public void LoadPackages()
         {
+            // on refresh, clear the view to indicate that new things are being loaded.
+            treeView.SetTreeViewSource(new List<PackageViewModel>());
             // Get packages from repo
             packages = GetPackages();
             packages = packages.OrderByDescending(p => installedPackages.Any(i => i.Name == p.Name)).ThenBy(p => p.Group + p.Name).ToList();
@@ -92,12 +96,13 @@ namespace OpenTap.Tui.Views
 
         List<PackageViewModel> GetFilePackages(FilePackageRepository repository)
         {
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             return repository.GetPackages(new PackageSpecifier(null, null), TuiPm.CancellationToken).Select(p => new PackageViewModel(p)).ToList();
         }
 
         List<PackageViewModel> GetHttpPackages(HttpPackageRepository repository)
         {
-            TuiPm.log.Info("Loading packages from: " + repository.Url);
+            TuiPm.Log.Info("Loading packages from: " + repository.Url);
             var list = new List<PackageViewModel>();
 
             // Get packages from repo

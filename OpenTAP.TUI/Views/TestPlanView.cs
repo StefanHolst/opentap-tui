@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTap.Plugins;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
@@ -14,8 +15,11 @@ namespace OpenTap.Tui.Views
     {
         private int moveIndex = -1;
         private bool injectStep = false;
+        private List<MenuItem> actions;
+        private MenuItem insertAction;
+        private MenuItem runAction;
         public TestPlan Plan { get; set; } = new TestPlan();
-        public FrameView Frame { get; set; }
+        public FrameView TestPlanFrame { get; set; }
 
         private List<string> ExpandItems()
         {
@@ -39,21 +43,22 @@ namespace OpenTap.Tui.Views
 
             return allsteps;
         }
+        
+        
+        List<ITestStep> FlattenSteps(IEnumerable<ITestStep> steps)
+        {
+            var list = new List<ITestStep>();
+            foreach (var item in steps)
+            {
+                list.Add(item);
+                if (item.ChildTestSteps.Any())
+                    list.AddRange(FlattenSteps(item.ChildTestSteps));
+            }
+            return list;
+        }
         private List<ITestStep> FlattenPlan()
         {
-            List<ITestStep> _FlattenSteps(TestStepList steps)
-            {
-                var list = new List<ITestStep>();
-                foreach (var item in steps)
-                {
-                    list.Add(item);
-                    if (item.ChildTestSteps.Any())
-                        list.AddRange(_FlattenSteps(item.ChildTestSteps));
-                }
-                return list;
-            }
-
-            return _FlattenSteps(Plan.ChildTestSteps);
+            return FlattenSteps(Plan.ChildTestSteps);
         }
 
         public ITestStep SelectedStep
@@ -71,6 +76,50 @@ namespace OpenTap.Tui.Views
         public TestPlanView()
         {
             CanFocus = true;
+            
+            actions = new List<MenuItem>();
+            runAction = new MenuItem("Run Test Plan", "", () =>
+            {
+                if (PlanIsRunning)
+                {
+                    if (MessageBox.Query(50, 7, "Abort Test Plan", "Are you sure you want to abort the test plan?", "Yes", "No") == 0)
+                        AbortTestPlan();
+                }
+                else
+                    RunTestPlan();
+            });
+            actions.Add(runAction);
+            actions.Add(new MenuItem("Insert New Step", "", () =>
+            {
+                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+                Application.Run(newStep);
+                if (newStep.PluginType != null)
+                {
+                    AddNewStep(newStep.PluginType);
+                }
+            }));
+            insertAction = new MenuItem("Insert New Step Child", "", () =>
+            {
+                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+                Application.Run(newStep);
+                if (newStep.PluginType != null)
+                {
+                    InsertNewChildStep(newStep.PluginType);
+                }
+            });
+            insertAction.CanExecute += () => SelectedStep?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
+            actions.Add(insertAction);
+            actions.Add(new MenuItem("Test Plan Settings", "", () =>
+            {
+                OnSelectedChanged(); // TODO: test
+                // SelectedItemChanged.Invoke(new ListViewItemEventArgs(0, Plan));
+            }));
+        }
+
+        public override bool OnEnter(View view)
+        {
+            Update();
+            return base.OnEnter(view);
         }
 
         public void Update()
@@ -78,10 +127,17 @@ namespace OpenTap.Tui.Views
             var index = SelectedItem;
             var top = TopItem;
             SetSource(ExpandItems());
-            if (top > 0)
+            if (top > 0 && top < Source.Count)
                 TopItem = top;
             if (Source.Count > 0)
                 SelectedItem = (index > Source.Count - 1 ? Source.Count - 1 : index);
+            
+            // Make sure to invoke event when the last item is deleted
+            if (Source.Count == 0)
+                OnSelectedChanged(); // TODO: Test
+                // SelectedItemChanged.Invoke(null);
+
+            HelperButtons.SetActions(actions, this);
         }
         public void LoadTestPlan()
         {
@@ -176,56 +232,60 @@ namespace OpenTap.Tui.Views
         public bool PlanIsRunning = false;
         private TapThread testPlanThread;
 
-        public Action TestPlanStarted;
-        public Action TestPlanStopped;
-
         public void AbortTestPlan()
         {
             if (Plan.IsRunning)
             {
                 testPlanThread.Abort();
-                TestPlanStarted();
+                runAction.Title = "Run Test Plan";
+                Update();
             }
         }
         
         public void RunTestPlan()
         {
             PlanIsRunning = true;
-            TestPlanStarted();
+            runAction.Title = "Abort Test Plan";
+            Update();
+            this.Plan.PrintTestPlanRunSummary = true;
             testPlanThread = TapThread.Start(() =>
             {
-                
-                
                 // Run testplan and show progress bar
                 testPlanRun = Plan.Execute();
                 PlanIsRunning = false;
-                TestPlanStopped();
+                runAction.Title = "Run Test Plan";
+                Update();
             });
             
             Task.Run(() =>
             {
                 while (PlanIsRunning)
                 {
-                    Application.MainLoop.Invoke(() => Frame.Title = $"Test Plan - Running ");
+                    Application.MainLoop.Invoke(() => TestPlanFrame.Title = $"Test Plan - Running ");
                     Thread.Sleep(1000);
                     
                     for (int i = 0; i < 3 && PlanIsRunning; i++)
                     {
-                        Application.MainLoop.Invoke(() => Frame.Title += ">");
+                        Application.MainLoop.Invoke(() => TestPlanFrame.Title += ">");
                         Thread.Sleep(1000);
                     }
                 }
                 
-                Application.MainLoop.Invoke(() => Frame.Title = "Test Plan");
+                Application.MainLoop.Invoke(() => TestPlanFrame.Title = "Test Plan");
             });
         }
 
         public override bool ProcessKey(KeyEvent kb)
         {
+            if (Application.Current.MostFocused != this)
+                return base.ProcessKey(kb);
+            
             if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
             {
                 injectStep = false;
+                base.ProcessKey(kb);
                 Update();
+                return true;
             }
             
             if (Plan.IsRunning)
@@ -241,11 +301,14 @@ namespace OpenTap.Tui.Views
                     step.Parent.ChildTestSteps.Remove(step);
                     Update();
                 }
+
+                return true;
             }
             if (kb.Key == Key.CursorRight && moveIndex > -1 && FlattenPlan()[SelectedItem].GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
                 Update();
+                return true;
             }
             if (kb.Key == Key.Space)
             {
@@ -256,6 +319,7 @@ namespace OpenTap.Tui.Views
                 {
                     moveIndex = SelectedItem;
                     Update();
+                    return true;
                 }
                 else
                 {
@@ -281,6 +345,7 @@ namespace OpenTap.Tui.Views
                     moveIndex = -1;
                     Update();
                     SelectedItem = flatIndex;
+                    return true;
                 }
             }
 
@@ -306,10 +371,51 @@ namespace OpenTap.Tui.Views
                 if (newStep.PluginType != null)
                 {
                     AddNewStep(newStep.PluginType);
-                    Update();
                 }
+                return true;
             }
 
+            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
+            {
+                // Copy
+                var flatPlan = FlattenPlan();
+                var copyStep = flatPlan[SelectedItem];
+                var serializer = new TapSerializer();
+                var xml = serializer.SerializeToString(copyStep);
+
+                Clipboard.Contents = xml;
+                
+                return true;
+            }
+
+            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
+            {
+                // Paste
+                var flatPlan = FlattenPlan();
+                if (flatPlan.Count == 0)
+                    return true;
+                
+                var toItem = flatPlan[SelectedItem];
+                var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem) + 1;
+                var flatIndex = flatPlan.IndexOf(toItem);
+
+                // Serialize Deserialize step to get a new instance
+                var serializer = new TapSerializer();
+                serializer.GetSerializer<TestStepSerializer>().AddKnownStepHeirarchy(Plan);
+                var newStep = serializer.DeserializeFromString(Clipboard.Contents.ToString(), TypeData.FromType(typeof(TestPlan)), path: Plan.Path) as ITestStep;
+                
+                if (newStep != null)
+                {
+                    var existingStep = toItem.Parent.ChildTestSteps.ElementAtOrDefault(toIndex-1);
+                    toItem.Parent.ChildTestSteps.Insert(toIndex, newStep);
+                    Update();
+                    var addedSteps = FlattenSteps(new[] {existingStep}).Count;
+                    SelectedItem = flatIndex + addedSteps;
+                }
+                
+                return true;
+            }
+            
             return base.ProcessKey(kb);
         }
 
