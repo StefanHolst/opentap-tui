@@ -314,7 +314,7 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null)
+            if (Application.Current.MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null)
             {
                 var members = getMembers();
                 if (members == null)
@@ -345,7 +345,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if (MostFocused is TreeView && (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight))
+            if (Application.Current.MostFocused is TreeView && (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight))
             {
                 treeView.ProcessKey(keyEvent);
                 return true;

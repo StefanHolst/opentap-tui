@@ -195,6 +195,8 @@ namespace OpenTap.Tui.Windows
                 return Run.Parent.Name;
             
             var spacing = (Owner.Bounds.Width - 2) / ResultsViewerWindow.Headers.Length;
+            if (spacing == 0)
+                return "";
             
             var id = Run.Parameters.FirstOrDefault(p => p.Name == "Run ID")?.Value.ToString() ?? Run.GetID().ToString();
             var name = Run.Name;

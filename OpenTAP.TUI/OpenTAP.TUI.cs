@@ -36,13 +36,13 @@ namespace OpenTap.Tui
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView)
+            if (keyEvent.Key == Key.Enter && Application.Current.MostFocused is TestPlanView)
             {
                 FocusNext();
                 return true;
             }
 
-            if (keyEvent.IsShift == false && (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
+            if (keyEvent.IsShift == false && (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || keyEvent.Key == Key.Esc && Application.Current.MostFocused is TestPlanView))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
@@ -85,7 +85,7 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false)
+            if (keyEvent.Key == Key.Esc && Application.Current.MostFocused is TestPlanView == false && SuperView == Application.Top) // TODO: Maybe we should find a better way here
             {
                 FocusPrev();
                 return true;
