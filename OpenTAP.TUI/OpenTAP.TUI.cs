@@ -214,6 +214,17 @@ namespace OpenTap.Tui
             }
             menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
+            // Create main window and add it to top item of application
+            var win = new MainWindow("OpenTAP TUI")
+            {
+                X = 0,
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill(),
+                StepSettingsView = StepSettingsView,
+                TestPlanView = TestPlanView
+            };
+            Top.Add(win);
             
             // Add menu bar
             var menu = new MenuBar(menuBars.ToArray());
@@ -221,23 +232,12 @@ namespace OpenTap.Tui
             {
                 TestPlanView.FocusFirst();
             };
-            Top.Add(menu);
-
-            // Create main window and add it to top item of application
-            var win = new MainWindow("OpenTAP TUI")
-            {
-                X = 0,
-                Y = 1,
-                Width = Dim.Fill(),
-                Height = Dim.Fill(),
-                StepSettingsView = StepSettingsView,
-                TestPlanView = TestPlanView
-            };
-            Top.Add(win);
+            win.Add(menu);
 
             // Add testplan view
             var testPlanFrame = new FrameView("Test Plan")
             {
+                Y = 1,
                 Width = Dim.Percent(75),
                 Height = Dim.Percent(70)
             };
@@ -249,6 +249,7 @@ namespace OpenTap.Tui
             var settingsFrame = new FrameView("Settings")
             {
                 X = Pos.Percent(75),
+                Y = 1,
                 Width = Dim.Fill(),
                 Height = Dim.Percent(70)
             };
