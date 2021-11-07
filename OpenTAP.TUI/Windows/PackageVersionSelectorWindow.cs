@@ -27,6 +27,7 @@ namespace OpenTap.Tui.Windows
         
         public PackageVersionSelectorWindow(PackageViewModel package, Installation installation, PackageDef installedOpentap) : base("Install Package")
         {
+            Modal = true;
             this.package = package;
             this.installation = installation;
             installedVersion = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);

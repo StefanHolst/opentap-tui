@@ -14,7 +14,7 @@ namespace OpenTap.Tui
 {
     public class MainWindow : Window
     {
-        public View StepSettingsView { get; set; }
+        public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
         private HelperButtons helperButtons { get; set; }
@@ -71,9 +71,7 @@ namespace OpenTap.Tui
             }
             if (keyEvent.Key == Key.F3)
             {
-                var kevent = keyEvent;
-                kevent.Key = Key.F2;
-                StepSettingsView.ProcessKey(kevent);
+                StepSettingsView.FocusLast();
                 return true;
             }
             if (keyEvent.Key == Key.F4)

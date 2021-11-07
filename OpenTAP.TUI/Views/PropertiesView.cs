@@ -146,6 +146,7 @@ namespace OpenTap.Tui.Views
             descriptionView = new TextView()
             {
                 ReadOnly = true,
+                AllowsTab = false
             };
             descriptionFrame = new FrameView("Description")
             {
@@ -350,18 +351,7 @@ namespace OpenTap.Tui.Views
                 treeView.ProcessKey(keyEvent);
                 return true;
             }
-
-            if (keyEvent.Key == Key.F1)
-            {
-                treeView.FocusFirst();
-                return true;
-            }
-            if (keyEvent.Key == Key.F2)
-            {
-                descriptionView.SetFocus();
-                return true;
-            }
-
+            
             return base.ProcessKey(keyEvent);
         }
     }

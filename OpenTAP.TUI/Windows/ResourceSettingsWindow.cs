@@ -18,6 +18,7 @@ namespace OpenTap.Tui.Windows
 
         public ResourceSettingsWindow(string title, IList resources) : base(null)
         {
+            Modal = true;
             this.Resources = resources;
             
             // list frame
@@ -91,7 +92,7 @@ namespace OpenTap.Tui.Windows
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.DeleteChar)
+            if (keyEvent.Key == Key.DeleteChar && listView.HasFocus)
             {
                 var index = listView.SelectedItem;
 
@@ -121,38 +122,6 @@ namespace OpenTap.Tui.Windows
                 return true;
             }
 
-            if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
-            {
-                if (listView.HasFocus)
-                    detailsView.FocusFirst();
-                else
-                    listView.FocusFirst();
-
-                return true;
-            }
-
-            if (keyEvent.Key == Key.CursorDown)
-            {
-                if (addButton.HasFocus)
-                    return true;
-
-                var index = listView.SelectedItem;
-                base.ProcessKey(keyEvent);
-                if (listView.HasFocus && index == listView.SelectedItem)
-                {
-                    addButton.FocusFirst();
-                }
-
-                return true;
-            }
-
-            if (keyEvent.Key == Key.CursorRight || keyEvent.Key == Key.CursorLeft)
-            {
-                if (detailsView.HasFocus)
-                    detailsView.ProcessKey(keyEvent);
-                return true;
-            }
-            
             if (keyEvent.Key == Key.F1)
             {
                 listView.FocusFirst();
@@ -165,14 +134,12 @@ namespace OpenTap.Tui.Windows
             }
             if (keyEvent.Key == Key.F3)
             {
-                addButton.FocusFirst();
+                detailsView.FocusLast();
                 return true;
             }
             if (keyEvent.Key == Key.F4)
             {
-                var kevent = keyEvent;
-                kevent.Key = Key.F2;
-                detailsView.ProcessKey(kevent);
+                addButton.FocusFirst();
                 return true;
             }
             
