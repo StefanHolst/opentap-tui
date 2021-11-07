@@ -259,7 +259,7 @@ namespace OpenTap.Tui
             // Add log panel
             LogFrame = new FrameView("Log Panel")
             {
-                Y = Pos.Percent(70),
+                Y = Pos.Bottom(testPlanFrame),
                 Width = Dim.Fill(),
                 Height = Dim.Fill(1)
             };
