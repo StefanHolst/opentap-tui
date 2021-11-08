@@ -205,13 +205,13 @@ namespace OpenTap.Tui.Windows
 
             var row = new StringBuilder();
             row.Append(id);
-            row.Append(new string(' ', spacing - id.Length - 4));
+            row.Append(new string(' ', spacing - id.Length - 2));
             row.Append(name);
             row.Append(new string(' ', spacing - name.Length));
             row.Append(verdict);
-            row.Append(new string(' ', spacing - verdict?.Length ?? 0));
+            row.Append(new string(' ', spacing - (verdict?.Length ?? 0)));
             row.Append(source);
-            row.Append(new string(' ', spacing - source?.Length ?? 0));
+            row.Append(new string(' ', spacing - (source?.Length ?? 0)));
             
             return row.ToString();
         }
