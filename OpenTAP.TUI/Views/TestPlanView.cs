@@ -137,7 +137,7 @@ namespace OpenTap.Tui.Views
                 OnSelectedChanged(); // TODO: Test
                 // SelectedItemChanged.Invoke(null);
 
-            HelperButtons.SetActions(actions, this);
+            MainWindow.helperButtons.SetActions(actions, this);
         }
         public void LoadTestPlan()
         {

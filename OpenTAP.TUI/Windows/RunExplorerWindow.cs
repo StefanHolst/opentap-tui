@@ -12,7 +12,7 @@ namespace OpenTap.Tui.Windows
         
         private SelectorView runList;
         private PropertiesView propsView;
-        public static HelperButtons HelperButtons;
+        private HelperButtons helperButtons;
 
         public ResultsViewerWindow() : base("Results Viewer")
         {
@@ -54,13 +54,13 @@ namespace OpenTap.Tui.Windows
             Add(runFrame);
             
             // Add helper buttons
-            HelperButtons = new HelperButtons
+            helperButtons = new HelperButtons
             {
                 Width = Dim.Fill(),
                 Height = 1,
                 Y = Pos.AnchorEnd()-1
             };
-            Add(HelperButtons);
+            Add(helperButtons);
             
             // Add actions
             var actions = new List<MenuItem>();
@@ -70,9 +70,9 @@ namespace OpenTap.Tui.Windows
             runList.ItemMarkedChanged += (args =>
             {
                 if (GetMarkedItems().Any())
-                    HelperButtons.SetActions(actions, this);
+                    helperButtons.SetActions(actions, this);
                 else
-                    HelperButtons.SetActions(new List<MenuItem>(), this);
+                    helperButtons.SetActions(new List<MenuItem>(), this);
                 
                 Application.Refresh();
             });
@@ -143,8 +143,8 @@ namespace OpenTap.Tui.Windows
             
             var resultWindow = new ResultsWindow(GetMarkedItems());
             Application.Run(resultWindow);
-            Remove(HelperButtons);
-            Add(HelperButtons);
+            Remove(helperButtons);
+            Add(helperButtons);
             runList.ItemMarkedChanged.Invoke(null);
         }
 
@@ -167,7 +167,7 @@ namespace OpenTap.Tui.Windows
                 return true;
             }
 
-            if (HelperButtons.Instance?.ProcessKey(keyEvent) == true)
+            if (helperButtons.ProcessKey(keyEvent) == true)
                 return true;
             
             return base.ProcessKey(keyEvent);

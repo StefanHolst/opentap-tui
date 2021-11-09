@@ -17,7 +17,7 @@ namespace OpenTap.Tui
         public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
-        private HelperButtons helperButtons { get; set; }
+        public static HelperButtons helperButtons { get; private set; }
 
         public MainWindow(string title) : base(title)
         {
@@ -90,7 +90,7 @@ namespace OpenTap.Tui
                 return TestPlanView.ProcessKey(keyEvent);
 
 
-            if (HelperButtons.Instance?.ProcessKey(keyEvent) == true)
+            if (helperButtons.ProcessKey(keyEvent) == true)
                 return true;
             
             return base.ProcessKey(keyEvent);
