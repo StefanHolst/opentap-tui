@@ -38,9 +38,6 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessHotKey(KeyEvent keyEvent)
         {
-            if (isOwnerFocused(Application.Current.MostFocused) == false)
-                return base.ProcessHotKey(keyEvent);
-            
             var keyValue = keyEvent.KeyValue - (int) Key.F5;
             if (keyValue <= 4 && keyValue >= 0 && actions.Count > keyValue)
             {
@@ -51,16 +48,6 @@ namespace OpenTap.Tui.Views
             }
             
             return base.ProcessHotKey(keyEvent);
-        }
-
-        bool isOwnerFocused(View view)
-        {
-            if (view == null)
-                return false;
-            if (Owner == view)
-                return true;
-
-            return isOwnerFocused(view.SuperView);
         }
     }
 }
