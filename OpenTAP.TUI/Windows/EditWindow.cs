@@ -9,6 +9,7 @@ namespace OpenTap.Tui.Windows
     {
         public EditWindow(string title) : base(title)
         {
+            Modal = true;
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)

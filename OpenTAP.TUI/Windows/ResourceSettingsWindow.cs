@@ -18,6 +18,7 @@ namespace OpenTap.Tui.Windows
 
         public ResourceSettingsWindow(string title, IList resources) : base(null)
         {
+            Modal = true;
             this.Resources = resources;
             
             // list frame

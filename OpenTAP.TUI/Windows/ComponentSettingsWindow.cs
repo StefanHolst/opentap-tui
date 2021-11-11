@@ -11,6 +11,7 @@ namespace OpenTap.Tui.Windows
 
         public ComponentSettingsWindow(ComponentSettings setting) : base(setting.GetType().GetCustomAttribute<DisplayAttribute>()?.Name ?? setting.GetType().Name)
         {
+            Modal = true;
             this.setting = setting;
             var propView = new PropertiesView();
             propView.LoadProperties(setting);
