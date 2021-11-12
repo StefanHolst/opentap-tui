@@ -18,8 +18,6 @@ namespace OpenTap.Tui.Views
             detailsView = new TextView()
             {
                 ReadOnly = true
-                // CanFocus = false,
-                // Height = Dim.Percent(50)
             };
             
             Add(detailsView);
