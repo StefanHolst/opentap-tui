@@ -21,14 +21,14 @@ namespace OpenTap.Tui
 
         public MainWindow(string title) : base(title)
         {
+            helperButtons = new HelperButtons
+            {
+                Width = Dim.Fill(),
+                Height = 1
+            };
+            
             Initialized += (s, e) =>
             {
-                helperButtons = new HelperButtons
-                {
-                    Width = Dim.Fill(),
-                    Height = 1
-                };
-
                 helperButtons.Y = Pos.Bottom(LogFrame);
                 Add(helperButtons);
             };
@@ -52,21 +52,21 @@ namespace OpenTap.Tui
             if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
             {
                 if (TestPlanView.HasFocus)
-                    StepSettingsView.FocusFirst();
+                    StepSettingsView.SetFocus();
                 else
-                    TestPlanView.FocusFirst();
-
+                    TestPlanView.SetFocus();
+            
                 return true;
             }
-
+            
             if (keyEvent.Key == Key.F1)
             {
-                TestPlanView.FocusFirst();
+                TestPlanView.SetFocus();
                 return true;
             }
             if (keyEvent.Key == Key.F2)
             {
-                StepSettingsView.FocusFirst();
+                StepSettingsView.SetFocus();
                 return true;
             }
             if (keyEvent.Key == Key.F3)
@@ -76,16 +76,16 @@ namespace OpenTap.Tui
             }
             if (keyEvent.Key == Key.F4)
             {
-                LogFrame.FocusFirst();
+                LogFrame.SetFocus();
                 return true;
             }
-
+            
             if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false && this.IsTopActive())
             {
                 FocusPrev();
                 return true;
             }
-            
+
             if (keyEvent.Key == (Key.S | Key.CtrlMask))
                 return TestPlanView.ProcessKey(keyEvent);
 
@@ -226,10 +226,6 @@ namespace OpenTap.Tui
             
             // Add menu bar
             var menu = new MenuBar(menuBars.ToArray());
-            menu.MenuClosing += () => 
-            {
-                TestPlanView.FocusFirst();
-            };
             win.Add(menu);
 
             // Add testplan view

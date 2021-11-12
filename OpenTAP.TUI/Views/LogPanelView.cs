@@ -139,7 +139,7 @@ namespace OpenTap.Tui.Views
             }
             var item = top;
             bool focused = HasFocus;
-            int col = AllowsMarking ? 4 : 0;
+            int col = 2;
 
             for (int row = 0; row < f.Height; row++, item++) {
                 bool isSelected = item == selected;
@@ -173,9 +173,8 @@ namespace OpenTap.Tui.Views
                     for (int c = 0; c < f.Width; c++)
                         Driver.AddRune (' ');
                 } else {
-                    if (AllowsMarking) {
-                        Driver.AddStr (Source.IsMarked (item) ? (AllowsMultipleSelection ? "[x] " : "(o)") : (AllowsMultipleSelection ? "[ ] " : "( )"));
-                    }
+                    if (isSelected)
+                        Driver.AddStr("> ");
                     Source.Render (this, Driver, isSelected, item, col, row, f.Width - col);
                 }
             }
