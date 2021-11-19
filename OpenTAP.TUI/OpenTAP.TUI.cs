@@ -52,7 +52,7 @@ namespace OpenTap.Tui
             if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
             {
                 if (TestPlanView.HasFocus)
-                    StepSettingsView.SetFocus();
+                    StepSettingsView.FocusFirst();
                 else
                     TestPlanView.SetFocus();
             
@@ -66,7 +66,7 @@ namespace OpenTap.Tui
             }
             if (keyEvent.Key == Key.F2)
             {
-                StepSettingsView.SetFocus();
+                StepSettingsView.FocusFirst();
                 return true;
             }
             if (keyEvent.Key == Key.F3)
@@ -267,7 +267,7 @@ namespace OpenTap.Tui
                 if (args?.Value is TestPlan)
                 {
                     StepSettingsView.LoadProperties(TestPlanView.Plan);
-                    StepSettingsView.SetFocus();
+                    StepSettingsView.FocusFirst();
                 }
                 else
                     StepSettingsView.LoadProperties(TestPlanView.SelectedStep);

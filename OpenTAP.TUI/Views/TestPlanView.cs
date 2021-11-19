@@ -111,8 +111,7 @@ namespace OpenTap.Tui.Views
             actions.Add(insertAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
-                OnSelectedChanged(); // TODO: test
-                // SelectedItemChanged.Invoke(new ListViewItemEventArgs(0, Plan));
+                InvokeSelectedItemChanged(new ListViewItemEventArgs(0, Plan));
             }));
         }
 
