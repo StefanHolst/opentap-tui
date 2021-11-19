@@ -115,9 +115,9 @@ namespace OpenTap.Tui.Views
                         nameBuilder.Append((char)Driver.RightArrow); // →
                     }
                     if(icon(IconNames.Parameterized))
-                        nameBuilder.Append((char)Driver.Lozenge);// ◊
+                        nameBuilder.Append((char)Driver.Lozenge);// ♦
                     if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
-                        nameBuilder.Append((char)Driver.Diamond);// ♦
+                        nameBuilder.Append((char)Driver.Diamond);// ◊
 
                     if (nameBuilder.Length > 0)
                         nameBuilder.Append(" ");
