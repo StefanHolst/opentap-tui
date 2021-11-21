@@ -8,74 +8,42 @@ using System.Threading.Tasks;
 using OpenTap.Plugins;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
+using Terminal.Gui.Trees;
 
 namespace OpenTap.Tui.Views
 {
-    public class TestPlanView : ListView
+    public class TestPlanView : FrameView
     {
-        private int moveIndex = -1;
+        private ITestStep moveStep = null;
         private bool injectStep = false;
         private List<MenuItem> actions;
         private MenuItem insertAction;
         private MenuItem runAction;
+        private TreeView<ITestStep> treeView;
+        private TestPlanRun testPlanRun;
+        private bool PlanIsRunning = false;
         public TestPlan Plan { get; set; } = new TestPlan();
-        public FrameView TestPlanFrame { get; set; }
 
-        private List<string> ExpandItems()
-        {
-            List<string> _ExpandItem(TestStepList steps, int level = 0)
-            {
-                List<string> list = new List<string>();
-                foreach (var item in steps)
-                {
-                    list.Add($"{new String(' ', level * 2)}{item.GetFormattedName()}");
-                    if (item.ChildTestSteps.Any())
-                        list.AddRange(_ExpandItem(item.ChildTestSteps, level + 1));
-                }
-                return list;
-            }
-
-            var allsteps = _ExpandItem(Plan.ChildTestSteps);
-            if (moveIndex > -1)
-                allsteps[moveIndex] += " *";
-            if (injectStep)
-                allsteps[SelectedItem] += " >";
-
-            return allsteps;
-        }
-        
-        
-        List<ITestStep> FlattenSteps(IEnumerable<ITestStep> steps)
-        {
-            var list = new List<ITestStep>();
-            foreach (var item in steps)
-            {
-                list.Add(item);
-                if (item.ChildTestSteps.Any())
-                    list.AddRange(FlattenSteps(item.ChildTestSteps));
-            }
-            return list;
-        }
-        private List<ITestStep> FlattenPlan()
-        {
-            return FlattenSteps(Plan.ChildTestSteps);
-        }
-
-        public ITestStep SelectedStep
-        {
-            get
-            {
-                var plan = FlattenPlan();
-                if (plan.Any() == false)
-                    return null;
-
-                return plan[SelectedItem];
-            }
-        }
+        public Action<ITestStepParent> SelectionChanged;
 
         public TestPlanView()
         {
             CanFocus = true;
+            Title = "Test Plan";
+            
+            treeView = new TreeView<ITestStep>()
+            {
+                Height = Dim.Fill(),
+                Width = Dim.Fill()
+            };
+            treeView.AspectGetter = getTitle;
+            treeView.TreeBuilder = new DelegateTreeBuilder<ITestStep> (getChildren, canExpand);
+            treeView.SelectionChanged += (sender, args) =>
+            {
+                SelectionChanged?.Invoke(args.NewValue);
+            };
+            treeView.AddObjects(Plan.Steps);
+            Add(treeView);
             
             actions = new List<MenuItem>();
             runAction = new MenuItem("Run Test Plan", "", () =>
@@ -89,15 +57,7 @@ namespace OpenTap.Tui.Views
                     RunTestPlan();
             });
             actions.Add(runAction);
-            actions.Add(new MenuItem("Insert New Step", "", () =>
-            {
-                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
-                Application.Run(newStep);
-                if (newStep.PluginType != null)
-                {
-                    AddNewStep(newStep.PluginType);
-                }
-            }));
+            actions.Add(new MenuItem("Insert New Step", "", showAddStep));
             insertAction = new MenuItem("Insert New Step Child", "", () =>
             {
                 var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
@@ -107,12 +67,30 @@ namespace OpenTap.Tui.Views
                     InsertNewChildStep(newStep.PluginType);
                 }
             });
-            insertAction.CanExecute += () => SelectedStep?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
+            insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
             actions.Add(insertAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
-                InvokeSelectedItemChanged(new ListViewItemEventArgs(0, Plan));
+                SelectionChanged.Invoke(Plan);
             }));
+        }
+
+        string getTitle(ITestStep step)
+        {
+            string title = step.GetFormattedName();
+            if (moveStep == step)
+                title += " *";
+            else if (injectStep && treeView.SelectedObject == step)
+                title += " >";
+            return title;
+        }
+        List<ITestStep> getChildren(ITestStep step)
+        {
+            return step.ChildTestSteps.ToList();
+        }
+        bool canExpand(ITestStep step)
+        {
+            return step.ChildTestSteps.Any();
         }
 
         public override bool OnEnter(View view)
@@ -123,21 +101,16 @@ namespace OpenTap.Tui.Views
 
         public void Update()
         {
-            var index = SelectedItem;
-            var top = TopItem;
-            SetSource(ExpandItems());
-            if (top > 0 && top < Source.Count)
-                TopItem = top;
-            if (Source.Count > 0)
-                SelectedItem = (index > Source.Count - 1 ? Source.Count - 1 : index);
+            var selected = treeView.SelectedObject;
+            treeView.ClearObjects();
+            treeView.AddObjects(Plan.Steps);
+            treeView.SelectedObject = selected ?? Plan.Steps.FirstOrDefault();
             
-            // Make sure to invoke event when the last item is deleted
-            if (Source.Count == 0)
-                OnSelectedChanged(); // TODO: Test
-                // SelectedItemChanged.Invoke(null);
-
+            treeView.RebuildTree();
+            
             MainWindow.helperButtons.SetActions(actions, this);
         }
+        
         public void LoadTestPlan()
         {
             var dialog = new OpenDialog("Open a TestPlan", "Open");
@@ -182,34 +155,28 @@ namespace OpenTap.Tui.Views
                 TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
             }
         }
-        public void AddNewStep(ITypeData type)
+        
+        private void AddNewStep(ITypeData type)
         {
             try
             {
-                var flatplan = FlattenPlan();
-                if (flatplan.Count == 0)
-                {
-                    Plan.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
-                    Update();
-                    return;
-                }
+                // TODO: add step at selected step
                 
-                var step = flatplan[SelectedItem];
-                var index = step.Parent.ChildTestSteps.IndexOf(step);
-                step.Parent.ChildTestSteps.Insert(index + 1, type.CreateInstance() as ITestStep);
+                if (Plan.Steps.Any() == false)
+                    Plan.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
+                else
+                    treeView.SelectedObject?.Parent?.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
                 
                 Update();
-                SelectedItem = flatplan.IndexOf(step) + 1;
             }
             catch(Exception ex)
             {
                 TUI.Log.Error(ex);
             }
         }
-        public void InsertNewChildStep(ITypeData type)
+        private void InsertNewChildStep(ITypeData type)
         {
-            var flatplan = FlattenPlan();
-            if (flatplan.Count == 0)
+            if (Plan.Steps.Any() == false)
             {
                 AddNewStep(type);
                 return;
@@ -217,8 +184,7 @@ namespace OpenTap.Tui.Views
 
             try
             {
-                var step = flatplan[SelectedItem];
-                step.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
+                treeView.SelectedObject?.ChildTestSteps.Add(type.CreateInstance() as ITestStep);
                 Update();
             }
             catch (Exception ex)
@@ -226,12 +192,18 @@ namespace OpenTap.Tui.Views
                 TUI.Log.Error(ex);
             }
         }
+        private void showAddStep()
+        {
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+            Application.Run(newStep);
+            if (newStep.PluginType != null)
+            {
+                AddNewStep(newStep.PluginType);
+            }
+        }
 
-        private TestPlanRun testPlanRun;
-        public bool PlanIsRunning = false;
         private TapThread testPlanThread;
-
-        public void AbortTestPlan()
+        private void AbortTestPlan()
         {
             if (Plan.IsRunning)
             {
@@ -240,8 +212,7 @@ namespace OpenTap.Tui.Views
                 Update();
             }
         }
-        
-        public void RunTestPlan()
+        private void RunTestPlan()
         {
             PlanIsRunning = true;
             runAction.Title = "Abort Test Plan";
@@ -260,24 +231,24 @@ namespace OpenTap.Tui.Views
             {
                 while (PlanIsRunning)
                 {
-                    Application.MainLoop.Invoke(() => TestPlanFrame.Title = $"Test Plan - Running ");
+                    Application.MainLoop.Invoke(() => Title = $"Test Plan - Running ");
                     Thread.Sleep(1000);
                     
                     for (int i = 0; i < 3 && PlanIsRunning; i++)
                     {
-                        Application.MainLoop.Invoke(() => TestPlanFrame.Title += ">");
+                        Application.MainLoop.Invoke(() => Title += ">");
                         Thread.Sleep(1000);
                     }
                 }
                 
-                Application.MainLoop.Invoke(() => TestPlanFrame.Title = "Test Plan");
+                Application.MainLoop.Invoke(() => Title = "Test Plan");
             });
         }
 
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (Application.Current.MostFocused != this)
-                return base.ProcessKey(kb);
+            // if (Application.Current.MostFocused != this)
+            //     return base.ProcessKey(kb);
             
             if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
             {
@@ -292,60 +263,86 @@ namespace OpenTap.Tui.Views
             
             if (kb.Key == Key.DeleteChar)
             {
-                var index = SelectedItem;
-                var steps = FlattenPlan();
-                if (steps.Any())
+                if (treeView.SelectedObject != null)
                 {
-                    var step = steps[index];
-                    step.Parent.ChildTestSteps.Remove(step);
+                    treeView.SelectedObject.Parent.ChildTestSteps.Remove(treeView.SelectedObject);
                     Update();
                 }
-
                 return true;
             }
-            if (kb.Key == Key.CursorRight && moveIndex > -1 && FlattenPlan()[SelectedItem].GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
+            
+            if (kb.Key == Key.CursorRight && moveStep != null && treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
                 Update();
                 return true;
             }
+
             if (kb.Key == Key.Space)
             {
-                if (Plan.ChildTestSteps.Count == 0)
-                    return base.ProcessKey(kb);
-                
-                if (moveIndex == -1)
+                if (Plan.ChildTestSteps.Count == 0 || treeView.SelectedObject == null)
+                    return false;
+
+                if (moveStep == null)
                 {
-                    moveIndex = SelectedItem;
+                    moveStep = treeView.SelectedObject;
                     Update();
-                    return true;
+                }
+                else if (moveStep == treeView.SelectedObject)
+                {
+                    moveStep = null;
+                    injectStep = false;
                 }
                 else
                 {
-                    var flatPlan = FlattenPlan();
+                    moveStep.Parent.ChildTestSteps.Remove(moveStep);
+                    var currentIndex = treeView.SelectedObject.Parent.ChildTestSteps.IndexOf(treeView.SelectedObject);
 
-                    var fromItem = flatPlan[moveIndex];
-                    var toItem = flatPlan[SelectedItem];
-
-                    var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem);
-                    var flatIndex = flatPlan.IndexOf(toItem);
-
-                    if (IsParent(toItem, fromItem) == false)
-                    {
-                        fromItem.Parent.ChildTestSteps.Remove(fromItem);
-
-                        if (injectStep)
-                            toItem.ChildTestSteps.Add(fromItem);
-                        else
-                            toItem.Parent.ChildTestSteps.Insert(toIndex, fromItem);
-                    }
-
+                    if (injectStep)
+                        treeView.SelectedObject.ChildTestSteps.Add(moveStep);
+                    else
+                        treeView.SelectedObject.Parent.ChildTestSteps.Insert(currentIndex, moveStep);
+                    
+                    moveStep = null;
                     injectStep = false;
-                    moveIndex = -1;
                     Update();
-                    SelectedItem = flatIndex;
-                    return true;
                 }
+                
+                return true;
+                
+                
+                // if (moveIndex == -1)
+                // {
+                //     moveIndex = SelectedItem;
+                //     Update();
+                //     return true;
+                // }
+                // else
+                // {
+                //     var flatPlan = FlattenPlan();
+                //
+                //     var fromItem = flatPlan[moveIndex];
+                //     var toItem = flatPlan[SelectedItem];
+                //
+                //     var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem);
+                //     var flatIndex = flatPlan.IndexOf(toItem);
+                //
+                //     if (IsParent(toItem, fromItem) == false)
+                //     {
+                //         fromItem.Parent.ChildTestSteps.Remove(fromItem);
+                //
+                //         if (injectStep)
+                //             toItem.ChildTestSteps.Add(fromItem);
+                //         else
+                //             toItem.Parent.ChildTestSteps.Insert(toIndex, fromItem);
+                //     }
+                //
+                //     injectStep = false;
+                //     moveIndex = -1;
+                //     Update();
+                //     SelectedItem = flatIndex;
+                //     return true;
+                // }
             }
 
             if (kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
@@ -365,68 +362,52 @@ namespace OpenTap.Tui.Views
 
             if (kb.Key == (Key.T | Key.CtrlMask))
             {
-                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Add New Step");
-                Application.Run(newStep);
-                if (newStep.PluginType != null)
-                {
-                    AddNewStep(newStep.PluginType);
-                }
+                showAddStep();
                 return true;
             }
 
-            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
-            {
-                // Copy
-                var flatPlan = FlattenPlan();
-                var copyStep = flatPlan[SelectedItem];
-                var serializer = new TapSerializer();
-                var xml = serializer.SerializeToString(copyStep);
+            // if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
+            // {
+            //     // Copy
+            //     var flatPlan = FlattenPlan();
+            //     var copyStep = flatPlan[SelectedItem];
+            //     var serializer = new TapSerializer();
+            //     var xml = serializer.SerializeToString(copyStep);
+            //
+            //     Clipboard.Contents = xml;
+            //     
+            //     return true;
+            // }
 
-                Clipboard.Contents = xml;
-                
-                return true;
-            }
-
-            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
-            {
-                // Paste
-                var flatPlan = FlattenPlan();
-                if (flatPlan.Count == 0)
-                    return true;
-                
-                var toItem = flatPlan[SelectedItem];
-                var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem) + 1;
-                var flatIndex = flatPlan.IndexOf(toItem);
-
-                // Serialize Deserialize step to get a new instance
-                var serializer = new TapSerializer();
-                serializer.GetSerializer<TestStepSerializer>().AddKnownStepHeirarchy(Plan);
-                var newStep = serializer.DeserializeFromString(Clipboard.Contents.ToString(), TypeData.FromType(typeof(TestPlan)), path: Plan.Path) as ITestStep;
-                
-                if (newStep != null)
-                {
-                    var existingStep = toItem.Parent.ChildTestSteps.ElementAtOrDefault(toIndex-1);
-                    toItem.Parent.ChildTestSteps.Insert(toIndex, newStep);
-                    Update();
-                    var addedSteps = FlattenSteps(new[] {existingStep}).Count;
-                    SelectedItem = flatIndex + addedSteps;
-                }
-                
-                return true;
-            }
+            // if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
+            // {
+            //     // Paste
+            //     var flatPlan = FlattenPlan();
+            //     if (flatPlan.Count == 0)
+            //         return true;
+            //     
+            //     var toItem = flatPlan[SelectedItem];
+            //     var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem) + 1;
+            //     var flatIndex = flatPlan.IndexOf(toItem);
+            //
+            //     // Serialize Deserialize step to get a new instance
+            //     var serializer = new TapSerializer();
+            //     serializer.GetSerializer<TestStepSerializer>().AddKnownStepHeirarchy(Plan);
+            //     var newStep = serializer.DeserializeFromString(Clipboard.Contents.ToString(), TypeData.FromType(typeof(TestPlan)), path: Plan.Path) as ITestStep;
+            //     
+            //     if (newStep != null)
+            //     {
+            //         var existingStep = toItem.Parent.ChildTestSteps.ElementAtOrDefault(toIndex-1);
+            //         toItem.Parent.ChildTestSteps.Insert(toIndex, newStep);
+            //         Update();
+            //         var addedSteps = FlattenSteps(new[] {existingStep}).Count;
+            //         SelectedItem = flatIndex + addedSteps;
+            //     }
+            //     
+            //     return true;
+            // }
             
             return base.ProcessKey(kb);
-        }
-
-        private bool IsParent(ITestStep step, ITestStep parent)
-        {
-            if (step == parent)
-                return true;
-
-            if (step.Parent != null && step.Parent is ITestStep)
-                return IsParent(step.Parent as ITestStep, parent);
-
-            return false;
         }
     }
 }

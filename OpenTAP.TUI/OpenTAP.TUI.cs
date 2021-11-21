@@ -109,7 +109,12 @@ namespace OpenTap.Tui
 
         public override int TuiExecute(CancellationToken cancellationToken)
         {
-            TestPlanView = new TestPlanView();
+            TestPlanView = new TestPlanView()
+            {
+                Y = 1,
+                Width = Dim.Percent(75),
+                Height = Dim.Percent(70)
+            };
             StepSettingsView = new PropertiesView();
             
             var filemenu = new MenuBarItem("_File", new MenuItem[]
@@ -229,15 +234,7 @@ namespace OpenTap.Tui
             win.Add(menu);
 
             // Add testplan view
-            var testPlanFrame = new FrameView("Test Plan")
-            {
-                Y = 1,
-                Width = Dim.Percent(75),
-                Height = Dim.Percent(70)
-            };
-            testPlanFrame.Add(TestPlanView);
-            TestPlanView.TestPlanFrame = testPlanFrame;
-            win.Add(testPlanFrame);
+            win.Add(TestPlanView);
 
             // Add step settings view
             var settingsFrame = new FrameView("Settings")
@@ -253,7 +250,7 @@ namespace OpenTap.Tui
             // Add log panel
             LogFrame = new FrameView("Log Panel")
             {
-                Y = Pos.Bottom(testPlanFrame),
+                Y = Pos.Bottom(TestPlanView),
                 Width = Dim.Fill(),
                 Height = Dim.Fill(1)
             };
@@ -262,15 +259,15 @@ namespace OpenTap.Tui
             win.LogFrame = LogFrame;
 
             // Update StepSettingsView when TestPlanView changes selected step
-            TestPlanView.SelectedItemChanged += args =>
+            TestPlanView.SelectionChanged += args =>
             {
-                if (args?.Value is TestPlan)
+                if (args is TestPlan)
                 {
                     StepSettingsView.LoadProperties(TestPlanView.Plan);
                     StepSettingsView.FocusFirst();
                 }
                 else
-                    StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                    StepSettingsView.LoadProperties(args);
             };
             
             // Update testplanview when step settings are changed
@@ -293,7 +290,7 @@ namespace OpenTap.Tui
 
                     TestPlanView.Plan = TestPlan.Load(path);
                     TestPlanView.Update();
-                    StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                    // StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                 }
                 catch
                 {
