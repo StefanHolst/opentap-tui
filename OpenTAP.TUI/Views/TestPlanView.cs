@@ -36,6 +36,7 @@ namespace OpenTap.Tui.Views
                 Height = Dim.Fill(),
                 Width = Dim.Fill()
             };
+            treeView.Style.ShowBranchLines = false;
             treeView.AspectGetter = getTitle;
             treeView.TreeBuilder = new DelegateTreeBuilder<ITestStep> (getChildren, canExpand);
             treeView.SelectionChanged += (sender, args) =>
@@ -274,7 +275,8 @@ namespace OpenTap.Tui.Views
             if (kb.Key == Key.CursorRight && moveStep != null && treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
-                Update();
+                treeView.RefreshObject(treeView.SelectedObject);
+                // Update();
                 return true;
             }
 
@@ -344,9 +346,6 @@ namespace OpenTap.Tui.Views
                 //     return true;
                 // }
             }
-
-            if (kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
-                return true;
 
             if (kb.Key == (Key.S | Key.CtrlMask))
             {
