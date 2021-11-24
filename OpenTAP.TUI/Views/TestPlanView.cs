@@ -89,8 +89,7 @@ namespace OpenTap.Tui.Views
 
         public override bool OnEnter(View view)
         {
-            // treeView.RenderTreeView();
-            MainWindow.helperButtons.SetActions(actions, this);
+            Update();
             return base.OnEnter(view);
         }
 
@@ -159,19 +158,14 @@ namespace OpenTap.Tui.Views
                 {
                     var newStep = type.CreateInstance() as ITestStep;
                     Plan.ChildTestSteps.Add(newStep);
-                    // treeView.AddObject(newStep);
+                    Update(true);
                 }
                 else if (treeView.SelectedObject != null)
                 {
                     var newStep = type.CreateInstance() as ITestStep;
                     var index = treeView.SelectedObject.Parent.ChildTestSteps.IndexOf(treeView.SelectedObject);
                     treeView.SelectedObject.Parent?.ChildTestSteps.Insert(index, newStep);
-                
-                    // if (treeView.SelectedNode.Parent is TestPlan)
-                    //     treeView.InsertObject(index, newStep);
-                    // else
-                    //     treeView.RefreshObject(treeView.SelectedNode.Parent as ITestStep);
-
+                    Update(true);
                     treeView.SelectedObject = newStep;
                 }
             }
@@ -195,9 +189,10 @@ namespace OpenTap.Tui.Views
                 
                 var newStep = type.CreateInstance() as ITestStep;
                 treeView.SelectedObject.ChildTestSteps.Add(newStep);
-                treeView.RenderTreeView(true);
+                Update(true);
                 treeView.ExpandObject(treeView.SelectedObject);
                 treeView.SelectedObject = newStep;
+                Update();
             }
             catch (Exception ex)
             {
@@ -259,9 +254,6 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent kb)
         {
-            // if (Application.Current.MostFocused != this)
-            //     return base.ProcessKey(kb);
-            
             if (Plan.IsRunning)
                 return base.ProcessKey(kb);
             
@@ -269,7 +261,7 @@ namespace OpenTap.Tui.Views
             {
                 injectStep = false;
                 base.ProcessKey(kb);
-                // treeView.RebuildTree();
+                Update(true);
                 return true;
             }
             
@@ -279,7 +271,7 @@ namespace OpenTap.Tui.Views
                 {
                     var itemToRemove = treeView.SelectedObject;
                     itemToRemove.Parent.ChildTestSteps.Remove(itemToRemove);
-                    treeView.RenderTreeView(true);
+                    Update(true);
                 }
                 return true;
             }
@@ -287,8 +279,7 @@ namespace OpenTap.Tui.Views
             if (kb.Key == Key.CursorRight && moveStep != null && treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
             {
                 injectStep = true;
-                treeView.RenderTreeView(true);
-                // treeView.RefreshObject(treeView.SelectedNode);
+                Update(true);
                 return true;
             }
 
@@ -300,13 +291,13 @@ namespace OpenTap.Tui.Views
                 if (moveStep == null)
                 {
                     moveStep = treeView.SelectedObject;
-                    treeView.RenderTreeView(true);
+                    Update(true);
                 }
                 else if (moveStep == treeView.SelectedObject)
                 {
                     moveStep = null;
                     injectStep = false;
-                    treeView.RenderTreeView(true);
+                    Update(true);
                 }
                 else
                 {
@@ -324,11 +315,11 @@ namespace OpenTap.Tui.Views
                         treeView.SelectedObject.Parent.ChildTestSteps.Insert(currentIndex, moveStep);
                     }
                     
-                    treeView.RenderTreeView(true);
+                    Update(true);
                     treeView.SelectedObject = moveStep;
                     moveStep = null;
                     injectStep = false;
-                    treeView.RenderTreeView(true);
+                    Update(true);
                 }
                 
                 return true;
@@ -352,46 +343,39 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            // if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
-            // {
-            //     // Copy
-            //     var flatPlan = FlattenPlan();
-            //     var copyStep = flatPlan[SelectedItem];
-            //     var serializer = new TapSerializer();
-            //     var xml = serializer.SerializeToString(copyStep);
-            //
-            //     Clipboard.Contents = xml;
-            //     
-            //     return true;
-            // }
+            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
+            {
+                // Copy
+                var copyStep = treeView.SelectedObject;
+                var serializer = new TapSerializer();
+                var xml = serializer.SerializeToString(copyStep);
+            
+                Clipboard.Contents = xml;
+                
+                return true;
+            }
 
-            // if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
-            // {
-            //     // Paste
-            //     var flatPlan = FlattenPlan();
-            //     if (flatPlan.Count == 0)
-            //         return true;
-            //     
-            //     var toItem = flatPlan[SelectedItem];
-            //     var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem) + 1;
-            //     var flatIndex = flatPlan.IndexOf(toItem);
-            //
-            //     // Serialize Deserialize step to get a new instance
-            //     var serializer = new TapSerializer();
-            //     serializer.GetSerializer<TestStepSerializer>().AddKnownStepHeirarchy(Plan);
-            //     var newStep = serializer.DeserializeFromString(Clipboard.Contents.ToString(), TypeData.FromType(typeof(TestPlan)), path: Plan.Path) as ITestStep;
-            //     
-            //     if (newStep != null)
-            //     {
-            //         var existingStep = toItem.Parent.ChildTestSteps.ElementAtOrDefault(toIndex-1);
-            //         toItem.Parent.ChildTestSteps.Insert(toIndex, newStep);
-            //         Update();
-            //         var addedSteps = FlattenSteps(new[] {existingStep}).Count;
-            //         SelectedItem = flatIndex + addedSteps;
-            //     }
-            //     
-            //     return true;
-            // }
+            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && treeView.SelectedObject != null) // 86 = V
+            {
+                // Paste
+                var toItem = treeView.SelectedObject;
+                var toIndex = toItem.Parent.ChildTestSteps.IndexOf(toItem) + 1;
+            
+                // Serialize Deserialize step to get a new instance
+                var serializer = new TapSerializer();
+                serializer.GetSerializer<TestStepSerializer>().AddKnownStepHeirarchy(Plan);
+                var newStep = serializer.DeserializeFromString(Clipboard.Contents.ToString(), TypeData.FromType(typeof(TestPlan)), path: Plan.Path) as ITestStep;
+                
+                if (newStep != null)
+                {
+                    toItem.Parent.ChildTestSteps.Insert(toIndex, newStep);
+                    Update(true);
+                    treeView.SelectedObject = newStep;
+                    Update();
+                }
+                
+                return true;
+            }
             
             return base.ProcessKey(kb);
         }
