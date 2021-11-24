@@ -273,7 +273,7 @@ namespace OpenTap.Tui
             // Update testplanview when step settings are changed
             StepSettingsView.PropertiesChanged += () =>
             {
-                TestPlanView.Update();
+                TestPlanView.Update(true);
             };
             
             // Load plan from args
@@ -288,8 +288,8 @@ namespace OpenTap.Tui
                         plan.Save(path);
                     }
 
-                    TestPlanView.Plan = TestPlan.Load(path);
-                    TestPlanView.Update();
+                    TestPlanView.LoadTestPlan(path);
+                    // TestPlanView.Update();
                     // StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                 }
                 catch
