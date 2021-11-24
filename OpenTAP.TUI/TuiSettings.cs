@@ -17,6 +17,7 @@ namespace OpenTap.Tui
             {
                 theme = value;
                 SetTheme();
+                LoadSettings();
                 OnPropertyChanged(nameof(Theme));
             }
         }
@@ -145,16 +146,9 @@ namespace OpenTap.Tui
             Colors.Dialog = DialogColor.ToColorScheme();
             Colors.Error = ErrorColor.ToColorScheme();
             Colors.Menu = MenuColor.ToColorScheme();
+            // Colors.TopLevel = baseColor.ToColorScheme();
             
-            foreach (var view in Application.Top.Subviews)
-            {
-                if (view is Toplevel)
-                    view.ColorScheme = Colors.Base;
-                if (view is MenuBar)
-                    view.ColorScheme = Colors.Menu;
-            }
-            
-            Application.Refresh();
+            Application.RefreshColorSchemes();
         }
     }
 

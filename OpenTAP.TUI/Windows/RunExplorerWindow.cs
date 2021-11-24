@@ -12,7 +12,7 @@ namespace OpenTap.Tui.Windows
         
         private SelectorView runList;
         private PropertiesView propsView;
-        public static HelperButtons HelperButtons;
+        private HelperButtons helperButtons;
 
         public ResultsViewerWindow() : base("Results Viewer")
         {
@@ -54,13 +54,13 @@ namespace OpenTap.Tui.Windows
             Add(runFrame);
             
             // Add helper buttons
-            HelperButtons = new HelperButtons
+            helperButtons = new HelperButtons
             {
                 Width = Dim.Fill(),
                 Height = 1,
                 Y = Pos.AnchorEnd()-1
             };
-            Add(HelperButtons);
+            Add(helperButtons);
             
             // Add actions
             var actions = new List<MenuItem>();
@@ -70,9 +70,9 @@ namespace OpenTap.Tui.Windows
             runList.ItemMarkedChanged += (args =>
             {
                 if (GetMarkedItems().Any())
-                    HelperButtons.SetActions(actions, this);
+                    helperButtons.SetActions(actions, this);
                 else
-                    HelperButtons.SetActions(new List<MenuItem>(), this);
+                    helperButtons.SetActions(new List<MenuItem>(), this);
                 
                 Application.Refresh();
             });
@@ -143,14 +143,14 @@ namespace OpenTap.Tui.Windows
             
             var resultWindow = new ResultsWindow(GetMarkedItems());
             Application.Run(resultWindow);
-            Remove(HelperButtons);
-            Add(HelperButtons);
+            Remove(helperButtons);
+            Add(helperButtons);
             runList.ItemMarkedChanged.Invoke(null);
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (TuiAction.CurrentAction is TuiResults && (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || keyEvent.Key == Key.Esc))
+            if (TuiAction.CurrentAction is TuiResults && (keyEvent.Key == (Key.X|Key.CtrlMask) || keyEvent.Key == (Key.C|Key.CtrlMask) || keyEvent.Key == Key.Esc))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
@@ -167,7 +167,7 @@ namespace OpenTap.Tui.Windows
                 return true;
             }
 
-            if (HelperButtons.Instance?.ProcessKey(keyEvent) == true)
+            if (helperButtons.ProcessKey(keyEvent) == true)
                 return true;
             
             return base.ProcessKey(keyEvent);
@@ -195,6 +195,8 @@ namespace OpenTap.Tui.Windows
                 return Run.Parent.Name;
             
             var spacing = (Owner.Bounds.Width - 2) / ResultsViewerWindow.Headers.Length;
+            if (spacing == 0)
+                return "";
             
             var id = Run.Parameters.FirstOrDefault(p => p.Name == "Run ID")?.Value.ToString() ?? Run.GetID().ToString();
             var name = Run.Name;
@@ -203,13 +205,13 @@ namespace OpenTap.Tui.Windows
 
             var row = new StringBuilder();
             row.Append(id);
-            row.Append(new string(' ', spacing - id.Length - 4));
+            row.Append(new string(' ', spacing - id.Length - 2));
             row.Append(name);
             row.Append(new string(' ', spacing - name.Length));
             row.Append(verdict);
-            row.Append(new string(' ', spacing - verdict?.Length ?? 0));
+            row.Append(new string(' ', spacing - (verdict?.Length ?? 0)));
             row.Append(source);
-            row.Append(new string(' ', spacing - source?.Length ?? 0));
+            row.Append(new string(' ', spacing - (source?.Length ?? 0)));
             
             return row.ToString();
         }

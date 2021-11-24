@@ -14,21 +14,21 @@ namespace OpenTap.Tui
 {
     public class MainWindow : Window
     {
-        public View StepSettingsView { get; set; }
+        public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
-        private HelperButtons helperButtons { get; set; }
+        public static HelperButtons helperButtons { get; private set; }
 
         public MainWindow(string title) : base(title)
         {
+            helperButtons = new HelperButtons
+            {
+                Width = Dim.Fill(),
+                Height = 1
+            };
+            
             Initialized += (s, e) =>
             {
-                helperButtons = new HelperButtons
-                {
-                    Width = Dim.Fill(),
-                    Height = 1
-                };
-
                 helperButtons.Y = Pos.Bottom(LogFrame);
                 Add(helperButtons);
             };
@@ -36,19 +36,16 @@ namespace OpenTap.Tui
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView)
+            if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView && this.IsTopActive())
             {
                 FocusNext();
                 return true;
             }
 
-            if (keyEvent.IsShift == false && (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || keyEvent.Key == Key.Esc && MostFocused is TestPlanView))
+            if (keyEvent.IsShift == false && (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView && this.IsTopActive())))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
-                {
                     Application.Shutdown();
-                }
-
                 return true;
             }
 
@@ -57,14 +54,14 @@ namespace OpenTap.Tui
                 if (TestPlanView.HasFocus)
                     StepSettingsView.FocusFirst();
                 else
-                    TestPlanView.FocusFirst();
-
+                    TestPlanView.SetFocus();
+            
                 return true;
             }
-
+            
             if (keyEvent.Key == Key.F1)
             {
-                TestPlanView.FocusFirst();
+                TestPlanView.SetFocus();
                 return true;
             }
             if (keyEvent.Key == Key.F2)
@@ -74,28 +71,26 @@ namespace OpenTap.Tui
             }
             if (keyEvent.Key == Key.F3)
             {
-                var kevent = keyEvent;
-                kevent.Key = Key.F2;
-                StepSettingsView.ProcessKey(kevent);
+                StepSettingsView.FocusLast();
                 return true;
             }
             if (keyEvent.Key == Key.F4)
             {
-                LogFrame.FocusFirst();
+                LogFrame.SetFocus();
                 return true;
             }
-
-            if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false)
+            
+            if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false && this.IsTopActive())
             {
                 FocusPrev();
                 return true;
             }
-            
-            if (keyEvent.Key == Key.ControlS)
+
+            if (keyEvent.Key == (Key.S | Key.CtrlMask))
                 return TestPlanView.ProcessKey(keyEvent);
 
 
-            if (HelperButtons.Instance?.ProcessKey(keyEvent) == true)
+            if (helperButtons.ProcessKey(keyEvent) == true)
                 return true;
             
             return base.ProcessKey(keyEvent);
@@ -127,7 +122,7 @@ namespace OpenTap.Tui
                 new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
                 new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
                 new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                new MenuItem("_Quit", "", Application.RequestStop)
+                new MenuItem("_Quit", "", () => Application.RequestStop())
             });
             var toolsmenu = new MenuBarItem("_Tools", new MenuItem[]
             {
@@ -217,30 +212,26 @@ namespace OpenTap.Tui
             }
             menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
-            
-            // Add menu bar
-            var menu = new MenuBar(menuBars.ToArray());
-            menu.MenuClosing += () => 
-            {
-                TestPlanView.FocusFirst();
-            };
-            Top.Add(menu);
-
             // Create main window and add it to top item of application
             var win = new MainWindow("OpenTAP TUI")
             {
                 X = 0,
-                Y = 1,
+                Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
                 StepSettingsView = StepSettingsView,
                 TestPlanView = TestPlanView
             };
             Top.Add(win);
+            
+            // Add menu bar
+            var menu = new MenuBar(menuBars.ToArray());
+            win.Add(menu);
 
             // Add testplan view
             var testPlanFrame = new FrameView("Test Plan")
             {
+                Y = 1,
                 Width = Dim.Percent(75),
                 Height = Dim.Percent(70)
             };
@@ -252,6 +243,7 @@ namespace OpenTap.Tui
             var settingsFrame = new FrameView("Settings")
             {
                 X = Pos.Percent(75),
+                Y = 1,
                 Width = Dim.Fill(),
                 Height = Dim.Percent(70)
             };
@@ -261,7 +253,7 @@ namespace OpenTap.Tui
             // Add log panel
             LogFrame = new FrameView("Log Panel")
             {
-                Y = Pos.Percent(70),
+                Y = Pos.Bottom(testPlanFrame),
                 Width = Dim.Fill(),
                 Height = Dim.Fill(1)
             };
@@ -275,7 +267,7 @@ namespace OpenTap.Tui
                 if (args?.Value is TestPlan)
                 {
                     StepSettingsView.LoadProperties(TestPlanView.Plan);
-                    StepSettingsView.SetFocus();
+                    StepSettingsView.FocusFirst();
                 }
                 else
                     StepSettingsView.LoadProperties(TestPlanView.SelectedStep);

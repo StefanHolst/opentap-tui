@@ -36,7 +36,7 @@ namespace OpenTap.Tui.Views
             var menu = selectedMember?.Get<MenuAnnotation>();
             if (menu == null)
             {
-                HelperButtons.SetActions(list, this);
+                MainWindow.helperButtons.SetActions(list, this);
                 return;
             }
             
@@ -70,7 +70,7 @@ namespace OpenTap.Tui.Views
                 list.Add(item);
             }
 
-            HelperButtons.SetActions(list, this);
+            MainWindow.helperButtons.SetActions(list, this);
         }
 
         public event Action PropertiesChanged;
@@ -115,9 +115,9 @@ namespace OpenTap.Tui.Views
                         nameBuilder.Append((char)Driver.RightArrow); // →
                     }
                     if(icon(IconNames.Parameterized))
-                        nameBuilder.Append((char)Driver.Lozenge);// ◊
+                        nameBuilder.Append((char)Driver.Lozenge);// ♦
                     if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
-                        nameBuilder.Append((char)Driver.Diamond);// ♦
+                        nameBuilder.Append((char)Driver.Diamond);// ◊
 
                     if (nameBuilder.Length > 0)
                         nameBuilder.Append(" ");
@@ -146,6 +146,7 @@ namespace OpenTap.Tui.Views
             descriptionView = new TextView()
             {
                 ReadOnly = true,
+                AllowsTab = false
             };
             descriptionFrame = new FrameView("Description")
             {
@@ -173,6 +174,11 @@ namespace OpenTap.Tui.Views
                 treeView.UpdateListView();
                 ListViewOnSelectedChanged(null);
             };
+
+            Enter += args =>
+            {
+                ListViewOnSelectedChanged(null);
+            };
         }
 
         List<Button> getSubmitButtons()
@@ -186,16 +192,13 @@ namespace OpenTap.Tui.Views
                 var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
                 foreach (var availableValue in availableValuesAnnotation.AvailableValues)
                 {
-                    var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue)
+                    var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue);
+                    button.Clicked += () =>
                     {
-                        Clicked = () =>
-                        {
-                            availableValuesAnnotation.SelectedValue = availableValue;
-                            submit.Write();
-                            Submit();
-                        }
+                        availableValuesAnnotation.SelectedValue = availableValue;
+                        submit.Write();
+                        Submit();
                     };
-
                     
                     buttons.Add(button);
                 }
@@ -317,7 +320,7 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null)
+            if (MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null && this.IsTopActive())
             {
                 var members = getMembers();
                 if (members == null)
@@ -348,23 +351,12 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if (MostFocused is TreeView && (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight))
+            if (MostFocused is TreeView && (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight) && this.IsTopActive())
             {
                 treeView.ProcessKey(keyEvent);
                 return true;
             }
-
-            if (keyEvent.Key == Key.F1)
-            {
-                treeView.FocusFirst();
-                return true;
-            }
-            if (keyEvent.Key == Key.F2)
-            {
-                descriptionView.SetFocus(); //TODO: test
-                return true;
-            }
-
+            
             return base.ProcessKey(keyEvent);
         }
     }

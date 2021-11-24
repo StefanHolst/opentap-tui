@@ -63,7 +63,7 @@ namespace OpenTap.Tui.Views
 
         void RemoveCurrentRow()
         {
-            if (MostFocused is ListView listview)
+            if (MostFocused is ListView listview && this.IsTopActive())
             {
                 RemoveRow(listview.SelectedItem);
             }
@@ -90,7 +90,7 @@ namespace OpenTap.Tui.Views
             }
 
             if (columns.Any())
-                columns[0].column.SetFocus(); // TODO: Test
+                columns[0].column.SetFocus();
             LayoutSubviews();
 
             return true;
@@ -205,7 +205,7 @@ namespace OpenTap.Tui.Views
                 }
             }
 
-            if (MostFocused is ListView listview)
+            if (MostFocused is ListView listview && this.IsTopActive())
             {
                 if (keyEvent.Key == Key.Enter)
                 {

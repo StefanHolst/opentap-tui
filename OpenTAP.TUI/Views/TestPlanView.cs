@@ -111,7 +111,7 @@ namespace OpenTap.Tui.Views
             actions.Add(insertAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
-                SelectedItemChanged.Invoke(new ListViewItemEventArgs(0, Plan));
+                InvokeSelectedItemChanged(new ListViewItemEventArgs(0, Plan));
             }));
         }
 
@@ -133,9 +133,10 @@ namespace OpenTap.Tui.Views
             
             // Make sure to invoke event when the last item is deleted
             if (Source.Count == 0)
-                SelectedItemChanged.Invoke(null);
+                OnSelectedChanged(); // TODO: Test
+                // SelectedItemChanged.Invoke(null);
 
-            HelperButtons.SetActions(actions, this);
+            MainWindow.helperButtons.SetActions(actions, this);
         }
         public void LoadTestPlan()
         {
@@ -350,19 +351,19 @@ namespace OpenTap.Tui.Views
             if (kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
                 return true;
 
-            if (kb.Key == Key.ControlS)
+            if (kb.Key == (Key.S | Key.CtrlMask))
             {
                 SaveTestPlan(kb.IsShift ? null : Plan.Path);
                 return true;
             }
 
-            if (kb.Key == Key.ControlO)
+            if (kb.Key == (Key.O | Key.CtrlMask))
             {
                 LoadTestPlan();
                 return true;
             }
 
-            if (kb.Key == Key.ControlT)
+            if (kb.Key == (Key.T | Key.CtrlMask))
             {
                 var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "Add New Step");
                 Application.Run(newStep);
@@ -373,7 +374,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if (kb.IsShift && kb.Key == Key.ControlC || kb.KeyValue == 67) // 67 = C
+            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
             {
                 // Copy
                 var flatPlan = FlattenPlan();
@@ -386,7 +387,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if ((kb.IsShift && kb.Key == Key.ControlV || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
+            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
             {
                 // Paste
                 var flatPlan = FlattenPlan();

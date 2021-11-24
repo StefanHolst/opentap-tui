@@ -13,11 +13,11 @@ namespace OpenTap.Tui.Windows
         private readonly PackageListView packageList;
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (TuiAction.CurrentAction is TuiPm && (keyEvent.Key == Key.ControlX || keyEvent.Key == Key.ControlC || keyEvent.Key == Key.Esc))
+            if (TuiAction.CurrentAction is TuiPm && (keyEvent.Key == (Key.CtrlMask | Key.X) || keyEvent.Key == (Key.CtrlMask | Key.C) || keyEvent.Key == Key.Esc))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
-                    Application.MainLoop.Invoke(Application.RequestStop);
+                    Application.MainLoop.Invoke(() => Application.RequestStop());
                 }
 
                 return true;

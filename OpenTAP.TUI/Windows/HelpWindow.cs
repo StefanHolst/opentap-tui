@@ -10,6 +10,7 @@ namespace OpenTap.Tui.Windows
         public HelpWindow() : base("Help")
         {
             Modal = true;
+            
             var text = new TextView()
             {
                 Text =

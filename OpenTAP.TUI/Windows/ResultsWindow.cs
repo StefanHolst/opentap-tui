@@ -16,6 +16,7 @@ namespace OpenTap.Tui.Windows
         private PropertiesView propsView;
         private FrameView plotFrame;
         private PlotView plotView;
+        private HelperButtons helperButtons;
         private List<IRunViewModel> runs;
         private int selectedIndex = 0;
         private ChartSettings Settings;
@@ -58,7 +59,11 @@ namespace OpenTap.Tui.Windows
             Add(settingsFrame);
             
             // Add helper buttons
-            Add(ResultsViewerWindow.HelperButtons);
+            helperButtons = new HelperButtons()
+            {
+                Y = Pos.Bottom(plotFrame)
+            };
+            Add(helperButtons);
             
             // Add export action
             var actions = new List<MenuItem>();
@@ -68,7 +73,7 @@ namespace OpenTap.Tui.Windows
                 var exportAction = new MenuItem("Export", "", () => Export(exporters));
                 actions.Add(exportAction);
             }
-            HelperButtons.SetActions(actions, this);
+            helperButtons.SetActions(actions, this);
 
             PlotResults();
         }
@@ -141,7 +146,7 @@ namespace OpenTap.Tui.Windows
                 return true;
             }
 
-            if (HelperButtons.Instance?.ProcessKey(keyEvent) == true)
+            if (helperButtons.ProcessKey(keyEvent) == true)
                 return true;
             
             return base.ProcessKey(keyEvent);

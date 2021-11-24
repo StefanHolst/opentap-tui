@@ -9,6 +9,7 @@ namespace OpenTap.Tui.Windows
         public ConnectionSettingsWindow(string title) : base(title)
         {
             Modal = true;
+            
             var Resources = ConnectionSettings.Current;
             if (Resources is ConnectionSettings)
             {
