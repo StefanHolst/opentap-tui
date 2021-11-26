@@ -37,6 +37,7 @@ namespace OpenTap.Tui.Views
                 Width = Dim.Fill()
             };
             treeView.SetTreeViewSource(Plan.Steps);
+            treeView.SelectedItemChanged += args => SelectionChanged?.Invoke(args.Value as ITestStepParent); 
             Add(treeView);
             
             actions = new List<MenuItem>();
@@ -257,7 +258,7 @@ namespace OpenTap.Tui.Views
             if (Plan.IsRunning)
                 return base.ProcessKey(kb);
             
-            if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
+            if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
             {
                 injectStep = false;
                 base.ProcessKey(kb);

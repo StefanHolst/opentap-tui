@@ -99,6 +99,7 @@ namespace OpenTap.Tui
 
             renderedItems = list;
             var index = SelectedItem;
+            var oldTop = TopItem;
             SetSource(renderedItems);
             
             // can select next item
@@ -107,7 +108,7 @@ namespace OpenTap.Tui
             else
                 SelectedItem = index;
 
-            // TODO: Set SelectedItem and TopItem
+            TopItem = oldTop;
         }
         
         public override bool ProcessKey(KeyEvent kb)
@@ -130,6 +131,20 @@ namespace OpenTap.Tui
             }
 
             return base.ProcessKey(kb);
+        }
+        
+        int lastSelectedItem = -1;
+        public override bool OnSelectedChanged ()
+        {
+            if (selected != lastSelectedItem) {
+                SelectedItemChanged?.Invoke (new ListViewItemEventArgs (selected, SelectedObject));
+                if (HasFocus) {
+                    lastSelectedItem = selected;
+                }
+                return true;
+            }
+
+            return false;
         }
 
     }
