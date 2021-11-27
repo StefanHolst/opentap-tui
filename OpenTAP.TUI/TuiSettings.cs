@@ -79,7 +79,7 @@ namespace OpenTap.Tui
 
         private int testPlanGridWidth = 75;
         [Unit("%")]
-        [Display("Width", Group: "Test Plan Panel Size", Order: 4)]
+        [Display("Width", "The relative width of the Test Plan Grid. The Settings Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
         public int TestPlanGridWidth
         {
             get => testPlanGridWidth;
@@ -95,7 +95,7 @@ namespace OpenTap.Tui
 
         private int testPlanGridHeight = 70;
         [Unit("%")]
-        [Display("Height", Group: "Test Plan Panel Size", Order: 4)]
+        [Display("Height", "The relative height of the Test Plan Grid. The Log Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
         public int TestPlanGridHeight
         {
             get => testPlanGridHeight;
@@ -109,7 +109,7 @@ namespace OpenTap.Tui
             }
         }
 
-        [Display("Reset Size", Group: "Test Plan Panel Size", Order: 5)]
+        [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
         public Action ResetSize { get; set; }
 
         [Browsable(false)]
