@@ -374,7 +374,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 'C')
+            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
             {
                 // Copy
                 var flatPlan = FlattenPlan();
@@ -387,7 +387,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 'V') && Clipboard.Contents != null && SelectedItem > -1 )
+            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && SelectedItem > -1 ) // 86 = V
             {
                 // Paste
                 var flatPlan = FlattenPlan();
