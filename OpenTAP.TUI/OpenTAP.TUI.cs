@@ -229,11 +229,13 @@ namespace OpenTap.Tui
             win.Add(menu);
 
             // Add testplan view
+            var gridWidth = TuiSettings.Current.TestPlanGridWidth;
+            var gridHeight = TuiSettings.Current.TestPlanGridHeight;
             var testPlanFrame = new FrameView("Test Plan")
             {
                 Y = 1,
-                Width = Dim.Percent(75),
-                Height = Dim.Percent(70)
+                Width = Dim.Percent(gridWidth),
+                Height = Dim.Percent(gridHeight)
             };
             testPlanFrame.Add(TestPlanView);
             TestPlanView.TestPlanFrame = testPlanFrame;
@@ -242,10 +244,10 @@ namespace OpenTap.Tui
             // Add step settings view
             var settingsFrame = new FrameView("Settings")
             {
-                X = Pos.Percent(75),
+                X = Pos.Right(testPlanFrame),
                 Y = 1,
                 Width = Dim.Fill(),
-                Height = Dim.Percent(70)
+                Height = Dim.Percent(gridHeight)
             };
             settingsFrame.Add(StepSettingsView);
             win.Add(settingsFrame);
@@ -260,6 +262,17 @@ namespace OpenTap.Tui
             LogFrame.Add(new LogPanelView());
             win.Add(LogFrame);
             win.LogFrame = LogFrame;
+
+            void OnResize()
+            {
+                var s = TuiSettings.Current;
+                testPlanFrame.Width = Dim.Percent(s.TestPlanGridWidth);
+                testPlanFrame.Height = Dim.Percent(s.TestPlanGridHeight);
+                settingsFrame.Height = Dim.Percent(s.TestPlanGridHeight);
+            }
+
+            // Resize grid elements when TUI settings are changed
+            TuiSettings.Current.Resized += OnResize;
 
             // Update StepSettingsView when TestPlanView changes selected step
             TestPlanView.SelectedItemChanged += args =>
