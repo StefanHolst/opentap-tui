@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using Terminal.Gui;
 
 namespace OpenTap.Tui
@@ -68,22 +66,24 @@ namespace OpenTap.Tui
                 InsertInTree(list, item, getTitle(item), getGroup(item));
             }
 
-            if (source != null)
-                MatchExpansion(source, list);
+            if (_expandedItems.Any())
+                RestoreExpansion(list);
 
             source = list;
             UpdateListView();
         }
 
-        void MatchExpansion(List<TreeViewItem> existingTree, List<TreeViewItem> tree)
+        private HashSet<TreeViewItem> _expandedItems { get; } = new HashSet<TreeViewItem>();
+
+        void RestoreExpansion(List<TreeViewItem> tree)
         {
             foreach (var item in tree)
             {
-                var existing = existingTree.FirstOrDefault(t => t.Title == item.Title);
+                var existing = _expandedItems.FirstOrDefault(t => t.ToString() == item.ToString());
                 if (existing != null && existing.IsExpanded)
                 {
                     item.IsExpanded = true;
-                    MatchExpansion(existing.SubItems, item.SubItems);
+                    RestoreExpansion(item.SubItems);
                 }
             }
         }
@@ -97,7 +97,7 @@ namespace OpenTap.Tui
                     InsertInTree(tree.FirstOrDefault(t => t.Title == group[0]).SubItems, item, title, group.Skip(1).ToArray());
                 else
                 {
-                    var groupItem = new TreeViewItem(group[0], null);
+                    var groupItem = new TreeViewItem(group[0], null, group);
                     InsertInTree(groupItem.SubItems, item, title, group.Skip(1).ToArray());
                     tree.Add(groupItem);
                 }
@@ -113,7 +113,7 @@ namespace OpenTap.Tui
         {
             if (source == null)
                 return;
-            
+
             List<string> displayList(List<TreeViewItem> items, int level = 0)
             {
                 var list = new List<string>();
@@ -122,7 +122,14 @@ namespace OpenTap.Tui
                     if (item.Visible)
                         list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{ (item.obj != null ? getTitle(item.obj) : item.Title)}");
                     if (item.IsExpanded)
+                    {
                         list.AddRange(displayList(item.SubItems, level + 1));
+                        _expandedItems.Add(item);
+                    }
+                    else
+                    {
+                        _expandedItems.Remove(item);
+                    }
                 }
 
                 return list;
@@ -180,17 +187,41 @@ namespace OpenTap.Tui
 
         public class TreeViewItem
         {
-            public string Title { get; set; }
+            public override bool Equals(object o)
+            {
+                if (o is TreeViewItem t) return Equals(t);
+                return false;
+            }
+
+            private bool Equals(TreeViewItem other)
+            {
+                return ToString().Equals(other.ToString());
+            }
+
+            public override int GetHashCode()
+            {
+                return ToString().GetHashCode();
+            }
+
+            private string _toString;
+            public override string ToString()
+            {
+                return _toString ?? (_toString = string.Join(" \\ ", groups) + Title);
+            }
+
+            public string[] groups { get; }
+            public string Title { get; }
             public object obj { get; set; }
             public bool IsExpanded { get; set; }
             public bool Visible { get; set; } = true;
 
             public List<TreeViewItem> SubItems { get; set; }
 
-            public TreeViewItem(string Title, object obj)
+            public TreeViewItem(string Title, object obj, params string[] groups)
             {
                 this.Title = Title;
                 this.obj = obj;
+                this.groups = groups;
 
                 SubItems = new List<TreeViewItem>();
             }
