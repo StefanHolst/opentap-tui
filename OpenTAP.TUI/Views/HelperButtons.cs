@@ -18,9 +18,6 @@ namespace OpenTap.Tui.Views
             for (int i = 0; i < actions.Count; i++)
             {
                 var item = actions[i];
-                if (item.IsEnabled() == false)
-                    continue;
-                
                 var title = $"F{i + 5} {item.Title}";
                 var b = new Button(title)
                 {
@@ -28,6 +25,7 @@ namespace OpenTap.Tui.Views
                     HotKeySpecifier = 0xFFFF // Disable hotkey
                 };
                 b.Clicked += item.Action;
+                b.Visible = item.IsEnabled();
                 
                 Add(b);
                 offset += title.Length + 4;

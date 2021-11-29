@@ -216,11 +216,12 @@ namespace OpenTap.Tui.PropEditProviders
                 table = LoadTable(Headers, Columns, items);
                 tableView.Table = table;
                 tableView.Update();
+                helperButtons.SetActions(actions, viewWrapper);
+                Application.Refresh();
             }));
             actions.Add(new MenuItem("Remove Row", "", () =>
             {
                 var index = tableView.SelectedRow;
-                if (index < 0 || index >= items.Length) return;
                 var list = items.ToList();
                 list.RemoveAt(index);
                 collectionAnnotation.AnnotatedElements = list;
@@ -230,9 +231,11 @@ namespace OpenTap.Tui.PropEditProviders
                 table = LoadTable(Headers, Columns, items);
                 tableView.Table = table;
                 tableView.Update();
-            }));
+                helperButtons.SetActions(actions, viewWrapper);
+                Application.Refresh();
+            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length));
             helperButtons.SetActions(actions, viewWrapper);
-
+            
             return viewWrapper;
         }
 
