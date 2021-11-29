@@ -72,9 +72,45 @@ namespace OpenTap.Tui
 
         [Display("Use Log Level Colors", Group: "Colors", Order: 2)]
         public bool UseLogColors { get; set; } = true;
-        
+
         [Display("Restore Colors", Group: "Colors", Order: 3)]
         public Action Reset { get; set; }
+
+
+        private int testPlanGridWidth = 75;
+        [Unit("%")]
+        [Display("Width", "The relative width of the Test Plan Grid. The Settings Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
+        public int TestPlanGridWidth
+        {
+            get => testPlanGridWidth;
+            set
+            {
+                if (value >= 15 && value <= 85)
+                {
+                    testPlanGridWidth = value;
+                    OnPropertyChanged("Size");
+                }
+            }
+        }
+
+        private int testPlanGridHeight = 70;
+        [Unit("%")]
+        [Display("Height", "The relative height of the Test Plan Grid. The Log Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
+        public int TestPlanGridHeight
+        {
+            get => testPlanGridHeight;
+            set
+            {
+                if (value >= 15 && value <= 85)
+                {
+                    testPlanGridHeight = value;
+                    OnPropertyChanged("Size");
+                }
+            }
+        }
+
+        [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
+        public Action ResetSize { get; set; }
 
         private void SetTheme()
         {
@@ -134,6 +170,11 @@ namespace OpenTap.Tui
             {
                 Theme = Theme.Default;
                 SetTheme();
+            };
+            ResetSize += () =>
+            {
+                TestPlanGridHeight = 70;
+                TestPlanGridWidth = 75;
             };
         }
 
