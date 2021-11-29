@@ -88,7 +88,7 @@ namespace OpenTap.Tui
                 if (value >= 15 && value <= 85)
                 {
                     testPlanGridWidth = value;
-                    Resized?.Invoke();
+                    OnPropertyChanged("Size");
                 }
             }
         }
@@ -104,16 +104,13 @@ namespace OpenTap.Tui
                 if (value >= 15 && value <= 85)
                 {
                     testPlanGridHeight = value;
-                    Resized?.Invoke();
+                    OnPropertyChanged("Size");
                 }
             }
         }
 
         [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
         public Action ResetSize { get; set; }
-
-        [Browsable(false)]
-        public Action Resized { get; set; }
 
         private void SetTheme()
         {

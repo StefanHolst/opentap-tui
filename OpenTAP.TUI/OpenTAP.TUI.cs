@@ -247,7 +247,7 @@ namespace OpenTap.Tui
                 X = Pos.Right(testPlanFrame),
                 Y = 1,
                 Width = Dim.Fill(),
-                Height = Dim.Percent(gridHeight)
+                Height = Dim.Height(testPlanFrame)
             };
             settingsFrame.Add(StepSettingsView);
             win.Add(settingsFrame);
@@ -263,16 +263,16 @@ namespace OpenTap.Tui
             win.Add(LogFrame);
             win.LogFrame = LogFrame;
 
-            void OnResize()
-            {
-                var s = TuiSettings.Current;
-                testPlanFrame.Width = Dim.Percent(s.TestPlanGridWidth);
-                testPlanFrame.Height = Dim.Percent(s.TestPlanGridHeight);
-                settingsFrame.Height = Dim.Percent(s.TestPlanGridHeight);
-            }
-
             // Resize grid elements when TUI settings are changed
-            TuiSettings.Current.Resized += OnResize;
+            TuiSettings.Current.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == "Size")
+                {
+                    var s = TuiSettings.Current;
+                    testPlanFrame.Width = Dim.Percent(s.TestPlanGridWidth);
+                    testPlanFrame.Height = Dim.Percent(s.TestPlanGridHeight);
+                }
+            };
 
             // Update StepSettingsView when TestPlanView changes selected step
             TestPlanView.SelectedItemChanged += args =>
