@@ -139,11 +139,17 @@ namespace OpenTap.Tui.PropEditProviders
                     return;
 
                 var item = items[args.Row];
-                var cell = item.Get<IMembersAnnotation>().Members
-                    .FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns[args.Col]);
-                if (cell == null)
-                    return;
-                
+                AnnotationCollection cell;
+                var members = item.Get<IMembersAnnotation>()?.Members;
+                // If the item does not have an IMembersAnnotation, it is a single value, and not a collection
+                // This means we should edit the item directly
+                if (members == null)
+                    cell = item;
+                else
+                    cell = members.FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns[args.Col]);
+
+                if (cell == null) return;
+
                 // Find edit provider
                 var propEditor = PropEditProvider.GetProvider(cell, out var provider);
                 if (propEditor == null)
@@ -185,7 +191,7 @@ namespace OpenTap.Tui.PropEditProviders
                     Application.Run(win);
                     if (win.PluginType == null)
                         return;
-                
+
                     try
                     {
                         var instance = win.PluginType.CreateInstance();
@@ -198,18 +204,20 @@ namespace OpenTap.Tui.PropEditProviders
                 }
                 else
                 {
-                    list.Add(collectionAnnotation.NewElement());    
+                    list.Add(collectionAnnotation.NewElement());
                 }
                 collectionAnnotation.AnnotatedElements = list;
                 annotation.Write();
                 annotation.Read();
                 items = collectionAnnotation.AnnotatedElements.ToArray();
                 (Columns, Headers, isComplicatedType) = getColumnNames(annotation, items);
-                
+
                 // Refresh table
                 table = LoadTable(Headers, Columns, items);
                 tableView.Table = table;
                 tableView.Update();
+                helperButtons.SetActions(actions, viewWrapper);
+                Application.Refresh();
             }));
             actions.Add(new MenuItem("Remove Row", "", () =>
             {
@@ -218,12 +226,14 @@ namespace OpenTap.Tui.PropEditProviders
                 list.RemoveAt(index);
                 collectionAnnotation.AnnotatedElements = list;
                 items = collectionAnnotation.AnnotatedElements.ToArray();
-                
+
                 // Refresh table
                 table = LoadTable(Headers, Columns, items);
                 tableView.Table = table;
                 tableView.Update();
-            }));
+                helperButtons.SetActions(actions, viewWrapper);
+                Application.Refresh();
+            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length));
             helperButtons.SetActions(actions, viewWrapper);
             
             return viewWrapper;
@@ -239,8 +249,10 @@ namespace OpenTap.Tui.PropEditProviders
                 var row = table.NewRow();
                 for (int i = 0; i < Columns.Count; i++)
                 {
-                    var cell = item.Get<IMembersAnnotation>().Members
-                        .FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns[i]);
+                    var members = item.Get<IMembersAnnotation>()?.Members;
+                    AnnotationCollection cell;
+                    if (members == null) cell = item;
+                    else cell = members.FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns[i]);
 
                     var cellValue = cell?.Get<IStringReadOnlyValueAnnotation>()?.Value ?? cell?.Get<IObjectValueAnnotation>().Value?.ToString();
 
