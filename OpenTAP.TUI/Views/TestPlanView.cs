@@ -31,7 +31,7 @@ namespace OpenTap.Tui.Views
             CanFocus = true;
             Title = "Test Plan";
             
-            treeView = new TreeView2<ITestStep>(getTitle, getChildren, getParent, null)
+            treeView = new TreeView2<ITestStep>(getTitle, getChildren, getParent)
             {
                 Height = Dim.Fill(),
                 Width = Dim.Fill()

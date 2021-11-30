@@ -15,7 +15,7 @@ namespace OpenTap.Tui.Views
     {
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
-        private TreeView treeView { get; set; }
+        private TreeView2<AnnotationCollection> treeView { get; set; }
         private TextView descriptionView { get; set; }
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
@@ -78,65 +78,7 @@ namespace OpenTap.Tui.Views
         
         public PropertiesView()
         {
-            StringBuilder nameBuilder = new StringBuilder();
-
-            treeView = new TreeView(
-                (item) =>
-                {
-                    var x = item as AnnotationCollection;
-                    if (x == null)
-                        return "";
-
-                    var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value 
-                                 ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value 
-                                 ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() 
-                                 ?? x.Get<IObjectValueAnnotation>()?.Value)?.ToString() 
-                                ?? "...";
-                    // replace new lines with spaces for viewing.
-                    value = value.Replace("\n", " ").Replace("\r", "");
-
-                    if (x.Get<IObjectValueAnnotation>()?.Value is Action)
-                        return $"[ {x.Get<DisplayAttribute>().Name} ]";
-
-                    // Don't show member name if layout is fullrow
-                    if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
-                        return value;
-                    var icons = x.GetAll<IIconAnnotation>().ToArray();
-                    var icons2 = new HashSet<string>(icons.Select(y => y.IconName));
-                    bool icon(string name) => icons2.Contains(name);
-                    nameBuilder.Clear();
-                    if (icon(IconNames.OutputAssigned))
-                        nameBuilder.Append((char)Driver.Selected); // ●
-                    else if (icon(IconNames.Output))
-                        nameBuilder.Append((char)Driver.UnSelected); // ⃝
-                    if (icon(IconNames.Input))
-                    {
-                        nameBuilder.Append((char)Driver.Selected); // ●
-                        nameBuilder.Append((char)Driver.RightArrow); // →
-                    }
-                    if(icon(IconNames.Parameterized))
-                        nameBuilder.Append((char)Driver.Lozenge);// ♦
-                    if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
-                        nameBuilder.Append((char)Driver.Diamond);// ◊
-
-                    if (nameBuilder.Length > 0)
-                        nameBuilder.Append(" ");
-                    
-                    nameBuilder.Append(x.Get<DisplayAttribute>().Name);
-                    nameBuilder.Append(": ");
-                    nameBuilder.Append(value);
-
-                    // Check validation rules
-                    var step = x.Source as IValidatingObject;
-                    var propertyName = x.Get<IMemberAnnotation>()?.Member?.Name;
-                    var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
-                    if (rule != null)
-                        nameBuilder.Append(" !");
-                    
-                    return nameBuilder.ToString();
-                }, 
-                (item) => (item as AnnotationCollection)?.Get<DisplayAttribute>().Group);
-
+            treeView = new TreeView2<AnnotationCollection>(getTitle, getGroup, createItem);
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
             treeView.SelectedItemChanged += ListViewOnSelectedChanged;
@@ -171,7 +113,7 @@ namespace OpenTap.Tui.Views
             // Make sure we redraw everything after we have loaded everything. Just to make sure we have the right sizes.
             LayoutComplete += args =>
             {
-                treeView.UpdateListView();
+                treeView.RenderTreeView();
                 ListViewOnSelectedChanged(null);
             };
 
@@ -179,6 +121,74 @@ namespace OpenTap.Tui.Views
             {
                 ListViewOnSelectedChanged(null);
             };
+        }
+
+        string getTitle(AnnotationCollection x)
+        {
+            if (x == null)
+                return "";
+
+            var nameBuilder = new StringBuilder();
+            var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value 
+                         ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value 
+                         ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() 
+                         ?? x.Get<IObjectValueAnnotation>()?.Value)?.ToString() 
+                        ?? "...";
+            // replace new lines with spaces for viewing.
+            value = value.Replace("\n", " ").Replace("\r", "");
+
+            if (x.Get<IObjectValueAnnotation>()?.Value is Action)
+                return $"[ {x.Get<DisplayAttribute>().Name} ]";
+
+            // Don't show member name if layout is fullrow
+            if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
+                return value;
+            var icons = x.GetAll<IIconAnnotation>().ToArray();
+            var icons2 = new HashSet<string>(icons.Select(y => y.IconName));
+            bool icon(string name) => icons2.Contains(name);
+            nameBuilder.Clear();
+            if (icon(IconNames.OutputAssigned))
+                nameBuilder.Append((char)Driver.Selected); // ●
+            else if (icon(IconNames.Output))
+                nameBuilder.Append((char)Driver.UnSelected); // ⃝
+            if (icon(IconNames.Input))
+            {
+                nameBuilder.Append((char)Driver.Selected); // ●
+                nameBuilder.Append((char)Driver.RightArrow); // →
+            }
+            if(icon(IconNames.Parameterized))
+                nameBuilder.Append((char)Driver.Lozenge);// ♦
+            if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
+                nameBuilder.Append((char)Driver.Diamond);// ◊
+
+            if (nameBuilder.Length > 0)
+                nameBuilder.Append(" ");
+            
+            nameBuilder.Append(x.Get<DisplayAttribute>().Name);
+            nameBuilder.Append(": ");
+            nameBuilder.Append(value);
+
+            // Check validation rules
+            var step = x.Source as IValidatingObject;
+            var propertyName = x.Get<IMemberAnnotation>()?.Member?.Name;
+            var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
+            if (rule != null)
+                nameBuilder.Append(" !");
+            
+            return nameBuilder.ToString();
+        }
+
+        List<string> getGroup(AnnotationCollection annotationCollection)
+        {
+            return annotationCollection?.Get<DisplayAttribute>().Group.ToList();
+        }
+
+        AnnotationCollection createItem(AnnotationCollection annotationCollection, string group)
+        {
+            var test = new AnnotationCollection();
+            test.Add(new AnnotationGroup(group));
+            
+            return test;
         }
 
         List<Button> getSubmitButtons()
@@ -209,7 +219,7 @@ namespace OpenTap.Tui.Views
 
         private void ListViewOnSelectedChanged(ListViewItemEventArgs args)
         {
-            var memberAnnotation = treeView.SelectedObject?.obj as AnnotationCollection;
+            var memberAnnotation = treeView.SelectedObject;
             var display = memberAnnotation?.Get<DisplayAttribute>();
             var description = display?.Description;
 
@@ -320,14 +330,14 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject?.obj != null && this.IsTopActive())
+            if (MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject != null && this.IsTopActive())
             {
                 var members = getMembers();
                 if (members == null)
                     return false;
 
                 // Find edit provider
-                var member = treeView.SelectedObject.obj as AnnotationCollection;
+                var member = treeView.SelectedObject;
                 var propEditor = PropEditProvider.GetProvider(member, out var provider);
                 if (propEditor == null)
                     TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
@@ -358,6 +368,28 @@ namespace OpenTap.Tui.Views
             }
             
             return base.ProcessKey(keyEvent);
+        }
+    }
+    
+    public class AnnotationGroup : IAnnotation
+    {
+        public string Group { get; set; }
+
+        public AnnotationGroup(string group)
+        {
+            Group = group;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is AnnotationGroup g)
+                return g.Group == Group;
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Group?.GetHashCode() ?? 0;
         }
     }
 }
