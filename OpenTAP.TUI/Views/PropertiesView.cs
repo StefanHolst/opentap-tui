@@ -216,13 +216,11 @@ namespace OpenTap.Tui.Views
             // Check validation rules
             if (memberAnnotation != null)
             {
-                var step = memberAnnotation.Source as IValidatingObject;
-                var rules = step?.Rules.Where(r => r.PropertyName == display?.Name && r?.IsValid() == false).ToList();
-                if (rules?.Any() == true)
-                {
-                    var messages = rules.Select(r => r.ErrorMessage);
-                    description = $"! {string.Join("\n", messages)}\n{new String('-', descriptionView.Bounds.Width - 1)}\n{description}";
-                }
+                var stepErrors = memberAnnotation.GetAll<IErrorAnnotation>().SelectMany(x => x.Errors).Where(x => string.IsNullOrWhiteSpace(x) == false);
+                var stepErrorStr = string.Join("\n", stepErrors);
+                if(string.IsNullOrWhiteSpace(stepErrorStr) == false)
+                    description = $"! {stepErrorStr}\n{new String('-', descriptionView.Bounds.Width - 4)}\n{description}";
+                
             }
 
             if (description != null)
