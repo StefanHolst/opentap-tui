@@ -41,7 +41,12 @@ namespace OpenTap.Tui
 
         private TreeViewNode<T> GetNodeFromItem(T item)
         {
-            var node = new TreeViewNode<T>(item);
+            TreeViewNode<T> node;
+            if (nodes.TryGetValue(item, out node) == false)
+            {
+                node = new TreeViewNode<T>(item);
+                nodes[item] = node;
+            }
             node.Title = getTitle(item);
             node.Children = getChildren?.Invoke(item) ?? new List<T>();
 
@@ -83,7 +88,6 @@ namespace OpenTap.Tui
                     var _groups = getGroups(item);
                     node = GetNodeFromItem(item);
                     node.Groups = _groups;
-                    nodes[item] = node;
                 }
                 
                 if (node.IsVisible)
@@ -124,10 +128,7 @@ namespace OpenTap.Tui
             TreeViewNode<T> node;
             bool existed = nodes.TryGetValue(item, out node);
             if (existed == false || noCache)
-            {
                 node = GetNodeFromItem(item);
-                nodes[item] = node;
-            }
 
             if (node.IsVisible)
             {
