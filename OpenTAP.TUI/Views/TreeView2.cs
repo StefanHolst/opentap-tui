@@ -8,12 +8,13 @@ namespace OpenTap.Tui
     public class TreeView2<T> : ListView
     {
         private Func<T, string> getTitle;
-        private Func<T, List<string>> getGroup;
+        private Func<T, List<string>> getGroups;
         private Func<T, string, T> createItem;
         private Func<T, List<T>> getChildren;
         private Func<T, T> getParent;
         private IList<T> items;
         private Dictionary<T, TreeViewNode<T>> nodes;
+        private Dictionary<string, TreeViewNode<T>> groups = new Dictionary<string, TreeViewNode<T>>();
         private List<TreeViewNode<T>> renderedItems;
         
         public T SelectedObject
@@ -22,10 +23,10 @@ namespace OpenTap.Tui
             set => SelectedItem = renderedItems.IndexOf(nodes[value]);
         }
 
-        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroup, Func<T, string, T> createItem)
+        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroups, Func<T, string, T> createItem)
         {
             this.getTitle = getTitle;
-            this.getGroup = getGroup;
+            this.getGroups = getGroups;
             this.createItem = createItem;
 
             CanFocus = true;
@@ -40,52 +41,20 @@ namespace OpenTap.Tui
             CanFocus = true;
         }
 
-        private TreeViewNode<T> GetNodeFromItemGroup(T item, string group)
-        {
-            TreeViewNode<T> node;
-            if (group != null)
-            {
-                var parentItem = createItem(item, group);
-                if (nodes.TryGetValue(parentItem, out node) == false)
-                {
-                    node = new TreeViewNode<T>(item);
-                    nodes[parentItem] = node;
-                }
-                
-                if (node.Children.Contains(item) == false)
-                    node.Children.Add(item);
-            }
-            else
-            {
-                if (nodes.TryGetValue(item, out node) == false)
-                {
-                    node = new TreeViewNode<T>(item);
-                    nodes[item] = node;
-                }
-            }
-            
-            node.Title = group ?? getTitle(node.Item);
-
-            return node;
-        }
-        
         private TreeViewNode<T> GetNodeFromItem(T item)
         {
-            TreeViewNode<T> node;
-            if (nodes.TryGetValue(item, out node) == false)
-            {
-                node = new TreeViewNode<T>(item);
-                nodes[item] = node;
-            }
-
+            var node = new TreeViewNode<T>(item);
             node.Title = getTitle(item);
-            node.Children = getChildren(item);
+            node.Children = getChildren?.Invoke(item) ?? new List<T>();
 
-            var parent = getParent(item);
-            if (parent != null && nodes.ContainsKey(parent))
-                node.Parent = nodes[parent];
-            else
-                node.Parent = null;
+            if (getParent != null)
+            {
+                var parent = getParent(item);
+                if (parent != null && nodes.ContainsKey(parent))
+                    node.Parent = nodes[parent];
+                else
+                    node.Parent = null;
+            }
 
             return node;
         }
@@ -100,35 +69,53 @@ namespace OpenTap.Tui
         {
             this.items = items;
             nodes = new Dictionary<T, TreeViewNode<T>>();
+            groups = new Dictionary<string, TreeViewNode<T>>();
             RenderTreeView();
         }
         
-        List<TreeViewNode<T>> GetItemsToRender(T item, List<string> groups, bool noCache)
+        List<TreeViewNode<T>> GetItemsToRenderWithGroup(bool noCache)
         {
             var list = new List<TreeViewNode<T>>();
-            TreeViewNode<T> node;
-            bool existed = nodes.TryGetValue(item, out node);
-            if (existed == false || noCache)
+            foreach (var item in items)
             {
-                node = GetNodeFromItemGroup(item, null);
-                while (groups.Any())
+                TreeViewNode<T> node;
+                bool existed = nodes.TryGetValue(item, out node);
+                if (existed == false || noCache)
                 {
-                    var group = groups.FirstOrDefault();
-                    node = GetNodeFromItemGroup(item, group);
-                    groups = groups.Skip(1).ToList();
+                    var _groups = getGroups(item);
+                    node = GetNodeFromItem(item);
+                    node.Groups = _groups;
+                    nodes[item] = node;
+                }
+                
+                if (node.IsVisible)
+                {
+                    int index = -1;
+                    TreeViewNode<T> groupNode = null;
+                    
+                    // Add group
+                    foreach (var group in node.Groups)
+                    {
+                        if (groups.TryGetValue(group, out groupNode) == false)
+                        {
+                            // add the group
+                            groupNode = new TreeViewNode<T>(default(T))
+                            {
+                                Title = group,
+                                IsExpanded = true
+                            };
+                            groupNode.Children.Add(item);
+                            list.Add(groupNode);
+                            groups[group] = groupNode;
+                        }
+                        index = list.IndexOf(groupNode);
+                    }
+                    
+                    if (groupNode?.IsExpanded ?? true)
+                        list.Insert(index == -1 ? 0 : index + 1, node);
                 }
             }
-
-            if (node.IsVisible)
-            {
-                list.Add(node);
-                if (node.IsExpanded)
-                {
-                    foreach (var child in node.Children)
-                        list.AddRange(GetItemsToRender(child, groups.Skip(1).ToList(), noCache));
-                }
-            }
-
+            
             return list;
         }
         List<TreeViewNode<T>> GetItemsToRender(T item, bool noCache)
@@ -137,7 +124,10 @@ namespace OpenTap.Tui
             TreeViewNode<T> node;
             bool existed = nodes.TryGetValue(item, out node);
             if (existed == false || noCache)
+            {
                 node = GetNodeFromItem(item);
+                nodes[item] = node;
+            }
 
             if (node.IsVisible)
             {
@@ -158,10 +148,11 @@ namespace OpenTap.Tui
                 return;
 
             var list = new List<TreeViewNode<T>>();
-            if (getGroup != null)
+            if (getGroups != null)
             {
-                foreach (var item in items)
-                    list.AddRange(GetItemsToRender(item, getGroup(item), noCache));
+                list = GetItemsToRenderWithGroup(noCache);
+                // foreach (var item in items)
+                //     list.AddRange(GetItemsToRender(item, getGroups(item), noCache));
             }
             else
             {
@@ -187,7 +178,7 @@ namespace OpenTap.Tui
         {
             if (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
             {
-                var selectedNode = nodes[SelectedObject];
+                var selectedNode = renderedItems[SelectedItem];
                 if (selectedNode.Children.Any())
                 {
                     if (kb.Key == Key.Enter)
@@ -220,12 +211,13 @@ namespace OpenTap.Tui
         }
 
     }
+
     class TreeViewNode<T>
     {
         public T Item { get; set; }
         public bool IsExpanded { get; set; }
-        
         public string Title { get; set; }
+        public List<string> Groups { get; set; }
         public bool IsVisible { get; set; } = true;
         public TreeViewNode<T> Parent { get; set; }
         public List<T> Children { get; set; }
@@ -239,11 +231,17 @@ namespace OpenTap.Tui
         public override string ToString()
         {
             int indent = 0;
-            var parent = Parent;
-            while (parent != null)
+
+            if (Groups?.Any() == true)
+                indent = Groups.Count;
+            else
             {
-                indent++;
-                parent = parent.Parent;
+                var parent = Parent;
+                while (parent != null)
+                {
+                    indent++;
+                    parent = parent.Parent;
+                }
             }
             
             string text = new String(' ', indent);
