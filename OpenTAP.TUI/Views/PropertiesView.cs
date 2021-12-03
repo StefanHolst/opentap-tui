@@ -78,7 +78,7 @@ namespace OpenTap.Tui.Views
         
         public PropertiesView()
         {
-            treeView = new TreeView2<AnnotationCollection>(getTitle, getGroup, createItem);
+            treeView = new TreeView2<AnnotationCollection>(getTitle, getGroup);
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
             treeView.SelectedItemChanged += ListViewOnSelectedChanged;
@@ -181,14 +181,6 @@ namespace OpenTap.Tui.Views
         List<string> getGroup(AnnotationCollection annotationCollection)
         {
             return annotationCollection?.Get<DisplayAttribute>().Group.ToList();
-        }
-
-        AnnotationCollection createItem(AnnotationCollection annotationCollection, string group)
-        {
-            var test = new AnnotationCollection();
-            test.Add(new AnnotationGroup(group));
-            
-            return test;
         }
 
         List<Button> getSubmitButtons()

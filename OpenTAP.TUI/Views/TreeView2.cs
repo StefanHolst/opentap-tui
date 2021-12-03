@@ -9,7 +9,6 @@ namespace OpenTap.Tui
     {
         private Func<T, string> getTitle;
         private Func<T, List<string>> getGroups;
-        private Func<T, string, T> createItem;
         private Func<T, List<T>> getChildren;
         private Func<T, T> getParent;
         private IList<T> items;
@@ -23,11 +22,10 @@ namespace OpenTap.Tui
             set => SelectedItem = renderedItems.IndexOf(nodes[value]);
         }
 
-        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroups, Func<T, string, T> createItem)
+        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroups)
         {
             this.getTitle = getTitle;
             this.getGroups = getGroups;
-            this.createItem = createItem;
 
             CanFocus = true;
         }
@@ -101,13 +99,15 @@ namespace OpenTap.Tui
                             // add the group
                             groupNode = new TreeViewNode<T>(default(T))
                             {
-                                Title = group,
-                                IsExpanded = true
+                                Title = group
                             };
                             groupNode.Children.Add(item);
-                            list.Add(groupNode);
                             groups[group] = groupNode;
                         }
+                        
+                        if (list.Contains(groupNode) == false)
+                            list.Add(groupNode);
+                        
                         index = list.IndexOf(groupNode);
                     }
                     
@@ -149,11 +149,7 @@ namespace OpenTap.Tui
 
             var list = new List<TreeViewNode<T>>();
             if (getGroups != null)
-            {
                 list = GetItemsToRenderWithGroup(noCache);
-                // foreach (var item in items)
-                //     list.AddRange(GetItemsToRender(item, getGroups(item), noCache));
-            }
             else
             {
                 foreach (var item in items)
