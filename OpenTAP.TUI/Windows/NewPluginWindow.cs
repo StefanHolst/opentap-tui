@@ -19,11 +19,9 @@ namespace OpenTap.Tui.Windows
         public NewPluginWindow(TypeData type, string title) : base(title)
         {
             _originalTitle = title;
-            treeview = new TreeView2<ITypeData>(getTitle, getGroup, filter);
-            treeview.FilterReset += () =>
-            {
-                Title = _originalTitle;
-            };
+            treeview = new TreeView2<ITypeData>(getTitle, getGroup);
+            treeview.EnableFilter = true;
+            treeview.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? _originalTitle : $"{_originalTitle} - {filter}"; };
 
             var types = TypeData.GetDerivedTypes(type)
                 .Where(x => x.CanCreateInstance)
@@ -40,18 +38,6 @@ namespace OpenTap.Tui.Windows
         List<string> getGroup(ITypeData item)
         {
             return item.GetDisplayAttribute()?.Group.ToList();
-        }
-
-        bool filter(ITypeData item, string filter)
-        {
-            if (string.IsNullOrEmpty(filter))
-            {
-                Title = _originalTitle;
-                return true;
-            }
-
-            Title = $"{_originalTitle} - {filter}";
-            return getTitle(item).ToLower().Contains(filter.ToLower());
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)

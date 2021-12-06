@@ -11,13 +11,13 @@ namespace OpenTap.Tui
         private Func<T, List<string>> getGroups;
         private Func<T, List<T>> getChildren;
         private Func<T, T> getParent;
-        private Func<T, string, bool> filter;
         private IList<T> items;
         private Dictionary<T, TreeViewNode<T>> nodes;
         private Dictionary<string, TreeViewNode<T>> groups = new Dictionary<string, TreeViewNode<T>>();
         private List<TreeViewNode<T>> renderedItems;
+        public bool EnableFilter { get; set; }
         public string Filter { get; set; } = "";
-        public Action FilterReset { get; set; }
+        public Action<string> FilterChanged { get; set; }
         
         public T SelectedObject
         {
@@ -25,21 +25,19 @@ namespace OpenTap.Tui
             set => SelectedItem = renderedItems.IndexOf(nodes[value]);
         }
 
-        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroups, Func<T, string, bool> filter = null)
+        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroups)
         {
             this.getTitle = getTitle;
             this.getGroups = getGroups;
-            this.filter = filter;
 
             CanFocus = true;
         }
         
-        public TreeView2(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent, Func<T, string, bool> filter = null)
+        public TreeView2(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent)
         {
             this.getTitle = getTitle;
             this.getChildren = getChildren;
             this.getParent = getParent;
-            this.filter = filter;
 
             CanFocus = true;
         }
@@ -49,7 +47,7 @@ namespace OpenTap.Tui
             TreeViewNode<T> node;
             if (nodes.TryGetValue(item, out node) == false)
             {
-                node = new TreeViewNode<T>(item);
+                node = new TreeViewNode<T>(item, this);
                 nodes[item] = node;
             }
             node.Title = getTitle(item);
@@ -106,7 +104,7 @@ namespace OpenTap.Tui
                         if (groups.TryGetValue(group, out groupNode) == false)
                         {
                             // add the group
-                            groupNode = new TreeViewNode<T>(default(T))
+                            groupNode = new TreeViewNode<T>(default(T), this)
                             {
                                 Title = group,
                                 IsGroup = true
@@ -151,7 +149,7 @@ namespace OpenTap.Tui
 
         public void RenderTreeView(bool noCache = false)
         {
-            if (this.items == null)
+            if (items == null)
                 return;
 
             var list = new List<TreeViewNode<T>>();
@@ -163,9 +161,11 @@ namespace OpenTap.Tui
                     list.AddRange(GetItemsToRender(item, noCache));
             }
 
-            renderedItems = list;
-            if (filter != null)
-                renderedItems = list.Where(i => i.IsGroup || filter.Invoke(i.Item, Filter)).ToList();
+            if (string.IsNullOrEmpty(Filter) == false)
+                renderedItems = list.Where(i => i.Title.ToLower().Contains(Filter.ToLower())).ToList();
+            else
+                renderedItems = list;
+            
             var index = SelectedItem;
             var oldTop = TopItem;
             SetSource(renderedItems);
@@ -202,12 +202,13 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (filter != null)
+            if (EnableFilter)
             {
                 if (kb.KeyValue >= 32 && kb.KeyValue < 127) // any non-special character is in this range
                 {
                     Filter += (char) kb.KeyValue;
                     RenderTreeView();
+                    FilterChanged?.Invoke(Filter);
                     return true;
                 }
                 if (kb.Key == (Key.Backspace|Key.CtrlMask) || kb.Key == (Key.Delete|Key.CtrlMask))
@@ -217,12 +218,14 @@ namespace OpenTap.Tui
                     var length = lastSpace > 0 ? lastSpace + 1 : 0;
                     Filter = Filter.Substring(0, length);
                     RenderTreeView();
+                    FilterChanged?.Invoke(Filter);
                     return true;
                 }
                 if ((kb.Key == Key.Backspace || kb.Key == Key.Delete) && Filter.Length > 0)
                 {
                     Filter = Filter.Substring(0, Filter.Length - 1);
                     RenderTreeView();
+                    FilterChanged?.Invoke(Filter);
                     return true;
                 }
                 if (kb.Key == Key.Esc)
@@ -232,7 +235,7 @@ namespace OpenTap.Tui
                     
                     Filter = "";
                     RenderTreeView();
-                    FilterReset?.Invoke();
+                    FilterChanged?.Invoke(Filter);
                     return true;
                 }
             }
@@ -266,9 +269,11 @@ namespace OpenTap.Tui
         public TreeViewNode<T> Parent { get; set; }
         public List<T> Children { get; set; }
 
-        public TreeViewNode(T item)
+        private TreeView2<T> Owner;
+        public TreeViewNode(T item, TreeView2<T> owner)
         {
-            this.Item = item;
+            Item = item;
+            Owner = owner;
             Children = new List<T>();
         }
 
@@ -290,7 +295,7 @@ namespace OpenTap.Tui
             
             string text = new String(' ', indent);
             if (Children.Any())
-                text += IsExpanded ? "- " : "+ ";
+                text += IsExpanded || string.IsNullOrEmpty(Owner.Filter) == false ? "- " : "+ ";
             else
                 text += "  ";
             

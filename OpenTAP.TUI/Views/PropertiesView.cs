@@ -21,7 +21,7 @@ namespace OpenTap.Tui.Views
         private View submitView { get; set; }
         internal bool DisableHelperButtons { get; set; }
 
-        public Action SelectionChanged { get; set; }
+        public Action<string> TreeViewFilterChanged { get; set; }
 
         static readonly TraceSource log = Log.CreateSource("tui");
         
@@ -76,13 +76,15 @@ namespace OpenTap.Tui.Views
         public event Action PropertiesChanged;
         public event Action Submit;
         
-        public PropertiesView()
+        public PropertiesView(bool EnableFilter = false)
         {
             treeView = new TreeView2<AnnotationCollection>(getTitle, getGroup);
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
             treeView.SelectedItemChanged += ListViewOnSelectedChanged;
             treeView.OpenSelectedItem += OpenSelectedItem;
+            treeView.EnableFilter = EnableFilter;
+            treeView.FilterChanged += (f) => TreeViewFilterChanged?.Invoke(f);
             Add(treeView);
 
             // Description
@@ -264,7 +266,6 @@ namespace OpenTap.Tui.Views
             
 
             buildMenuItems(memberAnnotation);
-            SelectionChanged?.Invoke();
         }
 
         public static string SplitText(string text, int length)

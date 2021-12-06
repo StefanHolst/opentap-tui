@@ -31,13 +31,15 @@ namespace OpenTap.Tui.Views
             CanFocus = true;
             Title = "Test Plan";
             
-            treeView = new TreeView2<ITestStep>(getTitle, getChildren, getParent, filter)
+            treeView = new TreeView2<ITestStep>(getTitle, getChildren, getParent)
             {
                 Height = Dim.Fill(),
                 Width = Dim.Fill()
             };
             treeView.SetTreeViewSource(Plan.Steps);
-            treeView.SelectedItemChanged += args => SelectionChanged?.Invoke(args.Value as ITestStepParent); 
+            treeView.SelectedItemChanged += args => SelectionChanged?.Invoke(args.Value as ITestStepParent);
+            treeView.EnableFilter = true;
+            treeView.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? "Test Plan" : $"Test Plan - {filter}"; };
             Add(treeView);
             
             actions = new List<MenuItem>();
@@ -86,19 +88,6 @@ namespace OpenTap.Tui.Views
         ITestStep getParent(ITestStep step)
         {
             return step.Parent as ITestStep;
-        }
-
-        bool filter(ITestStep step, string filter)
-        {
-            if (string.IsNullOrEmpty(filter))
-            {
-                Title = "Test Plan";
-                return true;
-            }
-            else
-                Title = $"Test Plan - {filter}";
-            
-            return step.Name.ToLower().Contains(filter.ToLower());
         }
 
         public override bool OnEnter(View view)

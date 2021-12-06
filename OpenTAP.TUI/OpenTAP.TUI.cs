@@ -108,7 +108,7 @@ namespace OpenTap.Tui
                 Width = Dim.Percent(75),
                 Height = Dim.Percent(70)
             };
-            StepSettingsView = new PropertiesView();
+            StepSettingsView = new PropertiesView(true);
             
             var filemenu = new MenuBarItem("_File", new MenuItem[]
             {
@@ -237,6 +237,7 @@ namespace OpenTap.Tui
                 Width = Dim.Fill(),
                 Height = Dim.Percent(70)
             };
+            StepSettingsView.TreeViewFilterChanged += (filter) => { settingsFrame.Title = string.IsNullOrEmpty(filter) ? "Settings" : $"Settings - {filter}"; };
             settingsFrame.Add(StepSettingsView);
             win.Add(settingsFrame);
 
