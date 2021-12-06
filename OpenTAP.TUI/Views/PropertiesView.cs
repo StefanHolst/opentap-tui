@@ -82,6 +82,7 @@ namespace OpenTap.Tui.Views
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
             treeView.SelectedItemChanged += ListViewOnSelectedChanged;
+            treeView.OpenSelectedItem += OpenSelectedItem;
             Add(treeView);
 
             // Description
@@ -121,6 +122,35 @@ namespace OpenTap.Tui.Views
             {
                 ListViewOnSelectedChanged(null);
             };
+        }
+
+        private void OpenSelectedItem(ListViewItemEventArgs listViewItemEventArgs)
+        {
+            var members = getMembers();
+            if (members == null)
+                return;
+
+            // Find edit provider
+            var member = treeView.SelectedObject;
+            var propEditor = PropEditProvider.GetProvider(member, out var provider);
+            if (propEditor == null)
+                TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
+            else
+            {
+                var win = new EditWindow(annotations.ToString());
+                win.Add(propEditor);
+                Application.Run(win);
+            }
+
+            // Save values to reference object
+            annotations.Write();
+            annotations.Read();
+
+            // Load new values
+            LoadProperties(obj);
+                
+            // Invoke property changed event
+            PropertiesChanged?.Invoke();
         }
 
         string getTitle(AnnotationCollection x)
@@ -318,70 +348,6 @@ namespace OpenTap.Tui.Views
                     return FilterMember(member);
                 })
                 .ToArray();
-        }
-
-        public override bool ProcessKey(KeyEvent keyEvent)
-        {
-            if (MostFocused is TreeView && keyEvent.Key == Key.Enter && treeView.SelectedObject != null && this.IsTopActive())
-            {
-                var members = getMembers();
-                if (members == null)
-                    return false;
-
-                // Find edit provider
-                var member = treeView.SelectedObject;
-                var propEditor = PropEditProvider.GetProvider(member, out var provider);
-                if (propEditor == null)
-                    TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
-                else
-                {
-                    var win = new EditWindow(annotations.ToString());
-                    win.Add(propEditor);
-                    Application.Run(win);
-                }
-
-                // Save values to reference object
-                annotations.Write();
-                annotations.Read();
-
-                // Load new values
-                LoadProperties(obj);
-                
-                // Invoke property changed event
-                PropertiesChanged?.Invoke();
-
-                return true;
-            }
-
-            if (MostFocused is TreeView && (keyEvent.Key == Key.CursorLeft || keyEvent.Key == Key.CursorRight) && this.IsTopActive())
-            {
-                treeView.ProcessKey(keyEvent);
-                return true;
-            }
-            
-            return base.ProcessKey(keyEvent);
-        }
-    }
-    
-    public class AnnotationGroup : IAnnotation
-    {
-        public string Group { get; set; }
-
-        public AnnotationGroup(string group)
-        {
-            Group = group;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is AnnotationGroup g)
-                return g.Group == Group;
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return Group?.GetHashCode() ?? 0;
         }
     }
 }

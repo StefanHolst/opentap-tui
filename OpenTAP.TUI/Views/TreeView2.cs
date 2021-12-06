@@ -103,7 +103,8 @@ namespace OpenTap.Tui
                             // add the group
                             groupNode = new TreeViewNode<T>(default(T))
                             {
-                                Title = group
+                                Title = group,
+                                IsGroup = true
                             };
                             groupNode.Children.Add(item);
                             groups[group] = groupNode;
@@ -178,13 +179,16 @@ namespace OpenTap.Tui
                 var selectedNode = renderedItems[SelectedItem];
                 if (selectedNode.Children.Any())
                 {
-                    if (kb.Key == Key.Enter)
-                        selectedNode.IsExpanded = !selectedNode.IsExpanded;
+                    // if (kb.Key == Key.Enter)
+                    //     selectedNode.IsExpanded = !selectedNode.IsExpanded;
                     if (kb.Key == Key.CursorLeft)
                         selectedNode.IsExpanded = false;
                     if (kb.Key == Key.CursorRight)
                         selectedNode.IsExpanded = true;
                 }
+
+                if (kb.Key == Key.Enter && selectedNode.IsGroup == false)
+                    base.ProcessKey(kb);
             
                 RenderTreeView();
                 return true;
@@ -206,13 +210,13 @@ namespace OpenTap.Tui
 
             return false;
         }
-
     }
 
     class TreeViewNode<T>
     {
         public T Item { get; set; }
         public bool IsExpanded { get; set; }
+        public bool IsGroup { get; set; }
         public string Title { get; set; }
         public List<string> Groups { get; set; }
         public bool IsVisible { get; set; } = true;
