@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -10,49 +11,19 @@ namespace OpenTap.Tui.Windows
 {
     public class NewPluginWindow : EditWindow
     {
-        private ReadOnlyCollection<ITypeData> Plugins { get; set; }
-        private TreeView treeview { get; set; }
+        private TreeView2<ITypeData> treeview { get; set; }
         public ITypeData PluginType { get; set; }
 
-        private string _filter = "";
         private string _originalTitle;
-
-        public string Filter
-        {
-            get { return _filter; }
-            private set
-            {
-                if (_filter != value)
-                {
-                    _filter = value ?? "";
-                    if (string.IsNullOrEmpty(_filter))
-                    {
-                        this.Title = _originalTitle;
-                    }
-                    else
-                    {
-                        this.Title = $"{_originalTitle} - {_filter}";
-                    }
-                    UpdateTreeView();
-                }
-
-            }
-        }
-
-        private void UpdateTreeView()
-        {
-            bool Predicate(TreeView.TreeViewItem item) => item.Title.ToLower().Contains(Filter.ToLower());
-            treeview.SetVisible(Predicate);
-            treeview.UpdateListView();
-            treeview.SelectFirstMatch(Predicate);
-        }
 
         public NewPluginWindow(TypeData type, string title) : base(title)
         {
             _originalTitle = title;
-            treeview = new TreeView(
-                (item) => (item as ITypeData).GetDisplayAttribute().Name ?? (item as ITypeData).Name, 
-                (item) => (item as ITypeData).GetDisplayAttribute()?.Group);
+            treeview = new TreeView2<ITypeData>(getTitle, getGroup, filter);
+            treeview.FilterReset += () =>
+            {
+                Title = _originalTitle;
+            };
 
             var types = TypeData.GetDerivedTypes(type)
                 .Where(x => x.CanCreateInstance)
@@ -62,29 +33,33 @@ namespace OpenTap.Tui.Windows
             Add(treeview);
         }
 
+        string getTitle(ITypeData item)
+        {
+            return item.GetDisplayAttribute().Name ?? item.Name;
+        }
+        List<string> getGroup(ITypeData item)
+        {
+            return item.GetDisplayAttribute()?.Group.ToList();
+        }
+
+        bool filter(ITypeData item, string filter)
+        {
+            if (string.IsNullOrEmpty(filter))
+            {
+                Title = _originalTitle;
+                return true;
+            }
+
+            Title = $"{_originalTitle} - {filter}";
+            return getTitle(item).ToLower().Contains(filter.ToLower());
+        }
+
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter && treeview.SelectedObject?.obj != null)
-            {
-                PluginType = treeview.SelectedObject.obj as ITypeData;
-                return base.ProcessKey(keyEvent);
-            }
-
-            if (keyEvent.KeyValue >= 32 && keyEvent.KeyValue < 127) // any non-special character is in this range
-                Filter += (char) keyEvent.KeyValue;
-            else if (keyEvent.Key == (Key.Backspace|Key.CtrlMask) || keyEvent.Key == (Key.Delete|Key.CtrlMask))
-            {
-                Filter = Filter.TrimEnd();
-                var lastSpace = Filter.LastIndexOf(' ');
-                var length = lastSpace > 0 ? lastSpace + 1 : 0;
-                Filter = Filter.Substring(0, length);
-            }
-            else if ((keyEvent.Key == Key.Backspace || keyEvent.Key == Key.Delete) && Filter.Length > 0)
-                Filter = Filter.Substring(0, Filter.Length - 1);
-            else
-                return base.ProcessKey(keyEvent);
-
-            return true;
+            if (keyEvent.Key == Key.Enter && treeview.SelectedObject != null)
+                PluginType = treeview.SelectedObject;
+            
+            return base.ProcessKey(keyEvent);
         }
     }
 }

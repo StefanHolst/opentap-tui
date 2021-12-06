@@ -17,6 +17,7 @@ namespace OpenTap.Tui
         private Dictionary<string, TreeViewNode<T>> groups = new Dictionary<string, TreeViewNode<T>>();
         private List<TreeViewNode<T>> renderedItems;
         public string Filter { get; set; } = "";
+        public Action FilterReset { get; set; }
         
         public T SelectedObject
         {
@@ -164,7 +165,7 @@ namespace OpenTap.Tui
 
             renderedItems = list;
             if (filter != null)
-                renderedItems = list.Where(i => filter.Invoke(i.Item, Filter)).ToList();
+                renderedItems = list.Where(i => i.IsGroup || filter.Invoke(i.Item, Filter)).ToList();
             var index = SelectedItem;
             var oldTop = TopItem;
             SetSource(renderedItems);
@@ -209,7 +210,7 @@ namespace OpenTap.Tui
                     RenderTreeView();
                     return true;
                 }
-                else if (kb.Key == (Key.Backspace|Key.CtrlMask) || kb.Key == (Key.Delete|Key.CtrlMask))
+                if (kb.Key == (Key.Backspace|Key.CtrlMask) || kb.Key == (Key.Delete|Key.CtrlMask))
                 {
                     Filter = Filter.TrimEnd();
                     var lastSpace = Filter.LastIndexOf(' ');
@@ -218,16 +219,20 @@ namespace OpenTap.Tui
                     RenderTreeView();
                     return true;
                 }
-                else if ((kb.Key == Key.Backspace || kb.Key == Key.Delete) && Filter.Length > 0)
+                if ((kb.Key == Key.Backspace || kb.Key == Key.Delete) && Filter.Length > 0)
                 {
                     Filter = Filter.Substring(0, Filter.Length - 1);
                     RenderTreeView();
                     return true;
                 }
-                else if (kb.Key == Key.Esc)
+                if (kb.Key == Key.Esc)
                 {
+                    if (string.IsNullOrEmpty(Filter))
+                        return base.ProcessKey(kb);
+                    
                     Filter = "";
                     RenderTreeView();
+                    FilterReset?.Invoke();
                     return true;
                 }
             }
