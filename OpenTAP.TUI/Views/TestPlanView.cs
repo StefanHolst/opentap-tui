@@ -31,7 +31,7 @@ namespace OpenTap.Tui.Views
             CanFocus = true;
             Title = "Test Plan";
             
-            treeView = new TreeView2<ITestStep>(getTitle, getChildren, getParent)
+            treeView = new TreeView2<ITestStep>(getTitle, getChildren, getParent, filter)
             {
                 Height = Dim.Fill(),
                 Width = Dim.Fill()
@@ -86,6 +86,19 @@ namespace OpenTap.Tui.Views
         ITestStep getParent(ITestStep step)
         {
             return step.Parent as ITestStep;
+        }
+
+        bool filter(ITestStep step, string filter)
+        {
+            if (string.IsNullOrEmpty(filter))
+            {
+                Title = "Test Plan";
+                return true;
+            }
+            else
+                Title = $"Test Plan - {filter}";
+            
+            return step.Name.ToLower().Contains(filter.ToLower());
         }
 
         public override bool OnEnter(View view)

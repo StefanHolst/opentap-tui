@@ -80,15 +80,8 @@ namespace OpenTap.Tui
                 return true;
             }
             
-            if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false && this.IsTopActive())
-            {
-                FocusPrev();
-                return true;
-            }
-
             if (keyEvent.Key == (Key.S | Key.CtrlMask))
                 return TestPlanView.ProcessKey(keyEvent);
-
 
             if (helperButtons.ProcessKey(keyEvent) == true)
                 return true;

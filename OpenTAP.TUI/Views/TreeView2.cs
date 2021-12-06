@@ -11,10 +11,12 @@ namespace OpenTap.Tui
         private Func<T, List<string>> getGroups;
         private Func<T, List<T>> getChildren;
         private Func<T, T> getParent;
+        private Func<T, string, bool> filter;
         private IList<T> items;
         private Dictionary<T, TreeViewNode<T>> nodes;
         private Dictionary<string, TreeViewNode<T>> groups = new Dictionary<string, TreeViewNode<T>>();
         private List<TreeViewNode<T>> renderedItems;
+        public string Filter { get; set; } = "";
         
         public T SelectedObject
         {
@@ -22,19 +24,21 @@ namespace OpenTap.Tui
             set => SelectedItem = renderedItems.IndexOf(nodes[value]);
         }
 
-        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroups)
+        public TreeView2(Func<T, string> getTitle, Func<T, List<string>> getGroups, Func<T, string, bool> filter = null)
         {
             this.getTitle = getTitle;
             this.getGroups = getGroups;
+            this.filter = filter;
 
             CanFocus = true;
         }
         
-        public TreeView2(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent)
+        public TreeView2(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent, Func<T, string, bool> filter = null)
         {
             this.getTitle = getTitle;
             this.getChildren = getChildren;
             this.getParent = getParent;
+            this.filter = filter;
 
             CanFocus = true;
         }
@@ -116,7 +120,7 @@ namespace OpenTap.Tui
                         index = list.IndexOf(groupNode);
                     }
                     
-                    if (groupNode?.IsExpanded ?? true)
+                    if (Filter?.Length > 0 || (groupNode?.IsExpanded ?? true))
                         list.Insert(index == -1 ? 0 : index + 1, node);
                 }
             }
@@ -134,7 +138,7 @@ namespace OpenTap.Tui
             if (node.IsVisible)
             {
                 list.Add(node);
-                if (node.IsExpanded)
+                if (node.IsExpanded || Filter?.Length > 0)
                 {
                     foreach (var child in node.Children)
                         list.AddRange(GetItemsToRender(child, noCache));
@@ -159,6 +163,8 @@ namespace OpenTap.Tui
             }
 
             renderedItems = list;
+            if (filter != null)
+                renderedItems = list.Where(i => filter.Invoke(i.Item, Filter)).ToList();
             var index = SelectedItem;
             var oldTop = TopItem;
             SetSource(renderedItems);
@@ -169,7 +175,10 @@ namespace OpenTap.Tui
             else
                 SelectedItem = index;
 
-            TopItem = oldTop;
+            if (oldTop > 0 && oldTop >= renderedItems.Count)
+                TopItem = renderedItems.Count - 1;
+            else
+                TopItem = oldTop;
         }
         
         public override bool ProcessKey(KeyEvent kb)
@@ -179,8 +188,6 @@ namespace OpenTap.Tui
                 var selectedNode = renderedItems[SelectedItem];
                 if (selectedNode.Children.Any())
                 {
-                    // if (kb.Key == Key.Enter)
-                    //     selectedNode.IsExpanded = !selectedNode.IsExpanded;
                     if (kb.Key == Key.CursorLeft)
                         selectedNode.IsExpanded = false;
                     if (kb.Key == Key.CursorRight)
@@ -192,6 +199,37 @@ namespace OpenTap.Tui
             
                 RenderTreeView();
                 return true;
+            }
+
+            if (filter != null)
+            {
+                if (kb.KeyValue >= 32 && kb.KeyValue < 127) // any non-special character is in this range
+                {
+                    Filter += (char) kb.KeyValue;
+                    RenderTreeView();
+                    return true;
+                }
+                else if (kb.Key == (Key.Backspace|Key.CtrlMask) || kb.Key == (Key.Delete|Key.CtrlMask))
+                {
+                    Filter = Filter.TrimEnd();
+                    var lastSpace = Filter.LastIndexOf(' ');
+                    var length = lastSpace > 0 ? lastSpace + 1 : 0;
+                    Filter = Filter.Substring(0, length);
+                    RenderTreeView();
+                    return true;
+                }
+                else if ((kb.Key == Key.Backspace || kb.Key == Key.Delete) && Filter.Length > 0)
+                {
+                    Filter = Filter.Substring(0, Filter.Length - 1);
+                    RenderTreeView();
+                    return true;
+                }
+                else if (kb.Key == Key.Esc)
+                {
+                    Filter = "";
+                    RenderTreeView();
+                    return true;
+                }
             }
 
             return base.ProcessKey(kb);
