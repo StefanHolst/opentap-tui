@@ -82,12 +82,12 @@ namespace OpenTap.Tui.Windows
             {
                 new MenuBarItem("Settings", new []
                 {
-                    new MenuItem("Settings", name, () =>
+                    new MenuItem(name, "Settings", () =>
                     {
                         var settingsView = new ComponentSettingsWindow(obj);
                         Application.Run(settingsView);
                     }),
-                    new MenuItem("Refresh", "Refreshes the view by reloading packages from all repositories.", () => LoadPackages())
+                    new MenuItem("Refresh", "", () => LoadPackages())
                 })
             });
             

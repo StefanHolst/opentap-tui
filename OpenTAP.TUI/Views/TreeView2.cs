@@ -141,7 +141,7 @@ namespace OpenTap.Tui
                 }
                 
                 if (Filter?.Length > 0 || (node.Parent?.IsExpanded ?? true))
-                    list.Insert(index == -1 ? 0 : index + 1, node);
+                    list.Insert(index == -1 ? list.Count : index + 1, node);
             }
             
             return list;
@@ -193,7 +193,9 @@ namespace OpenTap.Tui
             else
                 SelectedItem = index;
 
-            if (oldTop > 0 && oldTop >= renderedItems.Count)
+            if (renderedItems.Count == 0)
+                TopItem = 0;
+            else if (oldTop > 0 && oldTop >= renderedItems.Count)
                 TopItem = renderedItems.Count - 1;
             else
                 TopItem = oldTop;

@@ -87,15 +87,26 @@ namespace OpenTap.Tui.Views
         List<PackageViewModel> GetPackages()
         {
             var list = new List<PackageViewModel>();
+            var names = new HashSet<string>();
+
+            var repos = PackageManagerSettings.Current.Repositories.Where(r => r.IsEnabled).OrderByDescending(r => r.Manager is FilePackageRepository);
             
-            foreach (var repository in PackageManagerSettings.Current.Repositories)
+            foreach (var repository in repos)
             {
-                if (repository.IsEnabled == false)
-                    continue;
+                List<PackageViewModel> _list = new List<PackageViewModel>();
                 if (repository.Manager is HttpPackageRepository httpRepository)
-                    list.AddRange(GetHttpPackages(httpRepository));
+                    _list = GetHttpPackages(httpRepository);
                 else if (repository.Manager is FilePackageRepository fileRepository)
-                    list.AddRange(GetFilePackages(fileRepository));
+                    _list = GetFilePackages(fileRepository);
+
+                foreach (var pm in _list)
+                {
+                    if (names.Contains(pm.Name) == false)
+                    {
+                        list.Add(pm);
+                        names.Add(pm.Name);
+                    }
+                }
             }
 
             return list;
