@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenTap.Package;
@@ -39,8 +40,18 @@ namespace OpenTap.Tui.Windows
             bool running = true;
             Task.Run(() =>
             {
-                packageList.LoadPackages();
-                running = false;
+                try
+                {
+                    packageList.LoadPackages();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+                finally
+                {
+                    running = false;
+                }
             });
             return Task.Run(() =>
             {
@@ -108,10 +119,9 @@ namespace OpenTap.Tui.Windows
                 Height = Dim.Percent(75) - 1
             };
             packageList = new PackageListView();
-            packageList.SelectionChanged += () =>
-            {
-                detailsView.LoadPackage(packageList.SelectedPackage, packageList.installation, packageList.installedOpentap);
-            };
+            packageList.SelectionChanged += () => { detailsView.LoadPackage(packageList.SelectedPackage, packageList.installation, packageList.installedOpentap); };
+            packageList.TreeViewFilterChanged += (filter) => { packageFrame.Title = string.IsNullOrEmpty(filter) ? "Packages" : $"Packages - {filter}"; }; 
+
             detailsView.LoadPackage(packageList.SelectedPackage,packageList.installation, packageList.installedOpentap);
             packageFrame.Add(packageList);
             

@@ -36,7 +36,7 @@ namespace OpenTap.Tui.Views
             var menu = selectedMember?.Get<MenuAnnotation>();
             if (menu == null)
             {
-                MainWindow.helperButtons.SetActions(list, this);
+                MainWindow.helperButtons?.SetActions(list, this);
                 return;
             }
             

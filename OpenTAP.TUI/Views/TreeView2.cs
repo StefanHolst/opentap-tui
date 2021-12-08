@@ -21,7 +21,7 @@ namespace OpenTap.Tui
         
         public T SelectedObject
         {
-            get => SelectedItem < renderedItems.Count ? renderedItems[SelectedItem].Item : default;
+            get => renderedItems == null ? default : SelectedItem < renderedItems.Count ? renderedItems[SelectedItem].Item : default;
             set => SelectedItem = renderedItems.IndexOf(nodes[value]);
         }
 
@@ -121,7 +121,7 @@ namespace OpenTap.Tui
                 {
                     var _groups = getGroups(item);
                     node = GetNodeFromItem(item);
-                    node.Groups = _groups;
+                    node.Groups = _groups ?? new List<string>();
                 }
                 
                 // Build groups tree
@@ -197,6 +197,8 @@ namespace OpenTap.Tui
                 TopItem = renderedItems.Count - 1;
             else
                 TopItem = oldTop;
+            
+            OnSelectedChanged();
         }
         
         public override bool ProcessKey(KeyEvent kb)
@@ -260,13 +262,14 @@ namespace OpenTap.Tui
             return base.ProcessKey(kb);
         }
         
-        int lastSelectedItem = -1;
+        T lastSelectedObject;
         public override bool OnSelectedChanged ()
         {
-            if (selected != lastSelectedItem) {
+            if (SelectedObject?.Equals(lastSelectedObject) != true)
+            {
                 SelectedItemChanged?.Invoke (new ListViewItemEventArgs (selected, SelectedObject));
                 if (HasFocus) {
-                    lastSelectedItem = selected;
+                    lastSelectedObject = SelectedObject;
                 }
                 return true;
             }
@@ -291,6 +294,7 @@ namespace OpenTap.Tui
             Item = item;
             Owner = owner;
             Children = new List<TreeViewNode<T>>();
+            Groups = new List<string>();
         }
 
         public override string ToString()

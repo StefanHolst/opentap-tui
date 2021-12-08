@@ -18,11 +18,12 @@ namespace OpenTap.Tui.Views
 {
     public class PackageListView : View
     {
-        private TreeView treeView { get; set; }
+        private TreeView2<PackageViewModel> treeView { get; set; }
         public Installation installation { get; set; }
         public PackageDef installedOpentap { get; set; }
         public event Action SelectionChanged;
         public PackageViewModel SelectedPackage { get; set; }
+        public Action<string> TreeViewFilterChanged { get; set; }
 
         private List<PackageViewModel> packages;
         private List<PackageDef> installedPackages;
@@ -50,21 +51,27 @@ namespace OpenTap.Tui.Views
             installedOpentap = installation.GetOpenTapPackage();
             installedPackages = installation.GetPackages();
             
-            treeView = new TreeView(
-                (item) =>
-                {
-                    var package = item as PackageViewModel;
-                    return $"{package.Name}{(installedPackages.Any(p => p.Name == package.Name) ? " (installed)" : "")}";
-                },
-                (item) => (item as PackageViewModel)?.Group?.Split(new []{'\\', '/'}, StringSplitOptions.RemoveEmptyEntries));
+            treeView = new TreeView2<PackageViewModel>(getTitle, getGroup);
+            treeView.EnableFilter = true;
+            treeView.FilterChanged += (f) => TreeViewFilterChanged?.Invoke(f);
 
             treeView.SelectedItemChanged += (_) =>
             {
-                SelectedPackage = treeView.SelectedObject?.obj as PackageViewModel;
+                SelectedPackage = treeView.SelectedObject;
                 SelectionChanged?.Invoke();
             };
             
             Add(treeView);
+        }
+
+        string getTitle(PackageViewModel package)
+        {
+            return $"{package.Name}{(installedPackages.Any(p => p.Name == package.Name) ? " (installed)" : "")}";
+        }
+
+        List<string> getGroup(PackageViewModel package)
+        {
+            return package?.Group?.Split(new[] {'\\', '/'}, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
 
         public void LoadPackages()
