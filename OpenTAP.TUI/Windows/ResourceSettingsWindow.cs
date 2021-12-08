@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using OpenTap.Tui.PropEditProviders;
 using OpenTap.Tui.Views;
@@ -16,6 +17,18 @@ namespace OpenTap.Tui.Windows
         private Button addButton { get; set; }
         private PropertiesView detailsView { get; set; } = new PropertiesView();
 
+        /// <summary>
+        /// Return the resource name if it is defined, otherwise give a reasonable fallback name
+        /// </summary>
+        /// <param name="r"></param>
+        /// <returns></returns>
+        private string getResourceName(IResource r)
+        {
+            if (string.IsNullOrWhiteSpace(r.Name))
+                return "Unnamed Resource: " + (TypeData.GetTypeData(r).GetDisplayAttribute()?.GetFullName() ?? r.GetType().FullName);
+            return r.Name;
+        }
+
         public ResourceSettingsWindow(string title, IList resources) : base(null)
         {
             Modal = true;
@@ -27,9 +40,9 @@ namespace OpenTap.Tui.Windows
                 Width = Dim.Percent(25),
                 Height = Dim.Fill()
             };
-            
+
             // resource list
-            list = Resources.Cast<IResource>().Select(r => r.Name).ToList();
+            list = Resources.Cast<IResource>().Select(getResourceName).ToList();
             listView = new ListView(list)
             {
                 Height = Dim.Fill(1)
@@ -61,7 +74,7 @@ namespace OpenTap.Tui.Windows
                     {
                         var resource = newPlugin.PluginType.CreateInstance();
                         Resources.Add(resource);
-                        listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
+                        listView.SetSource(Resources.Cast<IResource>().Select(getResourceName).ToList());
                         if (Resources.Count == 1)
                             detailsView.LoadProperties(resource);
                     }
@@ -100,7 +113,7 @@ namespace OpenTap.Tui.Windows
                     return false;
 
                 Resources.RemoveAt(listView.SelectedItem);
-                listView.SetSource(Resources.Cast<IResource>().Select(r => r.Name).ToList());
+                listView.SetSource(Resources.Cast<IResource>().Select(getResourceName).ToList());
 
                 if (Resources.Count > 0)
                 {

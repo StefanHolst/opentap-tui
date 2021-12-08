@@ -346,7 +346,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || kb.KeyValue == 67) // 67 = C
+            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || (kb.KeyValue == 67 || kb.KeyValue == 'C'))
             {
                 // Copy
                 var copyStep = treeView.SelectedObject;
@@ -358,7 +358,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || kb.KeyValue == 86) && Clipboard.Contents != null && treeView.SelectedObject != null) // 86 = V
+            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || (kb.KeyValue == 86 || kb.KeyValue == 'V')) && Clipboard.Contents != null && treeView.SelectedObject != null) // 86 = V
             {
                 // Paste
                 var toItem = treeView.SelectedObject;

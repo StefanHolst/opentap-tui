@@ -102,11 +102,13 @@ namespace OpenTap.Tui
 
         public override int TuiExecute(CancellationToken cancellationToken)
         {
+            var gridWidth = TuiSettings.Current.TestPlanGridWidth;
+            var gridHeight = TuiSettings.Current.TestPlanGridHeight;
             TestPlanView = new TestPlanView()
             {
                 Y = 1,
-                Width = Dim.Percent(75),
-                Height = Dim.Percent(70)
+                Width = Dim.Percent(gridWidth),
+                Height = Dim.Percent(gridHeight)
             };
             StepSettingsView = new PropertiesView(true);
             
@@ -232,10 +234,10 @@ namespace OpenTap.Tui
             // Add step settings view
             var settingsFrame = new FrameView("Settings")
             {
-                X = Pos.Percent(75),
+                X = Pos.Right(TestPlanView),
                 Y = 1,
                 Width = Dim.Fill(),
-                Height = Dim.Percent(70)
+                Height = Dim.Height(TestPlanView)
             };
             StepSettingsView.TreeViewFilterChanged += (filter) => { settingsFrame.Title = string.IsNullOrEmpty(filter) ? "Settings" : $"Settings - {filter}"; };
             settingsFrame.Add(StepSettingsView);
@@ -251,6 +253,17 @@ namespace OpenTap.Tui
             LogFrame.Add(new LogPanelView());
             win.Add(LogFrame);
             win.LogFrame = LogFrame;
+
+            // Resize grid elements when TUI settings are changed
+            TuiSettings.Current.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == "Size")
+                {
+                    var s = TuiSettings.Current;
+                    TestPlanView.Width = Dim.Percent(s.TestPlanGridWidth);
+                    TestPlanView.Height = Dim.Percent(s.TestPlanGridHeight);
+                }
+            };
 
             // Update StepSettingsView when TestPlanView changes selected step
             TestPlanView.SelectionChanged += args =>
@@ -283,8 +296,6 @@ namespace OpenTap.Tui
                     }
 
                     TestPlanView.LoadTestPlan(path);
-                    // TestPlanView.Update();
-                    // StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
                 }
                 catch
                 {
