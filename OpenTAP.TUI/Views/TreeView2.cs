@@ -32,7 +32,6 @@ namespace OpenTap.Tui
 
             CanFocus = true;
         }
-        
         public TreeView2(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent)
         {
             this.getTitle = getTitle;
@@ -65,6 +64,38 @@ namespace OpenTap.Tui
             return node;
         }
 
+        private void buildGroupTree(TreeViewNode<T> node)
+        {
+            TreeViewNode<T> lastGroup = null;
+            foreach (var group in node.Groups)
+            {
+                TreeViewNode<T> groupNode = null;
+                if (groups.TryGetValue(group, out groupNode) == false)
+                {
+                    // add the group
+                    groupNode = new TreeViewNode<T>(default(T), this)
+                    {
+                        Title = group,
+                        IsGroup = true
+                    };
+                    groups[group] = groupNode;
+                }
+                    
+                if (lastGroup != null)
+                {
+                    groupNode.Parent = lastGroup;
+                    lastGroup.Children.Add(groupNode);
+                }
+                lastGroup = groupNode;
+            }
+
+            if (lastGroup != null)
+            {
+                node.Parent = lastGroup;
+                lastGroup.Children.Add(node);
+            }
+        }
+
         public void ExpandObject(T item)
         {
             nodes[item].IsExpanded = true;
@@ -94,46 +125,23 @@ namespace OpenTap.Tui
                 }
                 
                 // Build groups tree
+                buildGroupTree(node);
+
+                int index = -1;
                 
-                
-                if (node.IsVisible)
+                // Add group
+                foreach (var group in node.Groups)
                 {
-                    int index = -1;
-                    TreeViewNode<T> groupNode = null;
-                    TreeViewNode<T> lastGroup = null;
+                    var groupNode = groups[group];
                     
-                    // Add group
-                    foreach (var group in node.Groups)
-                    {
-                        if (groups.TryGetValue(group, out groupNode) == false)
-                        {
-                            // add the group
-                            groupNode = new TreeViewNode<T>(default(T), this)
-                            {
-                                Title = group,
-                                IsGroup = true
-                            };
-                            groups[group] = groupNode;
-                        }
-                        
-                        if (list.Contains(groupNode) == false)
-                            list.Add(groupNode);
-
-                        if (lastGroup != null)
-                        {
-                            groupNode.Parent = lastGroup;
-                            lastGroup.Children.Add(groupNode);
-                        }
-
-                        lastGroup = groupNode;
-                        index = list.IndexOf(groupNode);
-                    }
+                    if (list.Contains(groupNode) == false && (groupNode.Parent?.IsExpanded ?? true))
+                        list.Add(groupNode);
                     
-                    lastGroup.Children.Add();
-                    
-                    if (Filter?.Length > 0 || (groupNode?.IsExpanded ?? true))
-                        list.Insert(index == -1 ? 0 : index + 1, node);
+                    index = list.IndexOf(groupNode);
                 }
+                
+                if (Filter?.Length > 0 || (node.Parent?.IsExpanded ?? true))
+                    list.Insert(index == -1 ? 0 : index + 1, node);
             }
             
             return list;
@@ -146,14 +154,11 @@ namespace OpenTap.Tui
             if (existed == false || noCache)
                 node = GetNodeFromItem(item);
 
-            if (node.IsVisible)
+            list.Add(node);
+            if (node.IsExpanded || Filter?.Length > 0)
             {
-                list.Add(node);
-                if (node.IsExpanded || Filter?.Length > 0)
-                {
-                    foreach (var child in node.Children)
-                        list.AddRange(GetItemsToRender(child.Item, noCache));
-                }
+                foreach (var child in node.Children)
+                    list.AddRange(GetItemsToRender(child.Item, noCache));
             }
 
             return list;
@@ -277,7 +282,6 @@ namespace OpenTap.Tui
         public bool IsGroup { get; set; }
         public string Title { get; set; }
         public List<string> Groups { get; set; }
-        public bool IsVisible { get; set; } = true;
         public TreeViewNode<T> Parent { get; set; }
         public List<TreeViewNode<T>> Children { get; set; }
 
