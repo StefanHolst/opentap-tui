@@ -217,7 +217,7 @@ namespace OpenTap.Tui
                 }
 
                 if (kb.Key == Key.Enter && selectedNode.IsGroup == false)
-                    base.ProcessKey(kb);
+                    return base.ProcessKey(kb);
             
                 RenderTreeView();
                 return true;
