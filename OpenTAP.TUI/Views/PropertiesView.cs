@@ -315,7 +315,7 @@ namespace OpenTap.Tui.Views
                 submitView.Add(submitButtons.ToArray());
                 
                 // Center buttons
-                var buttonsTotalWidth = submitButtons.Select(b => b.Bounds.Width).Sum() + submitButtons.Count() - 1;
+                var buttonsTotalWidth = submitButtons.Select(b => b.Bounds.Width).Sum() + submitButtons.Count - 1;
                 submitView.Width = buttonsTotalWidth;
                 submitView.X = Pos.Center();
                 for (int i = 1; i < submitButtons.Count; i++)

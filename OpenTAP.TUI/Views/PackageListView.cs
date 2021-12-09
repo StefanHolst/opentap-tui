@@ -90,7 +90,6 @@ namespace OpenTap.Tui.Views
             var names = new HashSet<string>();
 
             var repos = PackageManagerSettings.Current.Repositories.Where(r => r.IsEnabled).OrderByDescending(r => r.Manager is FilePackageRepository);
-            
             foreach (var repository in repos)
             {
                 List<PackageViewModel> _list = new List<PackageViewModel>();
