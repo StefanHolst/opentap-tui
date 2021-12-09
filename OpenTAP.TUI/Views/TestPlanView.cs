@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using OpenTap.Plugins;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
-using Terminal.Gui.Trees;
 
 namespace OpenTap.Tui.Views
 {
@@ -19,7 +18,7 @@ namespace OpenTap.Tui.Views
         private List<MenuItem> actions;
         private MenuItem insertAction;
         private MenuItem runAction;
-        private TreeView2<ITestStep> treeView;
+        private TreeView<ITestStep> treeView;
         private TestPlanRun testPlanRun;
         private bool PlanIsRunning = false;
         public TestPlan Plan { get; set; } = new TestPlan();
@@ -31,7 +30,7 @@ namespace OpenTap.Tui.Views
             CanFocus = true;
             Title = "Test Plan";
             
-            treeView = new TreeView2<ITestStep>(getTitle, getChildren, getParent)
+            treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent)
             {
                 Height = Dim.Fill(),
                 Width = Dim.Fill()

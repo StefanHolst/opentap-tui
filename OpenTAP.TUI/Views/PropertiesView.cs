@@ -15,7 +15,7 @@ namespace OpenTap.Tui.Views
     {
         private object obj { get; set; }
         private AnnotationCollection annotations { get; set; }
-        private TreeView2<AnnotationCollection> treeView { get; set; }
+        private TreeView<AnnotationCollection> treeView { get; set; }
         private TextView descriptionView { get; set; }
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
@@ -78,7 +78,7 @@ namespace OpenTap.Tui.Views
         
         public PropertiesView(bool EnableFilter = false)
         {
-            treeView = new TreeView2<AnnotationCollection>(getTitle, getGroup);
+            treeView = new TreeView<AnnotationCollection>(getTitle, getGroup);
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
             treeView.SelectedItemChanged += ListViewOnSelectedChanged;

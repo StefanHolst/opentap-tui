@@ -18,7 +18,7 @@ namespace OpenTap.Tui.Views
 {
     public class PackageListView : View
     {
-        private TreeView2<PackageViewModel> treeView { get; set; }
+        private TreeView<PackageViewModel> treeView { get; set; }
         public Installation installation { get; set; }
         public PackageDef installedOpentap { get; set; }
         public event Action SelectionChanged;
@@ -51,7 +51,7 @@ namespace OpenTap.Tui.Views
             installedOpentap = installation.GetOpenTapPackage();
             installedPackages = installation.GetPackages();
             
-            treeView = new TreeView2<PackageViewModel>(getTitle, getGroup);
+            treeView = new TreeView<PackageViewModel>(getTitle, getGroup);
             treeView.EnableFilter = true;
             treeView.FilterChanged += (f) => TreeViewFilterChanged?.Invoke(f);
 

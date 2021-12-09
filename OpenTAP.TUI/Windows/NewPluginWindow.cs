@@ -11,7 +11,7 @@ namespace OpenTap.Tui.Windows
 {
     public class NewPluginWindow : EditWindow
     {
-        private TreeView2<ITypeData> treeview { get; set; }
+        private TreeView<ITypeData> treeview { get; set; }
         public ITypeData PluginType { get; set; }
 
         private string _originalTitle;
@@ -19,7 +19,7 @@ namespace OpenTap.Tui.Windows
         public NewPluginWindow(TypeData type, string title) : base(title)
         {
             _originalTitle = title;
-            treeview = new TreeView2<ITypeData>(getTitle, getGroup);
+            treeview = new TreeView<ITypeData>(getTitle, getGroup);
             treeview.EnableFilter = true;
             treeview.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? _originalTitle : $"{_originalTitle} - {filter}"; };
 

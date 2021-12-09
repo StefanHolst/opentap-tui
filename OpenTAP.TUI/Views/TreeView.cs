@@ -1,229 +1,329 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using Terminal.Gui;
 
 namespace OpenTap.Tui
 {
-    public class TreeView : ListView
+    public class TreeView<T> : ListView
     {
-        public void SetVisible(Func<TreeViewItem, bool> predicate)
-        {
-            foreach (var item in source)
-            {
-                item.SetVisible(predicate);
-            }
-        }
+        private Func<T, string> getTitle;
+        private Func<T, List<string>> getGroups;
+        private Func<T, List<T>> getChildren;
+        private Func<T, T> getParent;
+        private IList<T> items;
+        private Dictionary<T, TreeViewNode<T>> nodes;
+        private Dictionary<string, TreeViewNode<T>> groups = new Dictionary<string, TreeViewNode<T>>();
+        private List<TreeViewNode<T>> renderedItems;
+        public bool EnableFilter { get; set; }
+        public string Filter { get; set; } = "";
+        public Action<string> FilterChanged { get; set; }
         
-        public void SelectFirstMatch(Func<TreeViewItem, bool> predicate)
+        public T SelectedObject
         {
-            void getIndexOfFirstMatch(List<TreeViewItem> items, ref int index)
-            {
-                var item = items.FirstOrDefault(x => x.Visible);
-                if (item != null)
-                {
-                    index++;
-                    if (predicate(item))
-                        return;
-                    getIndexOfFirstMatch(item.SubItems, ref index);
-                }
-            }
-
-            var selected = -1;
-            getIndexOfFirstMatch(source, ref selected);
-            if (selected >= 0)
-                SelectedItem = selected;
-        }
-        
-        private Func<object, string> getTitle;
-        private Func<object, string[]> getGroup;
-        public List<TreeViewItem> source { get; set; }
-        public TreeViewItem SelectedObject
-        {
-            get
-            {
-                var index = SelectedItem;
-                if (source == null)
-                    return null;
-
-                return FindItem(source, ref index);
-            }
+            get => renderedItems == null ? default : SelectedItem < renderedItems.Count ? renderedItems[SelectedItem].Item : default;
+            set => SelectedItem = renderedItems.IndexOf(nodes[value]);
         }
 
-        public TreeView(Func<object, string> getTitle, Func<object, string[]> getGroup)
+        public TreeView(Func<T, string> getTitle, Func<T, List<string>> getGroups)
         {
             this.getTitle = getTitle;
-            this.getGroup = getGroup;
+            this.getGroups = getGroups;
+
+            CanFocus = true;
+        }
+        public TreeView(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent)
+        {
+            this.getTitle = getTitle;
+            this.getChildren = getChildren;
+            this.getParent = getParent;
 
             CanFocus = true;
         }
 
-        public void SetTreeViewSource<T>(List<T> items)
+        private TreeViewNode<T> GetNodeFromItem(T item)
         {
-            var list = new List<TreeViewItem>();
+            TreeViewNode<T> node;
+            if (nodes.TryGetValue(item, out node) == false)
+            {
+                node = new TreeViewNode<T>(item, this);
+                nodes[item] = node;
+            }
+            node.Title = getTitle(item);
+            node.Children = getChildren?.Invoke(item).Select(i => new TreeViewNode<T>(i, this)).ToList() ?? new List<TreeViewNode<T>>();
+
+            if (getParent != null)
+            {
+                var parent = getParent(item);
+                if (parent != null && nodes.ContainsKey(parent))
+                    node.Parent = nodes[parent];
+                else
+                    node.Parent = null;
+            }
+
+            return node;
+        }
+
+        private void buildGroupTree(TreeViewNode<T> node)
+        {
+            TreeViewNode<T> lastGroup = null;
+            foreach (var group in node.Groups)
+            {
+                TreeViewNode<T> groupNode = null;
+                if (groups.TryGetValue(group, out groupNode) == false)
+                {
+                    // add the group
+                    groupNode = new TreeViewNode<T>(default(T), this)
+                    {
+                        Title = group,
+                        IsGroup = true
+                    };
+                    groups[group] = groupNode;
+                }
+                    
+                if (lastGroup != null)
+                {
+                    groupNode.Parent = lastGroup;
+                    lastGroup.Children.Add(groupNode);
+                }
+                lastGroup = groupNode;
+            }
+
+            if (lastGroup != null)
+            {
+                node.Parent = lastGroup;
+                lastGroup.Children.Add(node);
+            }
+        }
+
+        public void ExpandObject(T item)
+        {
+            nodes[item].IsExpanded = true;
+            RenderTreeView();
+        }
+        
+        public void SetTreeViewSource(IList<T> items)
+        {
+            this.items = items;
+            nodes = new Dictionary<T, TreeViewNode<T>>();
+            groups = new Dictionary<string, TreeViewNode<T>>();
+            RenderTreeView();
+        }
+        
+        List<TreeViewNode<T>> GetItemsToRenderWithGroup(bool noCache)
+        {
+            var list = new List<TreeViewNode<T>>();
             foreach (var item in items)
             {
-                InsertInTree(list, item, getTitle(item), getGroup(item));
+                TreeViewNode<T> node;
+                bool existed = nodes.TryGetValue(item, out node);
+                if (existed == false || noCache)
+                {
+                    var _groups = getGroups(item);
+                    node = GetNodeFromItem(item);
+                    node.Groups = _groups ?? new List<string>();
+                }
+                
+                // Build groups tree
+                buildGroupTree(node);
+
+                int index = -1;
+                
+                // Add group
+                foreach (var group in node.Groups)
+                {
+                    var groupNode = groups[group];
+                    
+                    if (list.Contains(groupNode) == false && (groupNode.Parent?.IsExpanded ?? true))
+                        list.Add(groupNode);
+                    
+                    index = list.IndexOf(groupNode);
+                }
+                
+                if (Filter?.Length > 0 || (node.Parent?.IsExpanded ?? true))
+                    list.Insert(index == -1 ? list.Count : index + 1, node);
+            }
+            
+            return list;
+        }
+        List<TreeViewNode<T>> GetItemsToRender(T item, bool noCache)
+        {
+            var list = new List<TreeViewNode<T>>();
+            TreeViewNode<T> node;
+            bool existed = nodes.TryGetValue(item, out node);
+            if (existed == false || noCache)
+                node = GetNodeFromItem(item);
+
+            list.Add(node);
+            if (node.IsExpanded || Filter?.Length > 0)
+            {
+                foreach (var child in node.Children)
+                    list.AddRange(GetItemsToRender(child.Item, noCache));
             }
 
-            if (source != null)
-                MatchExpansion(source, list);
-
-            source = list;
-            UpdateListView();
+            return list;
         }
 
-        void MatchExpansion(List<TreeViewItem> existingTree, List<TreeViewItem> tree)
+        public void RenderTreeView(bool noCache = false)
         {
-            foreach (var item in tree)
-            {
-                var existing = existingTree.FirstOrDefault(t => t.Title == item.Title);
-                if (existing != null && existing.IsExpanded)
-                {
-                    item.IsExpanded = true;
-                    MatchExpansion(existing.SubItems, item.SubItems);
-                }
-            }
-        }
+            if (items == null)
+                return;
 
-
-        void InsertInTree(List<TreeViewItem> tree, object item, string title, string[] group)
-        {
-            if (group?.Length > 0)
-            {
-                if (tree.Any(t => t.Title == group[0]))
-                    InsertInTree(tree.FirstOrDefault(t => t.Title == group[0]).SubItems, item, title, group.Skip(1).ToArray());
-                else
-                {
-                    var groupItem = new TreeViewItem(group[0], null);
-                    InsertInTree(groupItem.SubItems, item, title, group.Skip(1).ToArray());
-                    tree.Add(groupItem);
-                }
-            }
+            var list = new List<TreeViewNode<T>>();
+            if (getGroups != null)
+                list = GetItemsToRenderWithGroup(noCache);
             else
             {
-                if (!tree.Any(t => t.Title == title))
-                    tree.Add(new TreeViewItem(title, item));
-            }
-        }
-
-        public void UpdateListView()
-        {
-            if (source == null)
-                return;
-            
-            List<string> displayList(List<TreeViewItem> items, int level = 0)
-            {
-                var list = new List<string>();
                 foreach (var item in items)
-                {
-                    if (item.Visible)
-                        list.Add($"{new String(' ', level)}{(item.SubItems.Any() ? (item.IsExpanded ? "- " : "+ ") : "  ")}{ (item.obj != null ? getTitle(item.obj) : item.Title)}");
-                    if (item.IsExpanded)
-                        list.AddRange(displayList(item.SubItems, level + 1));
-                }
-
-                return list;
+                    list.AddRange(GetItemsToRender(item, noCache));
             }
 
+            if (string.IsNullOrEmpty(Filter) == false)
+                renderedItems = list.Where(i => i.Title.ToLower().Contains(Filter.ToLower())).ToList();
+            else
+                renderedItems = list;
+            
             var index = SelectedItem;
-            SetSource(displayList(source));
+            var oldTop = TopItem;
+            SetSource(renderedItems);
+            
+            // can select next item
+            if (index >= renderedItems.Count)
+                SelectedItem = renderedItems.Count - 1;
+            else
+                SelectedItem = index;
 
-            if (source.Count > 0)
-                SelectedItem = index > Source.Count - 1 ? Source.Count -1 : index;
+            if (renderedItems.Count == 0)
+                TopItem = 0;
+            else if (oldTop > 0 && oldTop >= renderedItems.Count)
+                TopItem = renderedItems.Count - 1;
+            else
+                TopItem = oldTop;
+            
+            OnSelectedChanged();
         }
-
-        TreeViewItem FindItem(List<TreeViewItem> items, ref int index)
-        {
-            foreach (var item in items)
-            {
-                if (item.Visible == false)
-                    continue;
-                if (index == 0)
-                    return item;
-
-                index--;
-
-                if (item.IsExpanded)
-                {
-                    var test = FindItem(item.SubItems, ref index);
-                    if (test != null)
-                        return test;
-                }
-            }
-
-            return null;
-        }
-
+        
         public override bool ProcessKey(KeyEvent kb)
         {
-            if ((kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft) && SelectedObject?.SubItems?.Any() == true)
+            if (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
             {
-                if (SelectedObject != null)
+                var selectedNode = renderedItems[SelectedItem];
+                if (selectedNode.Children.Any())
                 {
-                    if (kb.Key == Key.Enter)
-                        SelectedObject.IsExpanded = !SelectedObject.IsExpanded;
                     if (kb.Key == Key.CursorLeft)
-                        SelectedObject.IsExpanded = false;
+                        selectedNode.IsExpanded = false;
                     if (kb.Key == Key.CursorRight)
-                        SelectedObject.IsExpanded = true;
+                        selectedNode.IsExpanded = true;
                 }
 
-                UpdateListView();
+                if (kb.Key == Key.Enter && selectedNode.IsGroup == false)
+                    return base.ProcessKey(kb);
+            
+                RenderTreeView();
                 return true;
+            }
+
+            if (EnableFilter)
+            {
+                if (kb.KeyValue >= 32 && kb.KeyValue < 127) // any non-special character is in this range
+                {
+                    Filter += (char) kb.KeyValue;
+                    RenderTreeView();
+                    FilterChanged?.Invoke(Filter);
+                    return true;
+                }
+                if (kb.Key == (Key.Backspace|Key.CtrlMask) || kb.Key == (Key.Delete|Key.CtrlMask))
+                {
+                    Filter = Filter.TrimEnd();
+                    var lastSpace = Filter.LastIndexOf(' ');
+                    var length = lastSpace > 0 ? lastSpace + 1 : 0;
+                    Filter = Filter.Substring(0, length);
+                    RenderTreeView();
+                    FilterChanged?.Invoke(Filter);
+                    return true;
+                }
+                if ((kb.Key == Key.Backspace || kb.Key == Key.Delete) && Filter.Length > 0)
+                {
+                    Filter = Filter.Substring(0, Filter.Length - 1);
+                    RenderTreeView();
+                    FilterChanged?.Invoke(Filter);
+                    return true;
+                }
+                if (kb.Key == Key.Esc)
+                {
+                    if (string.IsNullOrEmpty(Filter))
+                        return base.ProcessKey(kb);
+                    
+                    Filter = "";
+                    RenderTreeView();
+                    FilterChanged?.Invoke(Filter);
+                    return true;
+                }
             }
 
             return base.ProcessKey(kb);
         }
-
-        public class TreeViewItem
+        
+        T lastSelectedObject;
+        public override bool OnSelectedChanged ()
         {
-            public string Title { get; set; }
-            public object obj { get; set; }
-            public bool IsExpanded { get; set; }
-            public bool Visible { get; set; } = true;
-
-            public List<TreeViewItem> SubItems { get; set; }
-
-            public TreeViewItem(string Title, object obj)
+            if (SelectedObject?.Equals(lastSelectedObject) != true)
             {
-                this.Title = Title;
-                this.obj = obj;
-
-                SubItems = new List<TreeViewItem>();
+                SelectedItemChanged?.Invoke (new ListViewItemEventArgs (selected, SelectedObject));
+                if (HasFocus) {
+                    lastSelectedObject = SelectedObject;
+                }
+                return true;
             }
 
-            public void ShowAll(TreeViewItem item)
-            {
-                item.Visible = true;
-                item.IsExpanded = true;
+            return false;
+        }
+    }
 
-                foreach (var subItem in item.SubItems)
+    class TreeViewNode<T>
+    {
+        public T Item { get; set; }
+        public bool IsExpanded { get; set; }
+        public bool IsGroup { get; set; }
+        public string Title { get; set; }
+        public List<string> Groups { get; set; }
+        public TreeViewNode<T> Parent { get; set; }
+        public List<TreeViewNode<T>> Children { get; set; }
+
+        private TreeView<T> Owner;
+        public TreeViewNode(T item, TreeView<T> owner)
+        {
+            Item = item;
+            Owner = owner;
+            Children = new List<TreeViewNode<T>>();
+            Groups = new List<string>();
+        }
+
+        public override string ToString()
+        {
+            int indent = 0;
+
+            if (Groups?.Any() == true)
+                indent = Groups.Count;
+            else
+            {
+                var parent = Parent;
+                while (parent != null)
                 {
-                    ShowAll(subItem);
+                    indent++;
+                    parent = parent.Parent;
                 }
             }
-
-            public bool SetVisible(Func<TreeViewItem, bool> predicate)
-            {
-                Visible = false;
-                foreach (var item in SubItems)
-                {
-                    Visible |= item.SetVisible(predicate);
-                }
-
-                var matchesPred = predicate(this);
-                Visible |= matchesPred;
-
-                // If a group is matched by the predicate, show all children of the group
-                if (matchesPred)
-                    ShowAll(this);
-
-                IsExpanded = Visible;
-                return Visible;
-            }
+            
+            string text = new String(' ', indent);
+            if (Children.Any())
+                text += IsExpanded || string.IsNullOrEmpty(Owner.Filter) == false ? "- " : "+ ";
+            else
+                text += "  ";
+            
+            text += Title;
+            
+            return text;
         }
     }
 }
