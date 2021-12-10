@@ -36,7 +36,11 @@ namespace OpenTap.Tui.Views
                 Width = Dim.Fill()
             };
             treeView.SetTreeViewSource(Plan.Steps);
-            treeView.SelectedItemChanged += args => SelectionChanged?.Invoke(args.Value as ITestStepParent);
+            treeView.SelectedItemChanged += args =>
+            {
+                MainWindow.helperButtons.SetActions(actions, this);
+                SelectionChanged?.Invoke(args.Value as ITestStepParent);
+            };
             treeView.EnableFilter = true;
             treeView.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? "Test Plan" : $"Test Plan - {filter}"; };
             Add(treeView);

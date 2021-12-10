@@ -84,7 +84,8 @@ namespace OpenTap.Tui
                 if (lastGroup != null)
                 {
                     groupNode.Parent = lastGroup;
-                    lastGroup.Children.Add(groupNode);
+                    if (lastGroup.Children.Contains(groupNode) == false)
+                        lastGroup.Children.Add(groupNode);
                 }
                 lastGroup = groupNode;
             }
@@ -92,7 +93,8 @@ namespace OpenTap.Tui
             if (lastGroup != null)
             {
                 node.Parent = lastGroup;
-                lastGroup.Children.Add(node);
+                if (lastGroup.Children.Contains(node) == false)
+                    lastGroup.Children.Add(node);
             }
         }
 
@@ -127,21 +129,18 @@ namespace OpenTap.Tui
                 // Build groups tree
                 buildGroupTree(node);
 
-                int index = -1;
-                
                 // Add group
+                TreeViewNode<T> groupNode = null;
                 foreach (var group in node.Groups)
                 {
-                    var groupNode = groups[group];
+                    groupNode = groups[group];
                     
                     if (list.Contains(groupNode) == false && (groupNode.Parent?.IsExpanded ?? true))
                         list.Add(groupNode);
-                    
-                    index = list.IndexOf(groupNode);
                 }
-                
-                if (Filter?.Length > 0 || (node.Parent?.IsExpanded ?? true))
-                    list.Insert(index == -1 ? list.Count : index + 1, node);
+
+                if (Filter?.Length > 0 || node.IsVisible)
+                    list.Insert(groupNode == null ? list.Count : list.IndexOf(groupNode) + groupNode.Children.IndexOf(node) + 1, node);
             }
             
             return list;
@@ -289,6 +288,26 @@ namespace OpenTap.Tui
         public List<string> Groups { get; set; }
         public TreeViewNode<T> Parent { get; set; }
         public List<TreeViewNode<T>> Children { get; set; }
+
+        public bool IsVisible
+        {
+            get
+            {
+                if (Parent == null)
+                    return true;
+
+                var parent = Parent;
+                while (parent != null)
+                {
+                    if (parent.IsExpanded == false)
+                        return false;
+
+                    parent = parent.Parent;
+                }
+
+                return true;
+            }
+        }
 
         private TreeView<T> Owner;
         public TreeViewNode(T item, TreeView<T> owner)
