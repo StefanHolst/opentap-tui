@@ -135,7 +135,7 @@ namespace OpenTap.Tui
                 {
                     groupNode = groups[group];
                     
-                    if (list.Contains(groupNode) == false && (groupNode.Parent?.IsExpanded ?? true))
+                    if (list.Contains(groupNode) == false && (Filter?.Length > 0 || groupNode.IsVisible))
                         list.Add(groupNode);
                 }
 
