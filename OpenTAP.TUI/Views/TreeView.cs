@@ -64,7 +64,7 @@ namespace OpenTap.Tui
             return node;
         }
 
-        private void buildGroupTree(TreeViewNode<T> node)
+        private void BuildGroupTree(TreeViewNode<T> node)
         {
             TreeViewNode<T> lastGroup = null;
             foreach (var group in node.Groups)
@@ -114,7 +114,7 @@ namespace OpenTap.Tui
         
         List<TreeViewNode<T>> GetItemsToRenderWithGroup(bool noCache)
         {
-            var list = new List<TreeViewNode<T>>();
+            // Build groups tree
             foreach (var item in items)
             {
                 TreeViewNode<T> node;
@@ -125,23 +125,38 @@ namespace OpenTap.Tui
                     node = GetNodeFromItem(item);
                     node.Groups = _groups ?? new List<string>();
                 }
-                
-                // Build groups tree
-                buildGroupTree(node);
+                BuildGroupTree(node);
+            }
 
-                // Add group
-                TreeViewNode<T> groupNode = null;
-                foreach (var group in node.Groups)
+            List<TreeViewNode<T>> printGroup(TreeViewNode<T> groupNode)
+            {
+                var _list = new List<TreeViewNode<T>>();
+
+                foreach (var node in groupNode.Children)
                 {
-                    groupNode = groups[group];
+                    if (node.IsVisible == false && Filter?.Length > 0 != true)
+                        continue;
                     
-                    if (list.Contains(groupNode) == false && (Filter?.Length > 0 || groupNode.IsVisible))
-                        list.Add(groupNode);
+                    _list.Add(node);
+                    
+                    if ((node.Children.Any() && node.IsExpanded) || Filter?.Length > 0)
+                        _list.AddRange(printGroup(node));
                 }
 
-                if (Filter?.Length > 0 || node.IsVisible)
-                    list.Insert(groupNode == null ? list.Count : list.IndexOf(groupNode) + groupNode.Children.IndexOf(node) + 1, node);
+                return _list;
             }
+
+            // Print groups
+            var list = new List<TreeViewNode<T>>();
+            foreach (var group in groups.Values.Where(g => g.Parent == null))
+            {
+                list.Add(group);
+                list.AddRange(printGroup(group));
+            }
+
+            // print nodes
+            foreach (var node in nodes.Values.Where(n => n.IsGroup == false && n.Parent == null))
+                list.Add(node);
             
             return list;
         }
