@@ -146,17 +146,23 @@ namespace OpenTap.Tui
                 return _list;
             }
 
-            // Print groups
+            // print nodes and groups
             var list = new List<TreeViewNode<T>>();
-            foreach (var group in groups.Values.Where(g => g.Parent == null))
+            foreach (var item in items)
             {
-                list.Add(group);
-                list.AddRange(printGroup(group));
-            }
+                var node = nodes[item];
+                if (node.Groups.Any())
+                {
+                    var firstGroup = groups[node.Groups.First()];
+                    if (list.Contains(firstGroup))
+                        continue;
 
-            // print nodes
-            foreach (var node in nodes.Values.Where(n => n.IsGroup == false && n.Parent == null))
-                list.Add(node);
+                    list.Add(firstGroup);
+                    list.AddRange(printGroup(firstGroup));
+                }
+                else
+                    list.Add(node);
+            }
             
             return list;
         }
