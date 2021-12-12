@@ -76,7 +76,54 @@ namespace OpenTap.Tui
         [Display("Restore Colors", Group: "Colors", Order: 3)]
         public Action Reset { get; set; }
 
+        private void SetTheme()
+        {
+            switch (Theme)
+            {
+                case Theme.Dark:
+                {
+                    baseColor = new ColorSchemeViewmodel(Color.Gray, Color.Black, Color.White, Color.DarkGray, Color.Gray, Color.Black, Color.Gray, Color.Black);
+                    dialogColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
+                    menuColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
+                    break;
+                }
+                case Theme.Light:
+                {
+                    baseColor = new ColorSchemeViewmodel(Color.Black, Color.White, Color.Black, Color.Gray, Color.Black, Color.Gray, Color.Black, Color.Gray);
+                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    menuColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    break;
+                }
+                case Theme.Blue:
+                {
+                    baseColor = new ColorSchemeViewmodel(Color.White, Color.Blue, Color.Black, Color.Gray, Color.Blue, Color.Gray, Color.Cyan, Color.Blue);
+                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.DarkGray, Color.Blue, Color.DarkGray, Color.Blue, Color.Gray);
+                    menuColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.White, Color.Black, Color.BrightYellow, Color.Black, Color.BrightYellow, Color.DarkGray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.White, Color.White, Color.Red, Color.Black, Color.Red, Color.Black, Color.White);
+                    break;
+                }
+                case Theme.Hacker:
+                {
+                    baseColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
+                    dialogColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
+                    menuColor = new ColorSchemeViewmodel(Color.Cyan, Color.Black, Color.BrightRed, Color.Black, Color.BrightGreen, Color.Black, Color.BrightGreen, Color.Black);
+                    errorColor = new ColorSchemeViewmodel(Color.BrightRed, Color.Black, Color.Red, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
+                    break;
+                }
+                case Theme.Default:
+                {
+                    baseColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.Black, Color.Gray, Color.Black, Color.Gray);
+                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    menuColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    break;
+                }
+            }
+        }
 
+        
         private int testPlanGridWidth = 75;
         [Unit("%")]
         [Display("Width", "The relative width of the Test Plan Grid. The Settings Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
@@ -130,61 +177,13 @@ namespace OpenTap.Tui
         [Display("Copy", Group: "Key Mapping")]
         public KeyEvent CopyKeyMap { get; set; }
         [Display("Paste", Group: "Key Mapping")]
-        public KeyEvent PasteKeyMap { get; set; } = new KeyEvent(Key.ControlV, new KeyModifiers{ Ctrl = true, Shift = true });
+        public KeyEvent PasteKeyMap { get; set; } = new KeyEvent(Key.V | Key.CtrlMask, new KeyModifiers{ Ctrl = true, Shift = true });
         [Display("Insert Step", Group: "Key Mapping")]
-        public KeyEvent InsertStepKeyMap { get; set; } = new KeyEvent(Key.ControlT, new KeyModifiers{ Ctrl = true, Shift = true });
+        public KeyEvent InsertStepKeyMap { get; set; } = new KeyEvent(Key.T | Key.CtrlMask, new KeyModifiers{ Ctrl = true, Shift = true });
         [Display("Add New Step", Group: "Key Mapping")]
-        public KeyEvent AddStepKeyMap { get; set; } = new KeyEvent(Key.ControlC, new KeyModifiers{ Ctrl = true });
+        public KeyEvent AddStepKeyMap { get; set; } = new KeyEvent(Key.C | Key.CtrlMask, new KeyModifiers{ Ctrl = true });
         [Display("Menu", Group: "Key Mapping")]
         public KeyEvent MenuKeyMap { get; set; } = new KeyEvent(Key.F9, new KeyModifiers());
-
-
-        private void SetTheme()
-        {
-            switch (Theme)
-            {
-                case Theme.Dark:
-                {
-                    baseColor = new ColorSchemeViewmodel(Color.Gray, Color.Black, Color.White, Color.DarkGray, Color.Gray, Color.Black, Color.Gray, Color.Black);
-                    dialogColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
-                    menuColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
-                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.DarkGray, Color.Black, Color.Gray, Color.BrightRed, Color.Gray, Color.BrightRed, Color.DarkGray);
-                    break;
-                }
-                case Theme.Light:
-                {
-                    baseColor = new ColorSchemeViewmodel(Color.Black, Color.White, Color.Black, Color.Gray, Color.Black, Color.Gray, Color.Black, Color.Gray);
-                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
-                    menuColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
-                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
-                    break;
-                }
-                case Theme.Blue:
-                {
-                    baseColor = new ColorSchemeViewmodel(Color.White, Color.Blue, Color.Black, Color.Gray, Color.Blue, Color.Gray, Color.Cyan, Color.Blue);
-                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.DarkGray, Color.Blue, Color.DarkGray, Color.Blue, Color.Gray);
-                    menuColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.White, Color.Black, Color.BrightYellow, Color.Black, Color.BrightYellow, Color.DarkGray);
-                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.White, Color.White, Color.Red, Color.Black, Color.Red, Color.Black, Color.White);
-                    break;
-                }
-                case Theme.Hacker:
-                {
-                    baseColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
-                    dialogColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
-                    menuColor = new ColorSchemeViewmodel(Color.Cyan, Color.Black, Color.BrightRed, Color.Black, Color.BrightGreen, Color.Black, Color.BrightGreen, Color.Black);
-                    errorColor = new ColorSchemeViewmodel(Color.BrightRed, Color.Black, Color.Red, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
-                    break;
-                }
-                case Theme.Default:
-                {
-                    baseColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.Black, Color.Gray, Color.Black, Color.Gray);
-                    dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
-                    menuColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
-                    errorColor = new ColorSchemeViewmodel(Color.Red, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
-                    break;
-                }
-            }
-        }
 
         private void SetKeyMapProfile()
         {
@@ -192,9 +191,9 @@ namespace OpenTap.Tui
             {
                 case KeyMapProfiles.Normal:
                 {
-                    CopyKeyMap = new KeyEvent(Key.ControlC, new KeyModifiers{ Shift = true });
-                    PasteKeyMap = new KeyEvent(Key.ControlV, new KeyModifiers{ Shift = true });
-                    AddStepKeyMap = new KeyEvent(Key.ControlT, new KeyModifiers{ Ctrl = true });
+                    CopyKeyMap = new KeyEvent(Key.C | Key.CtrlMask, new KeyModifiers{ Shift = true });
+                    PasteKeyMap = new KeyEvent(Key.V | Key.CtrlMask, new KeyModifiers{ Shift = true });
+                    AddStepKeyMap = new KeyEvent(Key.T | Key.CtrlMask, new KeyModifiers{ Ctrl = true });
                     MenuKeyMap = new KeyEvent(Key.F9, new KeyModifiers());
                     break;
                 }
@@ -206,17 +205,19 @@ namespace OpenTap.Tui
             if (keyEvent.KeyValue != keyMap.KeyValue)
                 return false;
 
-            if (keyEvent.KeyValue >= 1 && keyEvent.KeyValue <= 26) // CTRL is pressed
-                keyEvent.keyModifiers.Ctrl = true;
-
-            if (KeyEventSerializer.fromModifiers(keyEvent.keyModifiers) != KeyEventSerializer.fromModifiers(keyMap.keyModifiers))
-                return false;
+            // if (keyEvent.KeyValue >= 1 && keyEvent.KeyValue <= 26) // CTRL is pressed
+            //     keyEvent.keyModifiers.Ctrl = true;
+            //
+            // if (KeyEventSerializer.fromModifiers(keyEvent.keyModifiers) != KeyEventSerializer.fromModifiers(keyMap.keyModifiers))
+            //     return false;
 
             return true;
         }
         
         public TuiSettings()
         {
+            TestColor = new ColorScheme();
+            
             KeyMapProfile = KeyMapProfiles.Normal;
             SetKeyMapProfile();
 

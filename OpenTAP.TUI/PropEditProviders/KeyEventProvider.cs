@@ -68,10 +68,10 @@ namespace OpenTap.Tui.PropEditProviders
                 var modifier = new XElement("Modifiers");
                 bool keyok = Serializer.Serialize(key, keyEvent.Key, TypeData.FromType(typeof(Key)));
                 
-                if (keyEvent.KeyValue >= 1 && keyEvent.KeyValue <= 26) // CTRL is pressed
-                    keyEvent.keyModifiers.Ctrl = true;
-                
-                modifier.Value = fromModifiers(keyEvent.keyModifiers);
+                // if (keyEvent.KeyValue >= 1 && keyEvent.KeyValue <= 26) // CTRL is pressed
+                //     keyEvent.keyModifiers.Ctrl = true;
+                //
+                // modifier.Value = fromModifiers(keyEvent.keyModifiers);
                 if (!keyok)
                     return false;
                 node.Add(key);
