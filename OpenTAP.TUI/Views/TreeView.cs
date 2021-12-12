@@ -29,16 +29,12 @@ namespace OpenTap.Tui
         {
             this.getTitle = getTitle;
             this.getGroups = getGroups;
-
-            CanFocus = true;
         }
         public TreeView(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent)
         {
             this.getTitle = getTitle;
             this.getChildren = getChildren;
             this.getParent = getParent;
-
-            CanFocus = true;
         }
 
         private TreeViewNode<T> GetNodeFromItem(T item)
@@ -189,6 +185,7 @@ namespace OpenTap.Tui
             if (items == null)
                 return;
 
+            // Render all items
             var list = new List<TreeViewNode<T>>();
             if (getGroups != null)
                 list = GetItemsToRenderWithGroup(noCache);
@@ -198,21 +195,24 @@ namespace OpenTap.Tui
                     list.AddRange(GetItemsToRender(item, noCache));
             }
 
+            // Filter the list
             if (string.IsNullOrEmpty(Filter) == false)
                 renderedItems = list.Where(i => i.Title.ToLower().Contains(Filter.ToLower())).ToList();
             else
                 renderedItems = list;
             
+            // Save old selected indexes to keep layout
             var index = SelectedItem;
             var oldTop = TopItem;
             SetSource(renderedItems);
             
-            // can select next item
+            // check if the saved selected index can still be used
             if (index >= renderedItems.Count)
                 SelectedItem = renderedItems.Count - 1;
             else
                 SelectedItem = index;
 
+            // check if the saved top index can still be used
             if (renderedItems.Count == 0)
                 TopItem = 0;
             else if (oldTop > 0 && oldTop >= renderedItems.Count)
@@ -225,7 +225,7 @@ namespace OpenTap.Tui
         
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft)
+            if (renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
             {
                 var selectedNode = renderedItems[SelectedItem];
                 if (selectedNode.Children.Any())

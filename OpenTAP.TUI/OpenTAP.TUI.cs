@@ -45,7 +45,7 @@ namespace OpenTap.Tui
             if (keyEvent.IsShift == false && (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView && this.IsTopActive())))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
-                    Application.Shutdown();
+                    Application.RequestStop();
                 return true;
             }
 
