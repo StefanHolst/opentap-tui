@@ -6,27 +6,18 @@ namespace OpenTap.Tui.Views
 {
     public class HelperButtons : View
     {
-        private static HelperButtons instance = null;
-        private static List<MenuItem> actions = null;
+        private static View Owner = null;
+        private List<MenuItem> actions = null;
         
-        public HelperButtons()
+        public void SetActions(List<MenuItem> actions, View owner)
         {
-            instance = this;
-        }
-
-        public static void SetActions(List<MenuItem> actions)
-        {
-            if (instance == null)
-                return;
-            instance.RemoveAll();
+            Owner = owner;
+            RemoveAll();
             
             int offset = 0;
             for (int i = 0; i < actions.Count; i++)
             {
                 var item = actions[i];
-                if (item.IsEnabled() == false)
-                    continue;
-                
                 var title = $"F{i + 5} {item.Title}";
                 var b = new Button(title)
                 {
@@ -34,16 +25,16 @@ namespace OpenTap.Tui.Views
                     HotKeySpecifier = 0xFFFF // Disable hotkey
                 };
                 b.Clicked += item.Action;
+                b.Visible = item.IsEnabled();
                 
-                instance.Add(b);
+                Add(b);
                 offset += title.Length + 4;
             }
 
-            HelperButtons.actions = actions;
-            instance.SetNeedsDisplay();
+            this.actions = actions;
         }
 
-        public override bool ProcessKey(KeyEvent keyEvent)
+        public override bool ProcessHotKey(KeyEvent keyEvent)
         {
             var keyValue = keyEvent.KeyValue - (int) Key.F5;
             if (keyValue <= 4 && keyValue >= 0 && actions.Count > keyValue)
@@ -51,9 +42,10 @@ namespace OpenTap.Tui.Views
                 var action = actions[keyValue];
                 if (action.IsEnabled())
                     action.Action.Invoke();
+                return true;
             }
             
-            return base.ProcessKey(keyEvent);
+            return base.ProcessHotKey(keyEvent);
         }
     }
 }

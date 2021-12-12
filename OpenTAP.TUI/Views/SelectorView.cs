@@ -1,45 +1,41 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.Views
 {
-    public class SelectorView : View
+    public class SelectorView : ListView
     {
-        private Label titleView;
-        private ListView optionsView;
-        
-        public SelectorView(string title, List<string> availableOptions)
+        public Action<ListViewItemEventArgs> ItemMarkedChanged;
+        public SelectorView()
         {
-            titleView = new Label(title)
-            {
-                Y = 1
-            };
-            
-            optionsView = new ListView(availableOptions)
-            {
-                Width = Dim.Fill(),
-                X = Pos.Right(titleView),
-                Height = 3,
-                AllowsMarking = true
-            };
-            optionsView.Source.SetMark(0, true);
-
-            if (availableOptions.Count < 3)
-                optionsView.Y = 1;
-            
-            Add(titleView);
-            Add(optionsView);
+            AllowsMarking = true;
+            AllowsMultipleSelection = true;
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
+            var handled = base.ProcessKey(keyEvent);
             if (keyEvent.Key == Key.Space)
             {
-                for (int i = 0; i < optionsView.Source.Count; i++)
-                    optionsView.Source.SetMark(i, false);
+                ItemMarkedChanged?.Invoke(new ListViewItemEventArgs(SelectedItem, Source.ToList()[SelectedItem]));
+            }
+
+            return handled;
+        }
+
+        public List<object> MarkedItems()
+        {
+            var sourceList = Source.ToList();
+            var list = new List<object>();
+            for (var i = 0; i < Source.Count; i++)
+            {
+                if (Source.IsMarked(i))
+                    list.Add(sourceList[i]);
             }
             
-            return base.ProcessKey(keyEvent);
+            return list;
         }
     }
 }

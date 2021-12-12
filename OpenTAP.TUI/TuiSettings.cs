@@ -17,6 +17,7 @@ namespace OpenTap.Tui
             {
                 theme = value;
                 SetTheme();
+                LoadSettings();
                 OnPropertyChanged(nameof(Theme));
             }
         }
@@ -71,9 +72,45 @@ namespace OpenTap.Tui
 
         [Display("Use Log Level Colors", Group: "Colors", Order: 2)]
         public bool UseLogColors { get; set; } = true;
-        
+
         [Display("Restore Colors", Group: "Colors", Order: 3)]
         public Action Reset { get; set; }
+
+
+        private int testPlanGridWidth = 75;
+        [Unit("%")]
+        [Display("Width", "The relative width of the Test Plan Grid. The Settings Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
+        public int TestPlanGridWidth
+        {
+            get => testPlanGridWidth;
+            set
+            {
+                if (value >= 15 && value <= 85)
+                {
+                    testPlanGridWidth = value;
+                    OnPropertyChanged("Size");
+                }
+            }
+        }
+
+        private int testPlanGridHeight = 70;
+        [Unit("%")]
+        [Display("Height", "The relative height of the Test Plan Grid. The Log Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
+        public int TestPlanGridHeight
+        {
+            get => testPlanGridHeight;
+            set
+            {
+                if (value >= 15 && value <= 85)
+                {
+                    testPlanGridHeight = value;
+                    OnPropertyChanged("Size");
+                }
+            }
+        }
+
+        [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
+        public Action ResetSize { get; set; }
 
 
         private KeyMapProfiles keyMapProfiles;
@@ -100,7 +137,8 @@ namespace OpenTap.Tui
         public KeyEvent AddStepKeyMap { get; set; } = new KeyEvent(Key.ControlC, new KeyModifiers{ Ctrl = true });
         [Display("Menu", Group: "Key Mapping")]
         public KeyEvent MenuKeyMap { get; set; } = new KeyEvent(Key.F9, new KeyModifiers());
-        
+
+
         private void SetTheme()
         {
             switch (Theme)
@@ -181,14 +219,21 @@ namespace OpenTap.Tui
         {
             KeyMapProfile = KeyMapProfiles.Normal;
             SetKeyMapProfile();
-            
-            if (baseColor == null)
-                SetTheme();
-            
+
+            // make sure a default theme is configured.
+            // normally this will be overwritten when the 
+            // settings are loaded from XML.
+            Theme = Theme.Default;
+            SetTheme();
             Reset += () =>
             {
                 Theme = Theme.Default;
                 SetTheme();
+            };
+            ResetSize += () =>
+            {
+                TestPlanGridHeight = 70;
+                TestPlanGridWidth = 75;
             };
         }
 
@@ -201,16 +246,9 @@ namespace OpenTap.Tui
             Colors.Dialog = DialogColor.ToColorScheme();
             Colors.Error = ErrorColor.ToColorScheme();
             Colors.Menu = MenuColor.ToColorScheme();
+            // Colors.TopLevel = baseColor.ToColorScheme();
             
-            foreach (var view in Application.Top.Subviews)
-            {
-                if (view is Toplevel)
-                    view.ColorScheme = Colors.Base;
-                if (view is MenuBar)
-                    view.ColorScheme = Colors.Menu;
-            }
-            
-            Application.Refresh();
+            Application.RefreshColorSchemes();
         }
     }
 

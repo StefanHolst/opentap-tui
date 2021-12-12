@@ -21,12 +21,24 @@ namespace OpenTap.Tui.PropEditProviders
             
             var enabled = members[enabledIndex];
             var value = members[enabledIndex == 0 ? 1 : 0];
-            var check = new CheckBox("", (bool)enabled.Get<IObjectValueAnnotation>().Value);
+            var check = new CheckBox(annotation.Get<DisplayAttribute>().Name, enabled.Get<IObjectValueAnnotation>()?.Value != null && (bool)enabled.Get<IObjectValueAnnotation>().Value);
+            
+            var viewbox = new View();
+            viewbox.Add(check);
+            
+            var valuebox = PropEditProvider.GetProvider(value, out var _);
+            if (valuebox == null) return null;
+            valuebox.Y = Pos.Bottom(check) + 1;
+            valuebox.Width = Dim.Fill();
+            valuebox.Enabled = check.Checked;
+            viewbox.Add(valuebox);
+            
             check.Toggled += b => 
             {
                 try
                 {
                     enabled.Get<IObjectValueAnnotation>().Value = check.Checked;
+                    valuebox.Enabled = check.Checked;
                 }
                 catch (Exception exception)
                 {
@@ -34,14 +46,7 @@ namespace OpenTap.Tui.PropEditProviders
                     TUI.Log.Debug(exception);
                 }
             };
-            var viewbox = new View();
             
-            var valuebox = PropEditProvider.GetProvider(value, out var _);
-            if (valuebox == null) return null;
-            viewbox.Add(check);
-            valuebox.X = Pos.Right(check);
-            valuebox.Width = Dim.Fill();
-            viewbox.Add(valuebox);
             return viewbox;
         }
     }
