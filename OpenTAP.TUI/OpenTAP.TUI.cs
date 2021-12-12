@@ -45,7 +45,7 @@ namespace OpenTap.Tui
             if (keyEvent.IsShift == false && (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView && this.IsTopActive())))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
-                    Application.Shutdown();
+                    Application.RequestStop();
                 return true;
             }
 
@@ -80,15 +80,8 @@ namespace OpenTap.Tui
                 return true;
             }
             
-            if (keyEvent.Key == Key.Esc && MostFocused is TestPlanView == false && this.IsTopActive())
-            {
-                FocusPrev();
-                return true;
-            }
-
             if (keyEvent.Key == (Key.S | Key.CtrlMask))
                 return TestPlanView.ProcessKey(keyEvent);
-
 
             if (helperButtons.ProcessKey(keyEvent) == true)
                 return true;
@@ -109,8 +102,15 @@ namespace OpenTap.Tui
 
         public override int TuiExecute(CancellationToken cancellationToken)
         {
-            TestPlanView = new TestPlanView();
-            StepSettingsView = new PropertiesView();
+            var gridWidth = TuiSettings.Current.TestPlanGridWidth;
+            var gridHeight = TuiSettings.Current.TestPlanGridHeight;
+            TestPlanView = new TestPlanView()
+            {
+                Y = 1,
+                Width = Dim.Percent(gridWidth),
+                Height = Dim.Percent(gridHeight)
+            };
+            StepSettingsView = new PropertiesView(true);
             
             var filemenu = new MenuBarItem("_File", new MenuItem[]
             {
@@ -229,33 +229,24 @@ namespace OpenTap.Tui
             win.Add(menu);
 
             // Add testplan view
-            var gridWidth = TuiSettings.Current.TestPlanGridWidth;
-            var gridHeight = TuiSettings.Current.TestPlanGridHeight;
-            var testPlanFrame = new FrameView("Test Plan")
-            {
-                Y = 1,
-                Width = Dim.Percent(gridWidth),
-                Height = Dim.Percent(gridHeight)
-            };
-            testPlanFrame.Add(TestPlanView);
-            TestPlanView.TestPlanFrame = testPlanFrame;
-            win.Add(testPlanFrame);
+            win.Add(TestPlanView);
 
             // Add step settings view
             var settingsFrame = new FrameView("Settings")
             {
-                X = Pos.Right(testPlanFrame),
+                X = Pos.Right(TestPlanView),
                 Y = 1,
                 Width = Dim.Fill(),
-                Height = Dim.Height(testPlanFrame)
+                Height = Dim.Height(TestPlanView)
             };
+            StepSettingsView.TreeViewFilterChanged += (filter) => { settingsFrame.Title = string.IsNullOrEmpty(filter) ? "Settings" : $"Settings - {filter}"; };
             settingsFrame.Add(StepSettingsView);
             win.Add(settingsFrame);
 
             // Add log panel
             LogFrame = new FrameView("Log Panel")
             {
-                Y = Pos.Bottom(testPlanFrame),
+                Y = Pos.Bottom(TestPlanView),
                 Width = Dim.Fill(),
                 Height = Dim.Fill(1)
             };
@@ -269,27 +260,27 @@ namespace OpenTap.Tui
                 if (args.PropertyName == "Size")
                 {
                     var s = TuiSettings.Current;
-                    testPlanFrame.Width = Dim.Percent(s.TestPlanGridWidth);
-                    testPlanFrame.Height = Dim.Percent(s.TestPlanGridHeight);
+                    TestPlanView.Width = Dim.Percent(s.TestPlanGridWidth);
+                    TestPlanView.Height = Dim.Percent(s.TestPlanGridHeight);
                 }
             };
 
             // Update StepSettingsView when TestPlanView changes selected step
-            TestPlanView.SelectedItemChanged += args =>
+            TestPlanView.SelectionChanged += args =>
             {
-                if (args?.Value is TestPlan)
+                if (args is TestPlan)
                 {
                     StepSettingsView.LoadProperties(TestPlanView.Plan);
                     StepSettingsView.FocusFirst();
                 }
                 else
-                    StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                    StepSettingsView.LoadProperties(args);
             };
             
             // Update testplanview when step settings are changed
             StepSettingsView.PropertiesChanged += () =>
             {
-                TestPlanView.Update();
+                TestPlanView.Update(true);
             };
             
             // Load plan from args
@@ -304,9 +295,7 @@ namespace OpenTap.Tui
                         plan.Save(path);
                     }
 
-                    TestPlanView.Plan = TestPlan.Load(path);
-                    TestPlanView.Update();
-                    StepSettingsView.LoadProperties(TestPlanView.SelectedStep);
+                    TestPlanView.LoadTestPlan(path);
                 }
                 catch
                 {

@@ -51,6 +51,10 @@ namespace OpenTap.Tui.Windows
             {
                 detailsView.LoadPackage(versions?[args.Item], installation, installedOpentap);
             };
+            versionsView.MarkUnmarkChanged += (marked, item) =>
+            {
+                installButton.Text = marked && versions[item].Version == installedVersion?.Version ? "Uninstall" : "Install";
+            };
             // UpdateVersions();
             
             // Versions frame
@@ -202,15 +206,25 @@ namespace OpenTap.Tui.Windows
         List<PackageViewModel> GetVersions()
         {
             var list = new List<PackageViewModel>();
+            var semvers = new HashSet<SemanticVersion>();
             
-            foreach (var repository in PackageManagerSettings.Current.Repositories)
+            var repos = PackageManagerSettings.Current.Repositories.Where(r => r.IsEnabled).OrderByDescending(r => r.Manager is FilePackageRepository);
+            foreach (var repository in repos)
             {
-                if (repository.IsEnabled == false)
-                    continue;
+                List<PackageViewModel> _list = new List<PackageViewModel>();
                 if (repository.Manager is HttpPackageRepository httpRepository)
-                    list.AddRange(GetHttpPackages(httpRepository));
+                    _list = GetHttpPackages(httpRepository);
                 else if (repository.Manager is FilePackageRepository fileRepository)
-                    list.AddRange(GetFilePackages(fileRepository));
+                    _list = GetFilePackages(fileRepository);
+
+                foreach (var pm in _list)
+                {
+                    if (semvers.Contains(pm.Version) == false)
+                    {
+                        list.Add(pm);
+                        semvers.Add(pm.Version);
+                    }
+                }
             }
 
             return list;
@@ -285,9 +299,6 @@ namespace OpenTap.Tui.Windows
         
         public override bool ProcessKey (KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Space)
-                installButton.Text = versions[versionsView.SelectedItem].Version == installedVersion?.Version ? "Uninstall" : "Install";
-            
             if (keyEvent.Key == Key.Esc)
             {
                 Running = false;
