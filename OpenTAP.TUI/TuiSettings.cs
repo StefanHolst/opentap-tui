@@ -1,5 +1,5 @@
 using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using OpenTap.Tui.PropEditProviders;
 using Terminal.Gui;
 
@@ -159,72 +159,19 @@ namespace OpenTap.Tui
         [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
         public Action ResetSize { get; set; }
 
+        [Display("Map", Group: "Key Mapping")]
+        [FixedSize]
+        public List<KeyMap> KeyMap { get; set; } = new List<KeyMap>();
+        [Display("Restore Key map", Group: "Key Mapping")]
+        public Action ResetKeyMapping { get; set; }
 
-        private KeyMapProfiles keyMapProfiles;
-
-        [Display("Profile", Group: "Key Mapping")]
-        public KeyMapProfiles KeyMapProfile
-        {
-            get => keyMapProfiles;
-            set
-            {
-                keyMapProfiles = value;
-                SetKeyMapProfile();
-                OnPropertyChanged(nameof(KeyMapProfile));
-            }
-        }
-
-        [Display("Copy", Group: "Key Mapping")]
-        public KeyEvent CopyKeyMap { get; set; }
-        [Display("Paste", Group: "Key Mapping")]
-        public KeyEvent PasteKeyMap { get; set; } = new KeyEvent(Key.V | Key.CtrlMask, new KeyModifiers{ Ctrl = true, Shift = true });
-        [Display("Insert Step", Group: "Key Mapping")]
-        public KeyEvent InsertStepKeyMap { get; set; } = new KeyEvent(Key.T | Key.CtrlMask, new KeyModifiers{ Ctrl = true, Shift = true });
-        [Display("Add New Step", Group: "Key Mapping")]
-        public KeyEvent AddStepKeyMap { get; set; } = new KeyEvent(Key.C | Key.CtrlMask, new KeyModifiers{ Ctrl = true });
-        [Display("Menu", Group: "Key Mapping")]
-        public KeyEvent MenuKeyMap { get; set; } = new KeyEvent(Key.F9, new KeyModifiers());
-
-        private void SetKeyMapProfile()
-        {
-            switch (KeyMapProfile)
-            {
-                case KeyMapProfiles.Normal:
-                {
-                    CopyKeyMap = new KeyEvent(Key.C | Key.CtrlMask, new KeyModifiers{ Shift = true });
-                    PasteKeyMap = new KeyEvent(Key.V | Key.CtrlMask, new KeyModifiers{ Shift = true });
-                    AddStepKeyMap = new KeyEvent(Key.T | Key.CtrlMask, new KeyModifiers{ Ctrl = true });
-                    MenuKeyMap = new KeyEvent(Key.F9, new KeyModifiers());
-                    break;
-                }
-            }
-        }
-
-        public bool IsKeyMap(KeyEvent keyEvent, KeyEvent keyMap)
-        {
-            if (keyEvent.KeyValue != keyMap.KeyValue)
-                return false;
-
-            // if (keyEvent.KeyValue >= 1 && keyEvent.KeyValue <= 26) // CTRL is pressed
-            //     keyEvent.keyModifiers.Ctrl = true;
-            //
-            // if (KeyEventSerializer.fromModifiers(keyEvent.keyModifiers) != KeyEventSerializer.fromModifiers(keyMap.keyModifiers))
-            //     return false;
-
-            return true;
-        }
-        
         public TuiSettings()
         {
-            TestColor = new ColorScheme();
-            
-            KeyMapProfile = KeyMapProfiles.Normal;
-            SetKeyMapProfile();
-
             // make sure a default theme is configured.
             // normally this will be overwritten when the 
             // settings are loaded from XML.
             Theme = Theme.Default;
+            KeyMap = KeyMapHelper.DefaultKeys;
             SetTheme();
             Reset += () =>
             {
@@ -235,6 +182,10 @@ namespace OpenTap.Tui
             {
                 TestPlanGridHeight = 70;
                 TestPlanGridWidth = 75;
+            };
+            ResetKeyMapping += () =>
+            {
+                KeyMap = KeyMapHelper.DefaultKeys;
             };
         }
 
@@ -260,13 +211,6 @@ namespace OpenTap.Tui
         Dark,
         Light,
         Hacker
-    }
-
-    public enum KeyMapProfiles
-    {
-        Normal,
-        Vim,
-        Emacs
     }
     
     public class ColorSchemeViewmodel

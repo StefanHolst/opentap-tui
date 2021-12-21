@@ -58,15 +58,7 @@ namespace OpenTap.Tui.Views
             });
             actions.Add(runAction);
             actions.Add(new MenuItem("Insert New Step", "", showAddStep));
-            insertAction = new MenuItem("Insert New Step Child", "", () =>
-            {
-                var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
-                Application.Run(newStep);
-                if (newStep.PluginType != null)
-                {
-                    InsertNewChildStep(newStep.PluginType);
-                }
-            });
+            insertAction = new MenuItem("Insert New Step Child", "", showInsertStep);
             insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
             actions.Add(insertAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
@@ -210,11 +202,17 @@ namespace OpenTap.Tui.Views
             var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
             Application.Run(newStep);
             if (newStep.PluginType != null)
-            {
                 AddNewStep(newStep.PluginType);
-            }
         }
 
+        private void showInsertStep()
+        {
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+            Application.Run(newStep);
+            if (newStep.PluginType != null)
+                InsertNewChildStep(newStep.PluginType);
+        }
+        
         private TapThread testPlanThread;
         private void AbortTestPlan()
         {
@@ -331,25 +329,35 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if (kb.Key == (Key.S | Key.CtrlMask))
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Save))
             {
-                SaveTestPlan(kb.IsShift ? null : Plan.Path);
+                SaveTestPlan(Plan.Path);
+                return true;
+            }
+            if (KeyMapHelper.IsKey(kb, KeyTypes.SaveAs))
+            {
+                SaveTestPlan(null);
                 return true;
             }
 
-            if (kb.Key == (Key.O | Key.CtrlMask))
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Open))
             {
                 LoadTestPlan();
                 return true;
             }
 
-            if (kb.Key == (Key.T | Key.CtrlMask))
+            if (KeyMapHelper.IsKey(kb, KeyTypes.AddNewStep))
             {
                 showAddStep();
                 return true;
             }
+            if (KeyMapHelper.IsKey(kb, KeyTypes.InsertNewStep) && treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
+            {
+                showInsertStep();
+                return true;
+            }
 
-            if (kb.IsShift && kb.Key == (Key.C|Key.CtrlMask) || (kb.KeyValue == 67 || kb.KeyValue == 'C'))
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Copy))
             {
                 // Copy
                 var copyStep = treeView.SelectedObject;
@@ -361,7 +369,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
 
-            if ((kb.IsShift && kb.Key == (Key.V|Key.CtrlMask) || (kb.KeyValue == 86 || kb.KeyValue == 'V')) && Clipboard.Contents != null && treeView.SelectedObject != null) // 86 = V
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Paste) && Clipboard.Contents != null && treeView.SelectedObject != null) // 86 = V
             {
                 // Paste
                 var toItem = treeView.SelectedObject;

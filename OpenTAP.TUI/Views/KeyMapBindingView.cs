@@ -18,13 +18,15 @@ namespace OpenTap.Tui.Views
 
             CurrentKeyText = new TextView
             {
-                Text = $"Current key: {currentKeyMap}"
+                Text = $"Current key: {currentKeyMap}",
+                CanFocus = false
             };
             Add(CurrentKeyText);
 
             NewKeyText = new TextView()
             {
-                Y = 1
+                Y = 1,
+                CanFocus = false
             };
             Add(NewKeyText);
         }

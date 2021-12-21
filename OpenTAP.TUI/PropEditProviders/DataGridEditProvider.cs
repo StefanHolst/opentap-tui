@@ -5,6 +5,7 @@ using System.Linq;
 using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
+using Attribute = System.Attribute;
 
 namespace OpenTap.Tui.PropEditProviders
 {
@@ -94,9 +95,11 @@ namespace OpenTap.Tui.PropEditProviders
             var collectionAnnotation = annotation.Get<ICollectionAnnotation>();
             if (collectionAnnotation == null) return null;
             if (annotation.Get<ReadOnlyMemberAnnotation>() != null) return null;
-            var fixedSize = annotation.Get<IFixedSizeCollectionAnnotation>()?.IsFixedSize ?? false;
             var isReadOnly = annotation.Get<IAccessAnnotation>()?.IsReadOnly == true;
-
+            var fixedSize = annotation.Get<IFixedSizeCollectionAnnotation>()?.IsFixedSize ?? false;
+            if (fixedSize == false)
+                fixedSize = annotation.Get<IMemberAnnotation>()?.Member.Attributes.Any(a => a is FixedSizeAttribute) ?? false;
+            
             var items = collectionAnnotation.AnnotatedElements.ToArray();
             bool placeholderElementAdded = false;
             
@@ -135,7 +138,7 @@ namespace OpenTap.Tui.PropEditProviders
 
             tableView.CellActivated += args =>
             {
-                if (isReadOnly || args.Row > items.Length)
+                if (isReadOnly || args.Row > items.Length || args.Row < 0)
                     return;
 
                 var item = items[args.Row];
@@ -218,7 +221,7 @@ namespace OpenTap.Tui.PropEditProviders
                 tableView.Update();
                 helperButtons.SetActions(actions, viewWrapper);
                 Application.Refresh();
-            }));
+            }, () => fixedSize == false));
             actions.Add(new MenuItem("Remove Row", "", () =>
             {
                 var index = tableView.SelectedRow;
@@ -233,7 +236,7 @@ namespace OpenTap.Tui.PropEditProviders
                 tableView.Update();
                 helperButtons.SetActions(actions, viewWrapper);
                 Application.Refresh();
-            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length));
+            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false));
             helperButtons.SetActions(actions, viewWrapper);
             
             return viewWrapper;
@@ -280,5 +283,10 @@ namespace OpenTap.Tui.PropEditProviders
             return typeof(object);
         }
 
+    }
+
+    public class FixedSizeAttribute : Attribute
+    {
+        
     }
 }
