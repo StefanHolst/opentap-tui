@@ -8,6 +8,7 @@ using OpenTap.Plugins.BasicSteps;
 using OpenTap.Tui.Annotations;
 using OpenTap.Tui.Views;
 using Terminal.Gui;
+using Terminal.Gui.Graphs;
 
 namespace OpenTap.Tui.Windows
 {
@@ -15,7 +16,8 @@ namespace OpenTap.Tui.Windows
     {
         private PropertiesView propsView;
         private FrameView plotFrame;
-        private PlotView plotView;
+        private GraphView graphView;
+        // private PlotView plotView;
         private HelperButtons helperButtons;
         private List<IRunViewModel> runs;
         private int selectedIndex = 0;
@@ -33,12 +35,17 @@ namespace OpenTap.Tui.Windows
                 Width = Dim.Percent(75),
                 Height = Dim.Fill(1)
             };
-            plotView = new PlotView(Settings)
+            graphView = new GraphView()
             {
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
             };
-            plotFrame.Add(plotView);
+            // plotView = new PlotView(Settings)
+            // {
+            //     Width = Dim.Fill(),
+            //     Height = Dim.Fill()
+            // };
+            plotFrame.Add(graphView);
             Add(plotFrame);
             
             // Add props view
@@ -80,15 +87,31 @@ namespace OpenTap.Tui.Windows
 
         void PlotResults()
         {
-            plotView.Reset();
-            if (Settings.ResultNames.Any() == false)
-                return;
+            graphView.Reset ();
+
             
             var plots = Settings.GetPlots();
             foreach (var plot in plots)
-                plotView.Plot(plot);
+            {
+                var scatterSeries = new ScatterSeries();
+                scatterSeries.Points = plot.PointFs;
+                graphView.Series.Add(scatterSeries);
+            }
             
-            plotFrame.Title = string.Join("  ", plotView.Legends);
+                
+                
+                
+                
+            //     
+            // plotView.Reset();
+            // if (Settings.ResultNames.Any() == false)
+            //     return;
+            //
+            // var plots = Settings.GetPlots();
+            // foreach (var plot in plots)
+            //     plotView.Plot(plot);
+            //
+            // plotFrame.Title = string.Join("  ", plotView.Legends);
             Title = string.Join(", ", Settings.ResultNames);
         }
         
@@ -151,28 +174,6 @@ namespace OpenTap.Tui.Windows
             
             return base.ProcessKey(keyEvent);
         }
-    }
-    [Display("Export Results")]
-    public class ExportDialogInput
-    {
-        public enum ExportSubmit
-        {
-            Ok = 1,
-            Cancel = 2,
-        }
-
-        [AvailableValues(nameof(AvailableExporters))]
-        public ITableExport Exporter { get; set; }
-
-        [Browsable(false)]
-        public List<ITableExport> AvailableExporters { get; set; }
-        
-        [FilePath(FilePathAttribute.BehaviorChoice.Save)]
-        public string Path { get; set; }
-        
-        [Submit]
-        [Layout(LayoutMode.FullRow | LayoutMode.FloatBottom, 1, 1000)]
-        public ExportSubmit Submit { get; set; } = ExportSubmit.Ok;
     }
     
     public class ChartSettings
@@ -328,6 +329,7 @@ namespace OpenTap.Tui.Windows
                         var x = Convert.ToDouble(xaxis.Data.GetValue(i));
                         var y = Convert.ToDouble(yaxis.Data.GetValue(i));
                         plot.Points[x] = y;
+                        plot.PointFs.Add(new PointF((float)x, (float)y));
                     }
                     list.Add(plot);
                 }

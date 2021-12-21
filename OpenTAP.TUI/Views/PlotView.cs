@@ -172,6 +172,7 @@ namespace OpenTap.Tui.Views
         public string XAxisTitle { get; set; }
         public string YAxisTitle { get; set; }
         public Dictionary<double, double> Points { get; set; }
+        public List<PointF> PointFs { get; set; }
         
         public Plot(string name, string xAxisTitle, string yAxisTitle)
         {
@@ -179,6 +180,7 @@ namespace OpenTap.Tui.Views
             XAxisTitle = xAxisTitle;
             YAxisTitle = yAxisTitle;
             Points = new Dictionary<double, double>();
+            PointFs = new List<PointF>();
         }
     }
 
