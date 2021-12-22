@@ -15,43 +15,30 @@ namespace OpenTap.Tui.Windows
     public class ResultsWindow : Window
     {
         private PropertiesView propsView;
-        private FrameView plotFrame;
         private GraphView graphView;
-        // private PlotView plotView;
         private HelperButtons helperButtons;
         private List<IRunViewModel> runs;
         private int selectedIndex = 0;
-        private ChartSettings Settings;
+        private ChartSettings settings;
 
         public ResultsWindow(List<IRunViewModel> runs)
         {
             Modal = true;
-            Settings = new ChartSettings(runs);
-            Settings.PropertyChanged += PlotResults;
+            settings = new ChartSettings(runs);
+            settings.PropertyChanged += PlotResults;
 
             // Add plot
-            plotFrame = new FrameView()
+            graphView = new GraphView()
             {
                 Width = Dim.Percent(75),
                 Height = Dim.Fill(1)
             };
-            graphView = new GraphView()
-            {
-                Width = Dim.Fill(),
-                Height = Dim.Fill()
-            };
-            // plotView = new PlotView(Settings)
-            // {
-            //     Width = Dim.Fill(),
-            //     Height = Dim.Fill()
-            // };
-            plotFrame.Add(graphView);
-            Add(plotFrame);
+            Add(graphView);
             
             // Add props view
             var settingsFrame = new FrameView("Plot Settings")
             {
-                X = Pos.Right(plotFrame),
+                X = Pos.Right(graphView),
                 Width = Dim.Fill(),
                 Height = Dim.Fill(1)
             };
@@ -61,58 +48,89 @@ namespace OpenTap.Tui.Windows
                 Height = Dim.Fill(),
                 DisableHelperButtons = true
             };
-            propsView.LoadProperties(Settings);
+            propsView.LoadProperties(settings);
             settingsFrame.Add(propsView);
             Add(settingsFrame);
             
             // Add helper buttons
             helperButtons = new HelperButtons()
             {
-                Y = Pos.Bottom(plotFrame)
+                Y = Pos.Bottom(graphView)
             };
             Add(helperButtons);
             
             // Add export action
             var actions = new List<MenuItem>();
             var exporters = TypeData.GetDerivedTypes<ITableExport>().ToList();
-            if (exporters.Any())
-            {
-                var exportAction = new MenuItem("Export", "", () => Export(exporters));
-                actions.Add(exportAction);
-            }
-            helperButtons.SetActions(actions, this);
+            var exportAction = new MenuItem("Export", "", () => Export(exporters));
+            exportAction.CanExecute += () => exporters.Any();
+            actions.Add(exportAction);
 
-            PlotResults();
+            var zoomAction = new MenuItem("Zoom", "", () => Zoom((float)0.8));
+            actions.Add(zoomAction);
+            var zoomOutAction = new MenuItem("Zoom", "", () => Zoom((float)1.25));
+            actions.Add(zoomOutAction);
+            
+            helperButtons.SetActions(actions, this);
+            helperButtons.CanFocus = false;
+
+            Loaded += PlotResults;
+        }
+
+        void Zoom(float factor)
+        {
+            graphView.CellSize = new PointF (
+                graphView.CellSize.X * factor,
+                graphView.CellSize.Y * factor
+            );
+
+            graphView.AxisX.Increment *= factor;
+            graphView.AxisY.Increment *= factor;
+
+            graphView.SetNeedsDisplay ();
         }
 
         void PlotResults()
         {
             graphView.Reset ();
+            
+            var plots = settings.GetPlots();
 
+            var series = plots.Select(p => p.Series).Where(s => s != null).ToList();
+            var plotAnnotations = plots.Select(p => p.PathAnnotation).Where(a => a != null).ToList();
             
-            var plots = Settings.GetPlots();
+            if (series.Any())
+                graphView.Series.AddRange(series);
+            if (plotAnnotations.Any())
+                graphView.Annotations.AddRange(plotAnnotations);
+
+            graphView.AxisX.Text = settings.XAxis.Name;
+            graphView.AxisY.Text = settings.YAxis.Name;
+
+            // Set offset in order to fit the data in view
+            var points = plots.SelectMany(p => p.Points).ToList();
+            var maxX = points.Max(p => p.X);
+            var maxY = points.Max(p => p.Y);
+            var width = graphView.Bounds.Width - 2;
+            var height = graphView.Bounds.Height - 2;
+            var factor = Math.Max(maxX / width, maxY / height);
+            graphView.CellSize = new PointF (
+                factor,
+                factor
+            );
+            graphView.AxisX.Increment = factor;
+            graphView.AxisY.Increment = factor;
+            graphView.MarginLeft = 1;
+            graphView.MarginBottom = 1;
+            
+            
+            // Add legends
+            var legend = new LegendAnnotation (new Rect (graphView.Bounds.Width - 20,0, 20, plots.Count + 2));
             foreach (var plot in plots)
-            {
-                var scatterSeries = new ScatterSeries();
-                scatterSeries.Points = plot.PointFs;
-                graphView.Series.Add(scatterSeries);
-            }
+                legend.AddEntry (new GraphCellToRender (plot.Fill.Rune), plot.Name);
+            graphView.Annotations.Add (legend);
             
-                
-                
-                
-                
-            //     
-            // plotView.Reset();
-            // if (Settings.ResultNames.Any() == false)
-            //     return;
-            //
-            // var plots = Settings.GetPlots();
-            // foreach (var plot in plots)
-            //     plotView.Plot(plot);
-            //
-            // plotFrame.Title = string.Join("  ", plotView.Legends);
-            Title = string.Join(", ", Settings.ResultNames);
+            Title = string.Join(", ", settings.ResultNames);
         }
         
         void Export(List<ITypeData> exporters)
@@ -125,10 +143,10 @@ namespace OpenTap.Tui.Windows
         
             if (request.Submit == ExportDialogInput.ExportSubmit.Ok && request.Exporter != null && request.Path != null)
             {
-                var plots = Settings.GetPlots();
-                var maxLength = plots.Max(p => p.Points.Values.Count);
+                var plots = settings.GetPlots();
+                var maxLength = plots.Max(p => p.Points.Count);
                 var exportingResult = new string[maxLength + 1][];
-            
+                
                 // Add headers
                 var headers = new List<string>();
                 for (int i = 0; i < plots.Count; i++)
@@ -146,14 +164,14 @@ namespace OpenTap.Tui.Windows
                     for (int j = 0; j < plots.Count; j++)
                     {
                         var plot = plots[j];
-                        if (plot.Points.Keys.Count <= i)
+                        if (plot.Points.Count <= i)
                             break;
-                        values.Add(plot.Points.Keys.ElementAt(i).ToString(NumberFormatInfo.CurrentInfo));
-                        values.Add(plot.Points.Values.ElementAt(i).ToString(NumberFormatInfo.CurrentInfo));
+                        values.Add(plot.Points[i].X.ToString(NumberFormatInfo.CurrentInfo));
+                        values.Add(plot.Points[i].Y.ToString(NumberFormatInfo.CurrentInfo));
                     }
                     exportingResult[i] = values.ToArray();
                 }
-            
+                
                 
                 request.Exporter.ExportTableValues(exportingResult, request.Path);
             }
@@ -173,172 +191,6 @@ namespace OpenTap.Tui.Windows
                 return true;
             
             return base.ProcessKey(keyEvent);
-        }
-    }
-    
-    public class ChartSettings
-    {
-        public Action PropertyChanged;
-        private Dictionary<string, List<IResultTable>> allSeries;
-        public ChartSettings(List<IRunViewModel> runs)
-        {
-            allSeries = runs.SelectMany(r => r.Series) // Join series from all runs
-                .GroupBy(s => s.Key) // Group all series by their name
-                .ToDictionary(g => g.Key, v => v.SelectMany(s => s.Value).ToList()); // Create a dictionary with name as key and series as value
-
-            foreach (var series in allSeries)
-                ResultNames.Add(series.Key);
-            foreach (var availableStepName in AvailableStepNames)
-                FilterStepName.Add(availableStepName);
-            
-            bool updatingResults = false;
-            FilterStepName.CollectionChanged += (sender, args) =>
-            {
-                if (updatingResults == false)
-                    PropertyChanged?.Invoke();
-            };
-            ResultNames.CollectionChanged += (sender, args) =>
-            {
-                updatingResults = true;
-                
-                FilterStepName.Clear();
-                foreach (var availableStepName in AvailableStepNames)
-                    FilterStepName.Add(availableStepName);
-                
-                updatingResults = false;
-                PropertyChanged?.Invoke();
-            };
-        }
-
-        public List<string> AvailableResults => allSeries.Select(s => s.Key).ToList();
-
-        [AvailableValues(nameof(AvailableResults))]
-        [Display("Result Names")]
-        public ObservableCollection<string> ResultNames { get; set; } = new ObservableCollection<string>();
-        
-        public List<string> AvailableStepNames => allSeries.Where(s => ResultNames.Contains(s.Key)).SelectMany(s => s.Value).Select(s => s.Parent.Name).Distinct().ToList();
-
-        [AvailableValues(nameof(AvailableStepNames))]
-        [Display("Step Name", Group: "Filter")]
-        public ObservableCollection<string> FilterStepName { get; set; } = new ObservableCollection<string>();
-        
-        public List<IResultColumn> AvailableResultColumns
-        {
-            get
-            {
-                var list = new List<IResultColumn>();
-                var results = allSeries.Where(s => ResultNames.Contains(s.Key)).SelectMany(s => s.Value).Where(s => FilterStepName.Contains(s.Parent.Name)).ToList();
-                foreach (var result in results)
-                {
-                    if (list.Any() == false)
-                        list.Add(new ResultColumn("[Index]", Enumerable.Range(0, result.Columns.FirstOrDefault()?.Data.Length ?? 0).ToArray()));
-                    
-                    foreach (var column in result.Columns)
-                        if (list.Any(r => r.Name == column.Name) == false)
-                            list.Add((column));
-                }
-                return list;
-            }
-        }
-        
-        private IResultColumn xAxis;
-        [Display("X-Axis", Group: "Plot Data")]
-        [AvailableValues(nameof(AvailableResultColumns))]
-        public IResultColumn XAxis
-        {
-            get
-            {
-                if (xAxis == null || AvailableResultColumns.Any(c => c.Name == xAxis.Name && IResultColumnAnnotation.CanConvertToDouble(c)) == false)
-                    xAxis = AvailableResultColumns.FirstOrDefault(IResultColumnAnnotation.CanConvertToDouble);
-                return xAxis;
-            }
-            set
-            {
-                xAxis = value;
-                PropertyChanged?.Invoke();
-            }
-        }
-
-        private IResultColumn yAxis;
-        [Display("Y-Axis", Group: "Plot Data")]
-        [AvailableValues(nameof(AvailableResultColumns))]
-        public IResultColumn YAxis
-        {
-            get
-            {
-                if (yAxis == null || AvailableResultColumns.Any(c => c.Name == xAxis.Name && IResultColumnAnnotation.CanConvertToDouble(c)) == false)
-                    yAxis = AvailableResultColumns.FirstOrDefault(c => IResultColumnAnnotation.CanConvertToDouble(c) && c.Name != xAxis.Name);
-                return yAxis;
-            }
-            set
-            {
-                yAxis = value;
-                PropertyChanged?.Invoke();
-            }
-        }
-
-        private bool logXAxis;
-        [Display("Log X-Axis", Group: "Plot Data")]
-        public bool LogXAxis
-        {
-            get => logXAxis;
-            set
-            {
-                logXAxis = value;
-                PropertyChanged?.Invoke();
-            }
-        }
-        private bool logYAxis;
-        [Display("Log Y-Axis", Group: "Plot Data")]
-        public bool LogYAxis
-        {
-            get => logYAxis;
-            set
-            {
-                logYAxis = value;
-                PropertyChanged?.Invoke();
-            }
-        }
-
-        
-        public List<Plot> GetPlots()
-        {
-            var list = new List<Plot>();
-            var results = allSeries.Where(s => ResultNames.Contains(s.Key)).SelectMany(s => s.Value).Where(s => FilterStepName.Contains(s.Parent.Name)).ToList();
-            foreach (var result in results)
-            {
-                IResultColumn xaxis;
-                if (XAxis.Name == "[Index]")
-                    xaxis = new ResultColumn("[Index]", Enumerable.Range(0, result.Columns.FirstOrDefault()?.Data.Length ?? 0).ToArray());
-                else
-                    xaxis = result.Columns.FirstOrDefault(c => XAxis.Name == c.Name);
-                IResultColumn yaxis;
-                if (YAxis.Name == "[Index]")
-                    yaxis = new ResultColumn("[Index]", Enumerable.Range(0, result.Columns.FirstOrDefault()?.Data.Length ?? 0).ToArray());
-                else
-                    yaxis = result.Columns.FirstOrDefault(c => YAxis.Name == c.Name);
-                
-                if (xaxis == null || yaxis == null)
-                    continue;
-                
-                try
-                {
-                    var plot = new Plot(result.Parent?.Name ?? result.Name, xaxis.Name, yaxis.Name);
-                    for (int i = 0; i < xaxis.Data.Length; i++)
-                    {
-                        var x = Convert.ToDouble(xaxis.Data.GetValue(i));
-                        var y = Convert.ToDouble(yaxis.Data.GetValue(i));
-                        plot.Points[x] = y;
-                        plot.PointFs.Add(new PointF((float)x, (float)y));
-                    }
-                    list.Add(plot);
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Query(10, 10, "Failed to Plot", "Failed to parse data to plot: " + e.Message);
-                }
-            }
-            return list;
         }
     }
 }
