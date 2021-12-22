@@ -80,10 +80,10 @@ namespace OpenTap.Tui
                 return true;
             }
             
-            if (keyEvent.Key == (Key.S | Key.CtrlMask))
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Save))
                 return TestPlanView.ProcessKey(keyEvent);
 
-            if (helperButtons.ProcessKey(keyEvent) == true)
+            if (helperButtons.ProcessKey(keyEvent))
                 return true;
             
             return base.ProcessKey(keyEvent);

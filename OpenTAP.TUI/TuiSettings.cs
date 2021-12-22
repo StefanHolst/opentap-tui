@@ -1,5 +1,6 @@
 using System;
-using System.ComponentModel;
+using System.Collections.Generic;
+using OpenTap.Tui.PropEditProviders;
 using Terminal.Gui;
 
 namespace OpenTap.Tui
@@ -7,7 +8,6 @@ namespace OpenTap.Tui
     [Display("TUI Settings")]
     public class TuiSettings : ComponentSettings<TuiSettings>
     {
-        
         private Theme theme;
         [Display("Color Theme", Group: "Colors", Order: 0)]
         public Theme Theme
@@ -76,42 +76,6 @@ namespace OpenTap.Tui
         [Display("Restore Colors", Group: "Colors", Order: 3)]
         public Action Reset { get; set; }
 
-
-        private int testPlanGridWidth = 75;
-        [Unit("%")]
-        [Display("Width", "The relative width of the Test Plan Grid. The Settings Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
-        public int TestPlanGridWidth
-        {
-            get => testPlanGridWidth;
-            set
-            {
-                if (value >= 15 && value <= 85)
-                {
-                    testPlanGridWidth = value;
-                    OnPropertyChanged("Size");
-                }
-            }
-        }
-
-        private int testPlanGridHeight = 70;
-        [Unit("%")]
-        [Display("Height", "The relative height of the Test Plan Grid. The Log Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
-        public int TestPlanGridHeight
-        {
-            get => testPlanGridHeight;
-            set
-            {
-                if (value >= 15 && value <= 85)
-                {
-                    testPlanGridHeight = value;
-                    OnPropertyChanged("Size");
-                }
-            }
-        }
-
-        [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
-        public Action ResetSize { get; set; }
-
         private void SetTheme()
         {
             switch (Theme)
@@ -159,12 +123,55 @@ namespace OpenTap.Tui
             }
         }
 
+        
+        private int testPlanGridWidth = 75;
+        [Unit("%")]
+        [Display("Width", "The relative width of the Test Plan Grid. The Settings Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
+        public int TestPlanGridWidth
+        {
+            get => testPlanGridWidth;
+            set
+            {
+                if (value >= 15 && value <= 85)
+                {
+                    testPlanGridWidth = value;
+                    OnPropertyChanged("Size");
+                }
+            }
+        }
+
+        private int testPlanGridHeight = 70;
+        [Unit("%")]
+        [Display("Height", "The relative height of the Test Plan Grid. The Log Panel will use the remaining space.", "Test Plan Panel Size", Order: 4)]
+        public int TestPlanGridHeight
+        {
+            get => testPlanGridHeight;
+            set
+            {
+                if (value >= 15 && value <= 85)
+                {
+                    testPlanGridHeight = value;
+                    OnPropertyChanged("Size");
+                }
+            }
+        }
+
+        [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
+        public Action ResetSize { get; set; }
+
+        [Display("Map", Group: "Key Mapping")]
+        [FixedSize]
+        public List<KeyMap> KeyMap { get; set; } = new List<KeyMap>();
+        [Display("Restore Key map", Group: "Key Mapping")]
+        public Action ResetKeyMapping { get; set; }
+
         public TuiSettings()
         {
             // make sure a default theme is configured.
             // normally this will be overwritten when the 
             // settings are loaded from XML.
             Theme = Theme.Default;
+            KeyMap = KeyMapHelper.DefaultKeys;
             SetTheme();
             Reset += () =>
             {
@@ -175,6 +182,10 @@ namespace OpenTap.Tui
             {
                 TestPlanGridHeight = 70;
                 TestPlanGridWidth = 75;
+            };
+            ResetKeyMapping += () =>
+            {
+                KeyMap = KeyMapHelper.DefaultKeys;
             };
         }
 
