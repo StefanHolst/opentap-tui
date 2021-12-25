@@ -173,8 +173,7 @@ namespace OpenTap.Tui.Views
                     for (int c = 0; c < f.Width; c++)
                         Driver.AddRune (' ');
                 } else {
-                    if (isSelected)
-                        Driver.AddStr("> ");
+                    Driver.AddStr(isSelected ? "> " : "  ");
                     Source.Render (this, Driver, isSelected, item, col, row, f.Width - col);
                 }
             }
