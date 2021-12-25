@@ -17,17 +17,16 @@ namespace OpenTap.Tui
         {
             new LogPanelView(); // Just to subscribe to log as soon as possible
             
-
             // Add pm window
-            Top.Add(new PackageManagerWindow()
+            var win = new PackageManagerWindow()
             {
                 X = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
-            });
+            };
             
             // Run application
-            Application.Run();
+            Application.Run(win);
 
             return 0;
         }

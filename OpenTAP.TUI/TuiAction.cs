@@ -13,7 +13,6 @@ namespace OpenTap.Tui
         /// <summary>  Marks which thread is the main thread. (needed for user input request)</summary>
         public static TapThread MainThread;
         public static CancellationToken CancellationToken;
-        public static Toplevel Top { get; set; }
         public static ICliAction CurrentAction { get; private set; }
         
         public int Execute(CancellationToken cancellationToken)
@@ -41,7 +40,6 @@ namespace OpenTap.Tui
             try
             {
                 Application.Init();
-                Top = Application.Top;
                 TuiSettings.Current.LoadSettings();
 
                 return TuiExecute(cancellationToken);

@@ -21,6 +21,8 @@ namespace OpenTap.Tui
 
         public MainWindow(string title) : base(title)
         {
+            Modal = true;
+            
             helperButtons = new HelperButtons
             {
                 Width = Dim.Fill(),
@@ -212,6 +214,7 @@ namespace OpenTap.Tui
             }
             menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
+            
             // Create main window and add it to top item of application
             var win = new MainWindow("OpenTAP TUI")
             {
@@ -222,7 +225,6 @@ namespace OpenTap.Tui
                 StepSettingsView = StepSettingsView,
                 TestPlanView = TestPlanView
             };
-            Top.Add(win);
             
             // Add menu bar
             var menu = new MenuBar(menuBars.ToArray());
@@ -304,7 +306,7 @@ namespace OpenTap.Tui
             }
 
             // Run application
-            Application.Run();
+            Application.Run(win);
 
             return 0;
         }

@@ -21,10 +21,9 @@ namespace OpenTap.Tui
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
             };
-            Top.Add(win);
             
             // Run application
-            Application.Run();
+            Application.Run(win);
 
             return 0;
         }
