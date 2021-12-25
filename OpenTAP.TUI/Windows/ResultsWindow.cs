@@ -104,25 +104,27 @@ namespace OpenTap.Tui.Windows
             if (plotAnnotations.Any())
                 graphView.Annotations.AddRange(plotAnnotations);
 
-            graphView.AxisX.Text = settings.XAxis.Name;
-            graphView.AxisY.Text = settings.YAxis.Name;
+            graphView.AxisX.Text = settings.XAxis?.Name;
+            graphView.AxisY.Text = settings.YAxis?.Name;
 
             // Set offset in order to fit the data in view
             var points = plots.SelectMany(p => p.Points).ToList();
-            var maxX = points.Max(p => p.X);
-            var maxY = points.Max(p => p.Y);
-            var width = graphView.Bounds.Width - 2;
-            var height = graphView.Bounds.Height - 2;
-            var factor = Math.Max(maxX / width, maxY / height);
-            graphView.CellSize = new PointF (
-                factor,
-                factor
-            );
-            graphView.AxisX.Increment = factor;
-            graphView.AxisY.Increment = factor;
-            graphView.MarginLeft = 1;
-            graphView.MarginBottom = 1;
-            
+            if (points.Any())
+            {
+                var maxX = points.Max(p => p.X);
+                var maxY = points.Max(p => p.Y);
+                var width = graphView.Bounds.Width - 2;
+                var height = graphView.Bounds.Height - 2;
+                var factor = Math.Max(maxX / width, maxY / height);
+                graphView.CellSize = new PointF (
+                    factor,
+                    factor
+                );
+                graphView.AxisX.Increment = factor;
+                graphView.AxisY.Increment = factor;
+                graphView.MarginLeft = 1;
+                graphView.MarginBottom = 1;
+            }
             
             // Add legends
             var legend = new LegendAnnotation (new Rect (graphView.Bounds.Width - 20,0, 20, plots.Count + 2));
