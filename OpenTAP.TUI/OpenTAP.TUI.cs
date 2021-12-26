@@ -201,6 +201,13 @@ namespace OpenTap.Tui
                     Log.Error(ex);
                 }
             }
+
+            var settingsProfile = new MenuItem("Profiles", "", () =>
+            {
+                var profileWindow = new SettingsProfileWindow("Bench");
+                Application.Run(profileWindow);
+            });
+            groupItems[settingsProfile] = "Bench";
             
             // Create list of all menu items, used in menu bar
             List<MenuBarItem> menuBars = new List<MenuBarItem>();
