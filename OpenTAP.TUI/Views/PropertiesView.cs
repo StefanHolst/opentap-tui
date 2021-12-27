@@ -253,7 +253,7 @@ namespace OpenTap.Tui.Views
                 var stepErrors = memberAnnotation.GetAll<IErrorAnnotation>().SelectMany(x => x.Errors).Where(x => string.IsNullOrWhiteSpace(x) == false);
                 var stepErrorStr = string.Join("\n", stepErrors);
                 if(string.IsNullOrWhiteSpace(stepErrorStr) == false)
-                    description = $"! {stepErrorStr}\n{new String('-', descriptionView.Bounds.Width - 4)}\n{description}";
+                    description = $"! {stepErrorStr}\n{new String('-', Math.Max(descriptionView.Bounds.Width - 4, 0))}\n{description}";
                 
             }
 
@@ -304,7 +304,7 @@ namespace OpenTap.Tui.Views
                 members = new AnnotationCollection[0];
 
             // Only show description view if there are any properties with descriptions
-            descriptionFrame.Visible = members.Any(a => a.Get<DisplayAttribute>()?.Description != null);
+            descriptionFrame.Visible = members.Any(a => a.Get<DisplayAttribute>()?.Description != null || a.GetAll<IErrorAnnotation>().SelectMany(x => x.Errors).Any(x => string.IsNullOrWhiteSpace(x) == false));
 
             // Add submit buttons
             var submitButtons = getSubmitButtons();

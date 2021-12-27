@@ -51,7 +51,6 @@ namespace OpenTap.Tui.Windows
             /// - If deleted profile was the selected one, select the default one
             /// - Don't allow deleting the last profile
             /// - Add try catch around delete folder
-            /// - Validation ruiles for profile name
             /// - Select new profle as selected profile
             /// - Add support for changing profile
             /// - Don't allow no selected profile
@@ -114,7 +113,7 @@ namespace OpenTap.Tui.Windows
     }
 
     [Display("New Profile")]
-    public class NewProfileRequest
+    public class NewProfileRequest : ValidatingObject
     {
         public enum NewProfileSubmit
         {
@@ -127,5 +126,10 @@ namespace OpenTap.Tui.Windows
         [Submit]
         [Layout(LayoutMode.FullRow | LayoutMode.FloatBottom, 1, 1000)]
         public NewProfileSubmit Submit { get; set; } = NewProfileSubmit.Cancel;
+
+        public NewProfileRequest()
+        {
+            Rules.Add(() => Name?.Contains("/") != true || Name?.Contains("\\") != true, "Profile name cannot contain '/'.", nameof(Name));
+        }
     }
 }
