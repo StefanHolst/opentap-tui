@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Xml.Serialization;
 using OpenTap.Tui.PropEditProviders;
 using Terminal.Gui;
 
@@ -73,6 +75,8 @@ namespace OpenTap.Tui
         [Display("Use Log Level Colors", Group: "Colors", Order: 2)]
         public bool UseLogColors { get; set; } = true;
 
+        [Browsable(true)]
+        [XmlIgnore]
         [Display("Restore Colors", Group: "Colors", Order: 3)]
         public Action Reset { get; set; }
 
@@ -156,12 +160,17 @@ namespace OpenTap.Tui
             }
         }
 
+        [Browsable(true)]
+        [XmlIgnore]
         [Display("Reset Size", "Restore the default size of all panels.", "Test Plan Panel Size", Order: 5)]
         public Action ResetSize { get; set; }
 
         [Display("Map", Group: "Key Mapping")]
         [FixedSize]
         public List<KeyMap> KeyMap { get; set; } = new List<KeyMap>();
+        
+        [Browsable(true)]
+        [XmlIgnore]
         [Display("Restore Key map", Group: "Key Mapping")]
         public Action ResetKeyMapping { get; set; }
 
