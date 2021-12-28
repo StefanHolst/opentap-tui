@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,9 +11,16 @@ namespace OpenTap.Tui.Windows
     {
         private ListView listView;
         private HelperButtons helperButtons;
+        private Button deleteButton;
+        private string Group;
+        private string SettingsDir;
+        private List<string> Profiles;
+        private string CurrentProfile;
 
         public SettingsProfileWindow(string group)
         {
+            Group = group;
+            
             var listFrame = new FrameView("Profiles")
             {
                 Height = Dim.Fill(),
@@ -28,13 +36,8 @@ namespace OpenTap.Tui.Windows
             Add(buttonFrame);
             
             
-            // get directories in Settings dir
-            var settingsDir = ComponentSettings.GetSettingsDirectory(group, false);
-            var profiles = Directory.GetDirectories(settingsDir).Select(d => Path.GetFileName(d)).ToList();
-            if (profiles.Any() == false)
-                profiles.Add("Default");
             // Add profiles to list
-            listView = new ListView(profiles)
+            listView = new ListView()
             {
                 AllowsMarking = true,
                 AllowsMultipleSelection = false,
@@ -43,19 +46,6 @@ namespace OpenTap.Tui.Windows
             };
             listView.MarkUnmarkChanged += MarkUnmarkChanged;
             listFrame.Add(listView);
-            // Set current profile
-            var currentProfile = ComponentSettings.GetSettingsDirectory(group).Substring(Path.Combine(ComponentSettings.SettingsDirectoryRoot, group).Length + 1);
-            listView.Source.SetMark(profiles.IndexOf(currentProfile), true);
-
-            /// TODO:
-            /// - If deleted profile was the selected one, select the default one
-            /// - Don't allow deleting the last profile
-            /// - Add try catch around delete folder
-            /// - Select new profle as selected profile
-            /// - Add support for changing profile
-            /// - Don't allow no selected profile
-            /// - Add import/export
-            
 
             var newButton = new Button(0, 0, "New Profile");
             newButton.Clicked += () => 
@@ -66,18 +56,30 @@ namespace OpenTap.Tui.Windows
                 if (request.Submit == NewProfileRequest.NewProfileSubmit.Add && request.Name != null && (request.Name.Contains("/") || request.Name.Contains("\\") == false))
                 {
                     // Add new profile
-                    Directory.CreateDirectory(Path.Combine(settingsDir, request.Name));
+                    var profilePath = Path.Combine(SettingsDir, request.Name);
+                    Directory.CreateDirectory(Path.Combine(SettingsDir, profilePath));
+                    ComponentSettings.SetSettingsProfile(Group, Path.Combine(SettingsDir, profilePath));
+                    LoadProfiles();
                 }
             };
             buttonFrame.Add(newButton);
-            var deleteButton = new Button(0, 1, "Delete Profile");
+            deleteButton = new Button(0, 1, "Delete Profile");
             deleteButton.Clicked += () =>
             {
-                var profile = profiles[listView.SelectedItem];
-                Directory.Delete(Path.Combine(settingsDir, profile));
-                
-                // If deleted profile was the selected one, select the default one
+                ComponentSettings.SetSettingsProfile(Group, Path.Combine(SettingsDir, Profiles.FirstOrDefault(p => p != CurrentProfile) ?? "Default"));
+
+                try
+                {
+                    Directory.Delete(Path.Combine(SettingsDir, CurrentProfile), true);
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                LoadProfiles();
             };
+            // deleteButton.
             buttonFrame.Add(deleteButton);
             // var exportButton = new Button(0, 2, "Export Profile");
             // exportButton.Clicked += () =>
@@ -91,6 +93,29 @@ namespace OpenTap.Tui.Windows
             //     
             // };
             // buttonFrame.Add(importButton);
+            
+            
+            
+            LoadProfiles();
+        }
+
+        private void LoadProfiles()
+        {
+            SettingsDir = ComponentSettings.GetSettingsDirectory(Group, false);
+            
+            // Get directories in Settings dir
+            Profiles = Directory.GetDirectories(SettingsDir).Select(d => Path.GetFileName(d)).ToList();
+            if (Profiles.Any() == false)
+                Profiles.Add("Default");
+            
+            // Get current profile
+            CurrentProfile = ComponentSettings.GetSettingsDirectory(Group).Substring(Path.Combine(ComponentSettings.SettingsDirectoryRoot, Group).Length + 1);
+            
+            // Update listview
+            listView.SetSource(Profiles);
+            listView.Source.SetMark(Profiles.IndexOf(CurrentProfile), true);
+
+            deleteButton.Enabled = Profiles.Count > 1;
         }
 
         private void MarkUnmarkChanged(bool isMarked, int selectedItem)
@@ -98,6 +123,13 @@ namespace OpenTap.Tui.Windows
             if (isMarked == false)
             {
                 // Should we allow this?
+                listView.Source.SetMark(selectedItem, true);
+            }
+            else
+            {
+                // Change profile
+                CurrentProfile = Profiles[selectedItem];
+                ComponentSettings.SetSettingsProfile(Group, Path.Combine(SettingsDir, CurrentProfile));
             }
         }
 
