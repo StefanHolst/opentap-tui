@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using OpenTap.Tui.Views;
 using Terminal.Gui;
@@ -62,6 +63,7 @@ namespace OpenTap.Tui.Windows
                     LoadProfiles();
                 }
             };
+            
             buttonFrame.Add(newButton);
             deleteButton = new Button(0, 1, "Delete Profile");
             deleteButton.Clicked += () =>
@@ -79,22 +81,38 @@ namespace OpenTap.Tui.Windows
 
                 LoadProfiles();
             };
-            // deleteButton.
             buttonFrame.Add(deleteButton);
-            // var exportButton = new Button(0, 2, "Export Profile");
-            // exportButton.Clicked += () =>
-            // {
-            //     
-            // };
-            // buttonFrame.Add(exportButton);
-            // var importButton = new Button(0, 3, "Import Profile");
-            // importButton.Clicked += () =>
-            // {
-            //     
-            // };
-            // buttonFrame.Add(importButton);
             
+            var exportButton = new Button(0, 2, "Export Profile");
+            exportButton.Clicked += () =>
+            {
+                // Exporting is just zipping the settings files
+                var dialog = new SaveDialog("Export Settings", "Export");
+                Application.Run(dialog);
+                if (dialog.FileName != null)
+                {
+                    var exportPath = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+                    var settingsPath = Path.Combine(SettingsDir, CurrentProfile);
+                    ZipFile.CreateFromDirectory(settingsPath, exportPath);
+                }
+            };
+            buttonFrame.Add(exportButton);
             
+            var importButton = new Button(0, 3, "Import Profile");
+            importButton.Clicked += () =>
+            {
+                // Importing is just unzipping the settings files
+                var dialog = new OpenDialog("Import Settings", "Import");
+                Application.Run(dialog);
+                if (dialog.FilePath != null)
+                {
+                    var importPath = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+                    var settingsPath = Path.Combine(SettingsDir, Path.GetFileNameWithoutExtension(importPath));
+                    ZipFile.ExtractToDirectory(importPath, settingsPath);
+                    LoadProfiles();
+                }
+            };
+            buttonFrame.Add(importButton);
             
             LoadProfiles();
         }
