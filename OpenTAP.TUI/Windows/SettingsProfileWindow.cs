@@ -91,9 +91,17 @@ namespace OpenTap.Tui.Windows
                 Application.Run(dialog);
                 if (dialog.FileName != null)
                 {
-                    var exportPath = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
-                    var settingsPath = Path.Combine(SettingsDir, CurrentProfile);
-                    ZipFile.CreateFromDirectory(settingsPath, exportPath);
+                    try
+                    {
+                        var exportPath = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+                        var settingsPath = Path.Combine(SettingsDir, CurrentProfile);
+                        ZipFile.CreateFromDirectory(settingsPath, exportPath);
+                    }
+                    catch (Exception e)
+                    {
+                        TUI.Log.Error(e.Message);
+                        TUI.Log.Debug(e);
+                    }
                 }
             };
             buttonFrame.Add(exportButton);
@@ -106,10 +114,18 @@ namespace OpenTap.Tui.Windows
                 Application.Run(dialog);
                 if (dialog.FilePath != null)
                 {
-                    var importPath = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
-                    var settingsPath = Path.Combine(SettingsDir, Path.GetFileNameWithoutExtension(importPath));
-                    ZipFile.ExtractToDirectory(importPath, settingsPath);
-                    LoadProfiles();
+                    try
+                    {
+                        var importPath = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+                        var settingsPath = Path.Combine(SettingsDir, Path.GetFileNameWithoutExtension(importPath));
+                        ZipFile.ExtractToDirectory(importPath, settingsPath);
+                        LoadProfiles();
+                    }
+                    catch (Exception e)
+                    {
+                        TUI.Log.Error(e.Message);
+                        TUI.Log.Debug(e);
+                    }
                 }
             };
             buttonFrame.Add(importButton);
