@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTAP.TUI", "OpenTAP.TUI\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Gui", "gui.cs\Terminal.Gui\Terminal.Gui.csproj", "{7E6D6FDB-99A7-4AD9-9B97-3526B4AACEFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTap.Tui.UnitTest", "OpenTap.Tui.UnitTest\OpenTap.Tui.UnitTest.csproj", "{73C8682A-A307-408F-AF7F-768CB12A9D8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7E6D6FDB-99A7-4AD9-9B97-3526B4AACEFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E6D6FDB-99A7-4AD9-9B97-3526B4AACEFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E6D6FDB-99A7-4AD9-9B97-3526B4AACEFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73C8682A-A307-408F-AF7F-768CB12A9D8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73C8682A-A307-408F-AF7F-768CB12A9D8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73C8682A-A307-408F-AF7F-768CB12A9D8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73C8682A-A307-408F-AF7F-768CB12A9D8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

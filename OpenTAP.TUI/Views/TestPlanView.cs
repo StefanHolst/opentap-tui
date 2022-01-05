@@ -38,7 +38,7 @@ namespace OpenTap.Tui.Views
             treeView.SetTreeViewSource(Plan.Steps);
             treeView.SelectedItemChanged += args =>
             {
-                MainWindow.helperButtons.SetActions(actions, this);
+                MainWindow.helperButtons?.SetActions(actions, this);
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
             };
             treeView.EnableFilter = true;
@@ -94,7 +94,7 @@ namespace OpenTap.Tui.Views
         public void Update(bool noCache = false)
         {
             treeView.RenderTreeView(noCache);
-            MainWindow.helperButtons.SetActions(actions, this);
+            MainWindow.helperButtons?.SetActions(actions, this);
         }
         
         public void LoadTestPlan()

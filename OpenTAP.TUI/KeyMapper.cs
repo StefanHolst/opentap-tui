@@ -19,11 +19,11 @@ namespace OpenTap.Tui
     {
         public static List<KeyMap> DefaultKeys = new[]
         {
-            new KeyMap(new KeyEvent(Key.S | Key.CtrlMask, new KeyModifiers() { Ctrl = true }), KeyTypes.Save),
-            new KeyMap(new KeyEvent(Key.S | Key.CtrlMask, new KeyModifiers() { Ctrl = true, Shift = true}), KeyTypes.SaveAs),
-            new KeyMap(new KeyEvent(Key.O | Key.CtrlMask, new KeyModifiers() { Ctrl = true }), KeyTypes.Open),
-            new KeyMap(new KeyEvent(Key.T | Key.CtrlMask, new KeyModifiers() { Ctrl = true }), KeyTypes.AddNewStep),
-            new KeyMap(new KeyEvent(Key.T | Key.CtrlMask, new KeyModifiers() { Ctrl = true, Shift = true}), KeyTypes.InsertNewStep),
+            new KeyMap(new KeyEvent(Key.S, new KeyModifiers() { Ctrl = true }), KeyTypes.Save),
+            new KeyMap(new KeyEvent(Key.S, new KeyModifiers() { Ctrl = true, Shift = true}), KeyTypes.SaveAs),
+            new KeyMap(new KeyEvent(Key.O, new KeyModifiers() { Ctrl = true }), KeyTypes.Open),
+            new KeyMap(new KeyEvent(Key.T, new KeyModifiers() { Ctrl = true }), KeyTypes.AddNewStep),
+            new KeyMap(new KeyEvent(Key.T, new KeyModifiers() { Ctrl = true, Shift = true}), KeyTypes.InsertNewStep),
             new KeyMap(new KeyEvent(Key.C, new KeyModifiers() { Shift = true}), KeyTypes.Copy),
             new KeyMap(new KeyEvent(Key.V, new KeyModifiers() { Shift = true}), KeyTypes.Paste),
         }.ToList();
@@ -34,9 +34,15 @@ namespace OpenTap.Tui
             if (map == null)
                 return false;
 
-            if (keyEvent.IsCtrl && keyEvent.Key != (map.KeyEvent.Key | Key.CtrlMask) && keyEvent.Key != map.KeyEvent.Key)
-                    return false;
-            if (keyEvent.Key != map.KeyEvent.Key)
+            var cleanedKeyEvent = keyEvent.Key;
+            if ((keyEvent.Key & Key.CtrlMask) == Key.CtrlMask)
+                cleanedKeyEvent ^= Key.CtrlMask;
+            if ((keyEvent.Key & Key.ShiftMask) == Key.ShiftMask)
+                cleanedKeyEvent ^= Key.ShiftMask;
+            if ((keyEvent.Key & Key.AltMask) == Key.AltMask)
+                cleanedKeyEvent ^= Key.AltMask;
+            
+            if (cleanedKeyEvent != map.KeyEvent.Key)
                 return false;
             
             return keyEvent.IsAlt == map.KeyEvent.IsAlt &&

@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <OpenTapVersion>9.12.0</OpenTapVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="OpenTAP" Version="$(OpenTapVersion)" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Reference Include="OpenTap.Package">
+            <HintPath>$(NugetPackageRoot)\opentap\$(OpenTapVersion)\build\payload\OpenTap.Package.dll</HintPath>
+        </Reference>
+        <Reference Include="OpenTap.Plugins.BasicSteps">
+            <HintPath>$(NugetPackageRoot)\opentap\$(OpenTapVersion)\build\payload\Packages\OpenTAP\OpenTap.Plugins.BasicSteps.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="coverlet.collector" Version="3.1.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\gui.cs\Terminal.Gui\Terminal.Gui.csproj" />
+      <ProjectReference Include="..\OpenTAP.TUI\OpenTap.Tui.csproj" />
+    </ItemGroup>
+</Project>

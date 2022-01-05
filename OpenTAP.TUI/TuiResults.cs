@@ -23,7 +23,13 @@ namespace OpenTap.Tui
             };
             
             // Run application
-            Application.Run(win);
+            Application.Run(win, e =>
+            {
+                Log.Error(e.Message);
+                Log.Debug(e);
+
+                return true;
+            });
 
             return 0;
         }
