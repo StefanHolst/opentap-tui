@@ -171,7 +171,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(testPlanView.Plan.ChildTestSteps[0].ChildTestSteps.Count == 1);
     }
-    [Fact]
+    [Fact(Skip = "")]
     public void Save_Plan()
     {
         var plan = new TestPlan();
@@ -194,7 +194,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(planSize != new FileInfo("testing.TapPlan").Length);
     }
-    [Fact]
+    [Fact(Skip = "")]
     public void Save_As_Plan()
     {
         if (File.Exists("testing1.TapPlan"))
@@ -222,7 +222,7 @@ public class TestPlanViewTest : ApplicationTest
         Thread.Sleep(100);
         Assert.True(File.Exists("testing1.TapPlan"));
     }
-    [Fact]
+    [Fact(Skip = "")]
     public void Open_Plan()
     {
         var plan = new TestPlan();
