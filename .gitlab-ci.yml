@@ -4,7 +4,7 @@ stages:
 
 Build:
   stage: build
-  image: opentapio/opentap:9.9-ubuntu18.04
+  image: mcr.microsoft.com/dotnet/sdk:6.0
   tags: [ docker, gce ]
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -18,7 +18,7 @@ Build:
 
 Test:
    stage: build
-   image: opentapio/opentap:9.9-ubuntu18.04
+   image: mcr.microsoft.com/dotnet/sdk:6.0
    tags: [ docker, gce ]
    variables:
      GIT_SUBMODULE_STRATEGY: recursive
