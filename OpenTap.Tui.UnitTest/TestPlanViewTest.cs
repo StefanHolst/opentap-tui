@@ -36,9 +36,10 @@ public class TestPlanViewTest : ApplicationTest
         Assert.True(testPlanView.Plan.ChildTestSteps[0].Name == "Delay 1", "Something is wrong");
         
         // Move step
-        driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false);
-        driver.SendKeys((char)ConsoleKey.DownArrow, ConsoleKey.DownArrow, false,false,false);
-        driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false);
+        Application.MainLoop.Invoke(() => driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false));
+        Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.DownArrow, ConsoleKey.DownArrow, false,false,false));
+        Application.MainLoop.Invoke(() => driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false));
+        Wait(() => testPlanView.Plan.ChildTestSteps[0].Name == "Delay 2");
         
         Assert.True(testPlanView.Plan.ChildTestSteps[0].Name == "Delay 2", "Something is wrong");
     }
@@ -60,10 +61,11 @@ public class TestPlanViewTest : ApplicationTest
         Assert.True(testPlanView.Plan.ChildTestSteps.FirstOrDefault() is DelayStep);
         
         // Move and inject step
-        driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false);
-        driver.SendKeys((char)ConsoleKey.DownArrow, ConsoleKey.DownArrow, false,false,false);
-        driver.SendKeys((char)ConsoleKey.RightArrow, ConsoleKey.RightArrow, false,false,false);
-        driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false);
+        Application.MainLoop.Invoke(() => driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false));
+        Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.DownArrow, ConsoleKey.DownArrow, false,false,false));
+        Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.RightArrow, ConsoleKey.RightArrow, false,false,false));
+        Application.MainLoop.Invoke(() => driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false));
+        Wait(() => testPlanView.Plan.ChildTestSteps.FirstOrDefault() is RepeatStep);
         
         Assert.True(testPlanView.Plan.ChildTestSteps.FirstOrDefault() is RepeatStep);
         Assert.True(testPlanView.Plan.ChildTestSteps[0].ChildTestSteps.FirstOrDefault() is DelayStep);
@@ -85,8 +87,8 @@ public class TestPlanViewTest : ApplicationTest
         Assert.True(testPlanView.Plan.ChildTestSteps.Count == 1);
         
         // Send keys
-        driver.SendKeys((char)ConsoleKey.C, ConsoleKey.C, true,false,false);
-        driver.SendKeys((char)ConsoleKey.V, ConsoleKey.V, true,false,false);
+        Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.C, ConsoleKey.C, true,false,false));
+        Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.V, ConsoleKey.V, true,false,false));
         Wait(() => testPlanView.Plan.ChildTestSteps.Count == 2);
         
         Assert.True(testPlanView.Plan.ChildTestSteps.Count == 2);
@@ -109,7 +111,8 @@ public class TestPlanViewTest : ApplicationTest
         Assert.True(testPlanView.Plan.ChildTestSteps.Count == 2);
         
         // Send keys
-        driver.SendKeys((char)ConsoleKey.Delete, ConsoleKey.Delete, false,false,false);
+        Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.Delete, ConsoleKey.Delete, false,false,false));
+        Wait(() => testPlanView.Plan.ChildTestSteps.Count == 1);
         
         Assert.True(testPlanView.Plan.ChildTestSteps.Count == 1);
     }

@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
   - publish
 
 Build:
@@ -15,6 +16,16 @@ Build:
     expire_in: 1 week
     paths:
        - "TUI*.TapPackage"
+         
+ Test:
+   stage: test
+   image: opentapio/opentap:9.9-ubuntu18.04
+   tags: [ docker, gce ]
+   variables:
+     GIT_SUBMODULE_STRATEGY: recursive
+   script:
+     - cd OpenTap.Tui.UnitTest
+     - dotnet test
 
 PublishAlpha:
   stage: publish
