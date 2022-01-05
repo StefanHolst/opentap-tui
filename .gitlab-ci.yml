@@ -16,8 +16,8 @@ Build:
     expire_in: 1 week
     paths:
        - "TUI*.TapPackage"
-         
- Test:
+
+Test:
    stage: test
    image: opentapio/opentap:9.9-ubuntu18.04
    tags: [ docker, gce ]
