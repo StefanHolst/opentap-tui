@@ -1,6 +1,5 @@
 stages:
   - build
-  - test
   - publish
 
 Build:
@@ -18,7 +17,7 @@ Build:
        - "TUI*.TapPackage"
 
 Test:
-   stage: test
+   stage: build
    image: opentapio/opentap:9.9-ubuntu18.04
    tags: [ docker, gce ]
    variables:
