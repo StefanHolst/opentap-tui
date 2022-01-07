@@ -11,7 +11,7 @@ Build:
   script:
     - cd OpenTAP.TUI
     - dotnet build -c Release
-    - cp OpenTAP.TUI/bin/Release/TUI*.TapPackage .
+    - cp bin/Release/TUI*.TapPackage ..
   artifacts:
     expire_in: 1 week
     paths:
