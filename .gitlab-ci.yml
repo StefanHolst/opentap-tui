@@ -9,8 +9,9 @@ Build:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-        - dotnet build -c Release
-        - cp OpenTAP.TUI/bin/Release/TUI*.TapPackage .
+    - cd OpenTAP.TUI
+    - dotnet build -c Release
+    - cp OpenTAP.TUI/bin/Release/TUI*.TapPackage .
   artifacts:
     expire_in: 1 week
     paths:
