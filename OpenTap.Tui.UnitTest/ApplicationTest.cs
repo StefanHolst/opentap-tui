@@ -12,6 +12,8 @@ public class ApplicationTest : IDisposable
 {
     public FakeDriver driver;
     public FakeMainLoop loop;
+    private bool stopped;
+    private TraceSource log = Log.CreateSource(nameof(ApplicationTest));
         
     public ApplicationTest()
     {
@@ -21,14 +23,46 @@ public class ApplicationTest : IDisposable
 
         Task.Run(() =>
         {
-            Application.Run();
+            try
+            {
+                Application.Run();
+            }
+            catch (Exception e)
+            {
+                if (stopped)
+                    return;
+                
+                var content = driver.GetContent();
+                int rows = content.GetLength(0);
+                int cols = content.GetLength(1);
+                for (int r = 0; r < rows; r++)
+                {
+                    string line = "";
+                    for (int c = 0; c < cols; c++)
+                    {
+                        line += content[r, c];
+                    }
+                    log.Debug(line);
+                }
+
+                log.Error(e.Message);
+                log.Debug(e);
+                log.Flush();
+            }
         });
     }
         
     public void Dispose()
     {
-        loop.running = false;
-        Application.Shutdown();
+        try
+        {
+            Application.RequestStop();
+        }
+        finally
+        {
+            stopped = true;
+            Application.Shutdown();
+        }
     }
     
     public void Wait(Func<bool> method, int timeout = 1)
