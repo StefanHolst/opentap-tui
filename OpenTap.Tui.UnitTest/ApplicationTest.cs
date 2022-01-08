@@ -65,7 +65,7 @@ public class ApplicationTest : IDisposable
         }
     }
     
-    public void Wait(Func<bool> method, int timeout = 1)
+    public void Wait(Func<bool> method, int timeout = 5)
     {
         var now = DateTime.Now;
         var timeoutSpan = TimeSpan.FromSeconds(timeout);
