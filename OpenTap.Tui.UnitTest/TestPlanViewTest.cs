@@ -66,6 +66,7 @@ public class TestPlanViewTest : ApplicationTest
         Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.RightArrow, ConsoleKey.RightArrow, false,false,false));
         Application.MainLoop.Invoke(() => driver.SendKeys(' ', ConsoleKey.Spacebar, false,false,false));
         Wait(() => testPlanView.Plan.ChildTestSteps.FirstOrDefault() is RepeatStep);
+        Wait(() => testPlanView.Plan.ChildTestSteps[0].ChildTestSteps.FirstOrDefault() is DelayStep);
         
         Assert.True(testPlanView.Plan.ChildTestSteps.FirstOrDefault() is RepeatStep);
         Assert.True(testPlanView.Plan.ChildTestSteps[0].ChildTestSteps.FirstOrDefault() is DelayStep);
@@ -241,6 +242,7 @@ public class TestPlanViewTest : ApplicationTest
         Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.Tab, ConsoleKey.Tab, true, false, false));
         Wait(() => Application.Current.MostFocused is TextField);
         var textField = Application.Current.MostFocused as TextField;
+        Assert.NotNull(textField);
         textField.Text = "testing.TapPlan";
         Application.MainLoop.Invoke(() => driver.SendKeys((char)ConsoleKey.Enter, ConsoleKey.Enter, false, false, false));
         Wait(() => testPlanView.Plan.ChildTestSteps.Any());

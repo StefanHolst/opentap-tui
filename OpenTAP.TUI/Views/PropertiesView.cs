@@ -19,7 +19,7 @@ namespace OpenTap.Tui.Views
         private TextView descriptionView { get; set; }
         private FrameView descriptionFrame { get; set; }
         private View submitView { get; set; }
-        internal bool DisableHelperButtons { get; set; }
+        public bool DisableHelperButtons { get; set; }
 
         public Action<string> TreeViewFilterChanged { get; set; }
 
@@ -70,7 +70,7 @@ namespace OpenTap.Tui.Views
                 list.Add(item);
             }
 
-            MainWindow.helperButtons.SetActions(list, this);
+            MainWindow.helperButtons?.SetActions(list, this);
         }
 
         public event Action PropertiesChanged;
