@@ -44,6 +44,9 @@ public class ApplicationTest : IDisposable
             log.Debug(e);
         }
         
+        log.Debug($"Current: {Application.Current}");
+        log.Debug($"MostFocused: {Application.Current.MostFocused}");
+        
         var content = GetConsoleContent();
         foreach (var line in content)
             log.Debug(line);
@@ -83,17 +86,21 @@ public class ApplicationTest : IDisposable
         }
     }
     
-    public void Wait(Func<bool> method, int timeout = 5)
+    public void Wait(Func<bool> method, int timeout = 5, string message = "")
     {
         var now = DateTime.Now;
         var timeoutSpan = TimeSpan.FromSeconds(timeout);
 
-        while (method() == false && DateTime.Now - now < timeoutSpan)
-            Thread.Sleep(10);
+        do
+        {
+            Thread.Sleep(100);
+        } while (method() == false && DateTime.Now - now < timeoutSpan);
 
+        WaitIteration();
+        
         if (DateTime.Now - now > timeoutSpan)
         {
-            LogConsole(null);
+            LogConsole(new Exception(message));
             throw new TimeoutException();
         }
     }
