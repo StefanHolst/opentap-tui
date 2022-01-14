@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Terminal.Gui;
-using Xunit;
 
-[assembly: CollectionBehavior (DisableTestParallelization = true)]
-
-namespace OpenTap.Tui.UnitTest;
+namespace OpenTap.Tui.UnitTests;
 
 public class ApplicationTest : IDisposable
 {
     public FakeDriver driver;
     public FakeMainLoop loop;
-    // public Application.RunState runState;
     private bool stopped;
-    private TraceSource log = Log.CreateSource(nameof(ApplicationTest));
+    private static TraceSource log = Log.CreateSource(nameof(ApplicationTest));
         
     public ApplicationTest()
     {
@@ -23,13 +19,10 @@ public class ApplicationTest : IDisposable
         loop = new FakeMainLoop(() => FakeConsole.ReadKey (true));
         Application.Init(driver, loop);
 
-        // runState = Application.Begin(Application.Top);
-        
         Task.Run(() =>
         {
             try
             {
-                // Application.RunLoop(runState, false);
                 Application.Run();
             }
             catch (Exception e)
@@ -43,20 +36,7 @@ public class ApplicationTest : IDisposable
         });
     }
 
-    public void IsTrue(bool result)
-    {
-        try
-        {
-            Assert.True(result);
-        }
-        catch (Exception e)
-        {
-            LogConsole(null);
-            throw;
-        }
-    }
-
-    void LogConsole(Exception e)
+    public static void LogConsole(Exception e)
     {
         if (e != null)
         {
@@ -71,11 +51,11 @@ public class ApplicationTest : IDisposable
         log.Flush();
     }
 
-    public List<string> GetConsoleContent ()
+    private static List<string> GetConsoleContent ()
     {
         var content = FakeConsole.Get();
         var _content = new List<string>();
-			
+
         for (int r = 0; r < FakeConsole.WindowHeight; r++) {
             string line = "";
             for (int c = 0; c < FakeConsole.WindowWidth; c++) {
@@ -91,7 +71,6 @@ public class ApplicationTest : IDisposable
     {
         try
         {
-            // Application.End(runState);
             Application.RequestStop();
         }
         finally

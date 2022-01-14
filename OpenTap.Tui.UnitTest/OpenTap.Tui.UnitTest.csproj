@@ -2,9 +2,10 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <OpenTapVersion>9.12.0</OpenTapVersion>
+        <OpenTapVersion>9.16.0</OpenTapVersion>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,23 +19,17 @@
         <Reference Include="OpenTap.Plugins.BasicSteps">
             <HintPath>$(NugetPackageRoot)\opentap\$(OpenTapVersion)\build\payload\Packages\OpenTAP\OpenTap.Plugins.BasicSteps.dll</HintPath>
         </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="coverlet.collector" Version="3.1.0">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
+        <OpenTapPackageReference Include="OpenTap.UnitTest" Version="0.1.0-beta.25+5127d4d9" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\gui.cs\Terminal.Gui\Terminal.Gui.csproj" />
       <ProjectReference Include="..\OpenTAP.TUI\OpenTap.Tui.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.2" />
+        <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="15.9.2" />
+    </ItemGroup>
+
 </Project>

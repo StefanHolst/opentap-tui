@@ -5,14 +5,14 @@ using System.Threading;
 using OpenTap.Plugins.BasicSteps;
 using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
+using OpenTap.UnitTest;
 using Terminal.Gui;
-using Xunit;
 
-namespace OpenTap.Tui.UnitTest;
+namespace OpenTap.Tui.UnitTests;
 
-public class TestPlanViewTest : ApplicationTest
+public class TestPlanViewTest : ApplicationTest, ITestFixture
 {
-    [Fact]
+    [Test]
     public void Move_Step()
     {
         var plan = new TestPlan();
@@ -43,7 +43,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(testPlanView.Plan.ChildTestSteps[0].Name == "Delay 2", "Something is wrong");
     }
-    [Fact]
+    [Test]
     public void Inject_Step()
     {
         var plan = new TestPlan();
@@ -71,7 +71,7 @@ public class TestPlanViewTest : ApplicationTest
         Assert.True(testPlanView.Plan.ChildTestSteps.FirstOrDefault() is RepeatStep);
         Assert.True(testPlanView.Plan.ChildTestSteps[0].ChildTestSteps.FirstOrDefault() is DelayStep);
     }
-    [Fact]
+    [Test]
     public void Copy_Paste_Step()
     {
         var plan = new TestPlan();
@@ -94,7 +94,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(testPlanView.Plan.ChildTestSteps.Count == 2);
     }
-    [Fact]
+    [Test]
     public void Delete_Step()
     {
         var plan = new TestPlan();
@@ -117,7 +117,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(testPlanView.Plan.ChildTestSteps.Count == 1);
     }
-    [Fact]
+    [Test]
     public void Add_Step()
     {
         var plan = new TestPlan();
@@ -144,7 +144,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(testPlanView.Plan.ChildTestSteps.Count == 2);
     }
-    [Fact]
+    [Test]
     public void Insert_Step()
     {
         var plan = new TestPlan();
@@ -172,7 +172,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(testPlanView.Plan.ChildTestSteps[0].ChildTestSteps.Count == 1);
     }
-    [Fact(Skip = "")]
+    [Test]
     public void Save_Plan()
     {
         var plan = new TestPlan();
@@ -195,7 +195,7 @@ public class TestPlanViewTest : ApplicationTest
         
         Assert.True(planSize != new FileInfo("testing.TapPlan").Length);
     }
-    [Fact(Skip = "")]
+    [Test]
     public void Save_As_Plan()
     {
         if (File.Exists("testing1.TapPlan"))
@@ -223,7 +223,7 @@ public class TestPlanViewTest : ApplicationTest
         Thread.Sleep(100);
         Assert.True(File.Exists("testing1.TapPlan"));
     }
-    [Fact(Skip = "")]
+    [Test]
     public void Open_Plan()
     {
         var plan = new TestPlan();
