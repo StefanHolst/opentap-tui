@@ -59,7 +59,10 @@ public class ApplicationTest : IDisposable
         for (int r = 0; r < FakeConsole.WindowHeight; r++) {
             string line = "";
             for (int c = 0; c < FakeConsole.WindowWidth; c++) {
-                line += content[c, r];
+                if (FakeConsole.CursorLeft == c && FakeConsole.CursorTop == r)
+                    line += "#";
+                else
+                    line += content[c, r];
             }
             _content.Add (line);
         }
@@ -89,7 +92,10 @@ public class ApplicationTest : IDisposable
             Thread.Sleep(10);
 
         if (DateTime.Now - now > timeoutSpan)
+        {
+            LogConsole(null);
             throw new TimeoutException();
+        }
     }
 
     public void WaitIteration()

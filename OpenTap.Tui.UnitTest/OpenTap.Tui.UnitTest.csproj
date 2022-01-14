@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <OpenTapVersion>9.16.0</OpenTapVersion>
+        <OpenTapVersion>9.17.0-beta.8</OpenTapVersion>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <LangVersion>10</LangVersion>

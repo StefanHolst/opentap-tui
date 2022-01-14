@@ -22,7 +22,7 @@ public static class Assert
     {
         try
         {
-            if (result != null)
+            if (result == null)
                 throw new Exception(message);
         }
         catch (Exception e)
