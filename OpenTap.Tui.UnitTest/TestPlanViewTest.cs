@@ -10,7 +10,6 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.UnitTest;
 
-// public class TestPlanViewTest : ApplicationTest
 public class TestPlanViewTest : ITestFixture
 {
     [Test]
