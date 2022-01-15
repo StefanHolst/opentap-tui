@@ -25,7 +25,9 @@ Test:
      GIT_SUBMODULE_STRATEGY: recursive
    script:
      - cd OpenTap.Tui.UnitTest
-     - dotnet test
+     - dotnet build
+     - cd bin/Debug
+     - ./tap unit-test run OpenTap.Tui.UnitTest.dll
 
 PublishAlpha:
   stage: publish
