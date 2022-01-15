@@ -86,7 +86,7 @@ public class TuiTester : IDisposable
         return _content;
     }
     
-    public void Wait(Func<bool> method, int timeout = 1, string message = "")
+    public void Wait(Func<bool> method, int timeout = 5, string message = "")
     {
         var now = DateTime.Now;
         var timeoutSpan = TimeSpan.FromSeconds(timeout);
