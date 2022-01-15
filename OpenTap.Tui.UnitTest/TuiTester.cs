@@ -4,16 +4,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Terminal.Gui;
 
-namespace OpenTap.Tui.UnitTests;
+namespace OpenTap.Tui.UnitTest;
 
-public class ApplicationTest : IDisposable
+public class TuiTester : IDisposable
 {
     public FakeDriver driver;
     public FakeMainLoop loop;
     private bool stopped;
-    private static TraceSource log = Log.CreateSource(nameof(ApplicationTest));
+    private static TraceSource log = Log.CreateSource(nameof(TuiTester));
         
-    public ApplicationTest()
+    public TuiTester()
     {
         driver = new FakeDriver();
         loop = new FakeMainLoop(() => FakeConsole.ReadKey (true));
@@ -35,6 +35,19 @@ public class ApplicationTest : IDisposable
             }
         });
     }
+    
+    public void Dispose()
+    {
+        try
+        {
+            Application.RequestStop();
+        }
+        finally
+        {
+            stopped = true;
+            Application.Shutdown();
+        }
+    }
 
     public static void LogConsole(Exception e)
     {
@@ -54,7 +67,7 @@ public class ApplicationTest : IDisposable
         log.Flush();
     }
 
-    private static List<string> GetConsoleContent ()
+    public static List<string> GetConsoleContent ()
     {
         var content = FakeConsole.Get();
         var _content = new List<string>();
@@ -73,20 +86,7 @@ public class ApplicationTest : IDisposable
         return _content;
     }
     
-    public void Dispose()
-    {
-        try
-        {
-            Application.RequestStop();
-        }
-        finally
-        {
-            stopped = true;
-            Application.Shutdown();
-        }
-    }
-    
-    public void Wait(Func<bool> method, int timeout = 5, string message = "")
+    public void Wait(Func<bool> method, int timeout = 1, string message = "")
     {
         var now = DateTime.Now;
         var timeoutSpan = TimeSpan.FromSeconds(timeout);

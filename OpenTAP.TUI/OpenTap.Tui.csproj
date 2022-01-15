@@ -5,7 +5,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputType>Library</OutputType>
-    <OpenTapVersion>9.17.0-beta.8</OpenTapVersion>
+    <OpenTapVersion>9.16.4</OpenTapVersion>
   </PropertyGroup>
 
   <ItemGroup>
