@@ -29,7 +29,7 @@ namespace OpenTap.Tui.PropEditProviders
                     if (value is MacroString ms)
                         ms.Text = dialog.FilePath.ToString();
                     else
-                        annotation.Get<IStringValueAnnotation>().Value = dialog.FilePath.ToString();
+                        annotation.Get<IStringValueAnnotation>().Value = dialog.FilePath?.ToString();
                 }
                 catch (Exception exception)
                 {
