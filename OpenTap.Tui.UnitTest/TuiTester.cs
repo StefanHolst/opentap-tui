@@ -96,9 +96,11 @@ public class TuiTester : IDisposable
             Thread.Sleep(100);
         } while (method() == false && DateTime.Now - now < timeoutSpan);
 
+        var timedOut = DateTime.Now - now > timeoutSpan;
+        
         WaitIteration();
         
-        if (DateTime.Now - now > timeoutSpan)
+        if (timedOut)
         {
             LogConsole(new Exception(message));
             throw new TimeoutException();
