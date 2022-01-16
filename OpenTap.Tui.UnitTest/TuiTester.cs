@@ -91,19 +91,14 @@ public class TuiTester : IDisposable
         var now = DateTime.Now;
         var timeoutSpan = TimeSpan.FromSeconds(timeout);
 
-        do
+        while (method() == false)
         {
-            Thread.Sleep(100);
-        } while (method() == false && DateTime.Now - now < timeoutSpan);
-
-        var timedOut = DateTime.Now - now > timeoutSpan;
-        
-        WaitIteration();
-        
-        if (timedOut)
-        {
-            LogConsole(new Exception(message));
-            throw new TimeoutException();
+            Thread.Sleep(10);
+            if (DateTime.Now - now > timeoutSpan)
+            {
+                LogConsole(new Exception(message));
+                throw new TimeoutException();
+            }
         }
     }
 
