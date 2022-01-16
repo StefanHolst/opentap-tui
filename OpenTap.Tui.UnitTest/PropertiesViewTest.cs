@@ -42,7 +42,7 @@ public class PropertiesViewTest : ITestFixture
 
         var propView = new PropertiesView();
         propView.LoadProperties(plan.Steps[0]);
-            
+
         // Add to top and start application
         Application.Top.Add(propView);
         propView.SetFocus();
@@ -50,7 +50,7 @@ public class PropertiesViewTest : ITestFixture
         // Edit string
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Enter, ConsoleKey.Enter, false,false,false));
         tester.WaitIteration();
-        Assert.True(Application.Current.Subviews.FirstOrDefault()?.Subviews.FirstOrDefault() is TextViewWithEnter);
+        Assert.True(Application.Current.MostFocused is TextViewWithEnter);
         
         // Edit bool
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Escape, ConsoleKey.Escape, false,false,false));
@@ -59,7 +59,7 @@ public class PropertiesViewTest : ITestFixture
         tester.WaitIteration();
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Enter, ConsoleKey.Enter, false,false,false));
         tester.WaitIteration();
-        Assert.True(Application.Current.Subviews.FirstOrDefault()?.Subviews.FirstOrDefault() is CheckBox);
+        Assert.True(Application.Current.MostFocused is CheckBox);
         
         // Edit List
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Escape, ConsoleKey.Escape, false,false,false));
@@ -68,7 +68,7 @@ public class PropertiesViewTest : ITestFixture
         tester.WaitIteration();
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Enter, ConsoleKey.Enter, false,false,false));
         tester.WaitIteration();
-        Assert.True(Application.Current.Subviews.FirstOrDefault()?.Subviews.FirstOrDefault()?.Subviews.FirstOrDefault() is TableView);
+        Assert.True(Application.Current.MostFocused is TableView);
         
         // Edit Enum
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Escape, ConsoleKey.Escape, false,false,false));
@@ -77,7 +77,7 @@ public class PropertiesViewTest : ITestFixture
         tester.WaitIteration();
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Enter, ConsoleKey.Enter, false,false,false));
         tester.WaitIteration();
-        Assert.True(Application.Current.Subviews.FirstOrDefault()?.Subviews.FirstOrDefault() is ListView);
+        Assert.True(Application.Current.MostFocused is ListView);
         
         // Edit FilePath
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Escape, ConsoleKey.Escape, false,false,false));
@@ -86,7 +86,16 @@ public class PropertiesViewTest : ITestFixture
         tester.WaitIteration();
         Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Enter, ConsoleKey.Enter, false,false,false));
         tester.WaitIteration();
-        Assert.True(Application.Current.Subviews.FirstOrDefault()?.Subviews.FirstOrDefault() is FileDialog);
+        Assert.True(Application.Current.MostFocused.SuperView.SuperView is FileDialog);
+        
+        // Edit Action
+        Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Escape, ConsoleKey.Escape, false,false,false));
+        tester.WaitIteration();
+        Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.DownArrow, ConsoleKey.DownArrow, false,false,false));
+        tester.WaitIteration();
+        Application.MainLoop.Invoke(() => tester.driver.SendKeys((char)ConsoleKey.Enter, ConsoleKey.Enter, false,false,false));
+        tester.WaitIteration();
+        Assert.True(Application.Current.MostFocused.SuperView.SuperView is Dialog);
     }
 }
 
@@ -96,10 +105,11 @@ public class UnitTestStep : TestStep
     public bool BoolType { get; set; }
     public List<string> ListType { get; set; }
     public Verdict EnumType { get; set; }
-
     [FilePath]
-    public string FilePathType { get; set; }
-    
+    public string FilePathType { get; set; } = "";
+
+    public Action ActionType { get; set; } = () => { };
+
     public override void Run()
     {
     }
