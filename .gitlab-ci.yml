@@ -27,7 +27,7 @@ Test:
      - cd OpenTap.Tui.UnitTest
      - dotnet build
      - cd bin/Debug
-     - ./tap unit-test run OpenTap.Tui.UnitTest.dll
+     - ./tap unit-test run OpenTap.Tui.UnitTest.dll -v
 
 PublishAlpha:
   stage: publish
