@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using OpenTap.Tui.PropEditProviders;
 using OpenTap.Tui.Windows;
@@ -224,6 +223,18 @@ namespace OpenTap.Tui.Views
             if (submit != null)
             {
                 var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
+                if (availableValuesAnnotation == null)
+                {
+                    var button = new Button("Ok", true);
+                    buttons.Add(button);
+                    button.Clicked += () =>
+                    {
+                        submit.Write();
+                        Submit();
+                    };
+                    return buttons;
+                }
+                
                 foreach (var availableValue in availableValuesAnnotation.AvailableValues)
                 {
                     var button = new Button(availableValue.Source.ToString(), availableValuesAnnotation.SelectedValue == availableValue);
@@ -343,7 +354,7 @@ namespace OpenTap.Tui.Views
                 .Where(x => 
                 {
                     var member = x.Get<IMemberAnnotation>()?.Member;
-                    if (member == null || member.GetAttribute<SubmitAttribute>() != null) return false;
+                    if (member == null || (member.GetAttribute<SubmitAttribute>() != null && x.Get<IAvailableValuesAnnotationProxy>() != null)) return false;
                     return FilterMember(member);
                 })
                 .ToArray();
