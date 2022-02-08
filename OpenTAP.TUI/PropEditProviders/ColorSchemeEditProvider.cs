@@ -9,7 +9,7 @@ namespace OpenTap.Tui.PropEditProviders
         public View Edit(AnnotationCollection annotation)
         {
             var coloredit = annotation.Get<IObjectValueAnnotation>();
-            if (coloredit == null || annotation.Get<IMemberAnnotation>()?.ReflectionInfo != TypeData.FromType(typeof(ColorSchemeViewmodel))) return null;
+            if (coloredit == null || annotation.Get<IMemberAnnotation>()?.ReflectionInfo != TypeData.FromType(typeof(ColorSchemeViewmodel)) && coloredit.Value is ColorSchemeViewmodel == false) return null;
 
             var vm = coloredit.Value as ColorSchemeViewmodel;
             var propertiesView = new PropertiesView();

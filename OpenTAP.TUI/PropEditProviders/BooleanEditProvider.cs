@@ -10,7 +10,7 @@ namespace OpenTap.Tui.PropEditProviders
         public View Edit(AnnotationCollection annotation)
         {
             var booledit = annotation.Get<IObjectValueAnnotation>();
-            if (booledit == null || annotation.Get<IMemberAnnotation>()?.ReflectionInfo != TypeData.FromType(typeof(bool))) return null;
+            if (booledit == null || annotation.Get<IMemberAnnotation>()?.ReflectionInfo != TypeData.FromType(typeof(bool)) && booledit.Value is bool == false) return null;
 
             var check = new CheckBox(annotation.Get<DisplayAttribute>()?.Name ?? "...", (bool)booledit.Value);
             check.Toggled += b => 
