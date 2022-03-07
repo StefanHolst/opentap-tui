@@ -10,6 +10,7 @@ env:
 jobs:
   Build:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release') || contains(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -47,3 +48,7 @@ jobs:
         with:
           version: 9.17.0
           package: "PackagePublish"
+      - name: Install PackagePublish
+        run: tap package install PackagePublish --version rc
+      - name: Publish
+        run: tap package publish "TUI*.TapPackage"
