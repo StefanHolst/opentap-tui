@@ -23,5 +23,6 @@ module.exports = {
             '/KnownIssues.md'
         ]
     },
-    dest: '../public'
+    dest: '../public',
+    base: '/opentap-tui/'
 }
