@@ -108,20 +108,21 @@ namespace OpenTap.Tui
                     errorColor = new ColorSchemeViewmodel(Color.Red, Color.White, Color.White, Color.Red, Color.Black, Color.Red, Color.Black, Color.White);
                     break;
                 }
-                case Theme.Hacker:
-                {
-                    baseColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
-                    dialogColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
-                    menuColor = new ColorSchemeViewmodel(Color.Cyan, Color.Black, Color.BrightRed, Color.Black, Color.BrightGreen, Color.Black, Color.BrightGreen, Color.Black);
-                    errorColor = new ColorSchemeViewmodel(Color.BrightRed, Color.Black, Color.Red, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
-                    break;
-                }
-                case Theme.Default:
+                case Theme.Gray:
                 {
                     baseColor = new ColorSchemeViewmodel(Color.White, Color.DarkGray, Color.Black, Color.Gray, Color.Black, Color.Gray, Color.Black, Color.Gray);
                     dialogColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
                     menuColor = new ColorSchemeViewmodel(Color.Black, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
                     errorColor = new ColorSchemeViewmodel(Color.Red, Color.Gray, Color.Black, Color.White, Color.BrightRed, Color.White, Color.BrightRed, Color.Gray);
+                    break;
+                }
+                case Theme.Hacker:
+                case Theme.Default:
+                {
+                    baseColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
+                    dialogColor = new ColorSchemeViewmodel(Color.BrightGreen, Color.Black, Color.BrightRed, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
+                    menuColor = new ColorSchemeViewmodel(Color.Cyan, Color.Black, Color.BrightRed, Color.Black, Color.BrightGreen, Color.Black, Color.BrightGreen, Color.Black);
+                    errorColor = new ColorSchemeViewmodel(Color.BrightRed, Color.Black, Color.Red, Color.Black, Color.Cyan, Color.Black, Color.Cyan, Color.Black);
                     break;
                 }
             }
@@ -216,9 +217,14 @@ namespace OpenTap.Tui
     public enum Theme
     {
         Default,
+        Gray,
         Blue,
         Dark,
         Light,
+        // This has been changed to the default theme. It should no longer be selectable, but
+        // if someone updates the TUI and their previously selected theme was 'Hacker',
+        // it should still deserialize without error.
+        [Browsable(false)]
         Hacker
     }
     
