@@ -46,6 +46,4 @@ jobs:
       - uses: StefanHolst/setup-opentap@v1
         with:
           version: 9.17.0
-          packages:
-            - name: "PackagePublish"
-              version: "rc"
+          package: "PackagePublish"
