@@ -71,4 +71,4 @@ jobs:
       - name: Install PackagePublish
         run: tap package install PackagePublish --version rc
       - name: Publish
-        run: tap package publish "TUI*.TapPackage"
+        run: tap package publish "TUI*.TapPackage" -k ${{ secrets.REPO_PASS }}
