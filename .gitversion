@@ -14,7 +14,7 @@ version = 0.1.0
 # if earlier ones did not match any branches in the git repository
 #beta branch = develop
 #beta branch = dev
-#beta branch = master
+beta branch = main
 
 # A version is determined to be a "rc" prerelease if it originates from a branch that matches
 # the following regular expression.
