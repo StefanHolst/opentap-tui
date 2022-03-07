@@ -27,7 +27,7 @@ Either build it from source or install it from the OpenTAP package repository ([
 - Run: `tap tui`
 
 ## Documentation
-More documentation is available [here](https://opentap.gitlab.io/Plugins/keysight/opentap-tui).
+More documentation is available [here](https://stefanholst.github.io/opentap-tui/).
 
 ## Known Issues
 
