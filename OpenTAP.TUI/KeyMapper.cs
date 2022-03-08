@@ -7,9 +7,12 @@ namespace OpenTap.Tui
     public enum KeyTypes
     {
         Save,
+        [Display("Save As")]
         SaveAs,
         Open,
+        [Display("Add New Step")]
         AddNewStep,
+        [Display("Insert New Step")]
         InsertNewStep,
         Copy,
         Paste
