@@ -11,6 +11,7 @@ namespace OpenTap.Tui
         private Func<T, List<string>> getGroups;
         private Func<T, List<T>> getChildren;
         private Func<T, T> getParent;
+        private Func<T, TreeViewNode<T>> createNode;
         private IList<T> items;
         private Dictionary<T, TreeViewNode<T>> nodes;
         private Dictionary<string, TreeViewNode<T>> groups = new Dictionary<string, TreeViewNode<T>>();
@@ -18,6 +19,8 @@ namespace OpenTap.Tui
         public bool EnableFilter { get; set; }
         public string Filter { get; set; } = "";
         public Action<string> FilterChanged { get; set; }
+        public event Action<T> NodeCollapsed;
+        public event Action<T> NodeExpanded;
         
         public T SelectedObject
         {
@@ -30,11 +33,12 @@ namespace OpenTap.Tui
             this.getTitle = getTitle;
             this.getGroups = getGroups;
         }
-        public TreeView(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent)
+        internal TreeView(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent, Func<T, TreeViewNode<T>> createNode)
         {
             this.getTitle = getTitle;
             this.getChildren = getChildren;
             this.getParent = getParent;
+            this.createNode = createNode;
         }
 
         private TreeViewNode<T> GetNodeFromItem(T item)
@@ -42,7 +46,7 @@ namespace OpenTap.Tui
             TreeViewNode<T> node;
             if (nodes.TryGetValue(item, out node) == false)
             {
-                node = new TreeViewNode<T>(item, this);
+                node = createNode?.Invoke(item) ?? new TreeViewNode<T>(item, this);
                 nodes[item] = node;
             }
             node.Title = getTitle(item);
@@ -231,9 +235,15 @@ namespace OpenTap.Tui
                 if (selectedNode.Children.Any())
                 {
                     if (kb.Key == Key.CursorLeft)
+                    {
                         selectedNode.IsExpanded = false;
+                        NodeCollapsed?.Invoke(selectedNode.Item);
+                    }
                     if (kb.Key == Key.CursorRight)
+                    {
                         selectedNode.IsExpanded = true;
+                        NodeExpanded?.Invoke(selectedNode.Item);
+                    }
                 }
 
                 if (kb.Key == Key.Enter && selectedNode.IsGroup == false)
