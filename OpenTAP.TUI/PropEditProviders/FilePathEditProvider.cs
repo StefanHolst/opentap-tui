@@ -26,6 +26,7 @@ namespace OpenTap.Tui.PropEditProviders
             {
                 try
                 {
+                    if (dialog.Canceled) return;
                     var value = annotation.Get<IObjectValueAnnotation>().Value;
                     var dialogUri = new Uri(dialog.FilePath.ToString());
                     var workingUri = new Uri(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar);
