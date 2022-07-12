@@ -43,8 +43,8 @@ namespace OpenTap.Tui.Views
             };
             treeView.EnableFilter = true;
             treeView.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? "Test Plan" : $"Test Plan - {filter}"; };
-            treeView.NodeCollapsed += (step) => ChildItemVisibility.SetVisibility(step, ChildItemVisibility.Visibility.Collapsed);
-            treeView.NodeExpanded += (step) => ChildItemVisibility.SetVisibility(step, ChildItemVisibility.Visibility.Visible);
+            treeView.NodeCollapsed += (step) => ChildItemVisibility.SetVisibility(step.Item, ChildItemVisibility.Visibility.Collapsed);
+            treeView.NodeExpanded += (step) => ChildItemVisibility.SetVisibility(step.Item, ChildItemVisibility.Visibility.Visible);
             Add(treeView);
             
             actions = new List<MenuItem>();

@@ -19,8 +19,8 @@ namespace OpenTap.Tui
         public bool EnableFilter { get; set; }
         public string Filter { get; set; } = "";
         public Action<string> FilterChanged { get; set; }
-        public event Action<T> NodeCollapsed;
-        public event Action<T> NodeExpanded;
+        internal event Action<TreeViewNode<T>> NodeCollapsed;
+        internal event Action<TreeViewNode<T>> NodeExpanded;
         
         public T SelectedObject
         {
@@ -237,12 +237,12 @@ namespace OpenTap.Tui
                     if (kb.Key == Key.CursorLeft)
                     {
                         selectedNode.IsExpanded = false;
-                        NodeCollapsed?.Invoke(selectedNode.Item);
+                        NodeCollapsed?.Invoke(selectedNode);
                     }
                     if (kb.Key == Key.CursorRight)
                     {
                         selectedNode.IsExpanded = true;
-                        NodeExpanded?.Invoke(selectedNode.Item);
+                        NodeExpanded?.Invoke(selectedNode);
                     }
                 }
 
