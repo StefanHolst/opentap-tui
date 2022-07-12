@@ -21,12 +21,17 @@ namespace OpenTap.Tui.Views
         private TreeView<ITestStep> treeView;
         private TestPlanRun testPlanRun;
         private bool PlanIsRunning = false;
+        
+        ///<summary> Keeps track of the most recently focused step - even when the test plan is selected. </summary>
+        ITestStep focusedStep;
+        
         public TestPlan Plan { get; set; } = new TestPlan();
 
         public Action<ITestStepParent> SelectionChanged;
 
         public TestPlanView()
         {
+            
             CanFocus = true;
             Title = "Test Plan";
             
@@ -38,6 +43,7 @@ namespace OpenTap.Tui.Views
             treeView.SetTreeViewSource(Plan.Steps);
             treeView.SelectedItemChanged += args =>
             {
+                focusedStep = args.Value as ITestStep;
                 MainWindow.helperButtons.SetActions(actions, this);
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
             };
@@ -65,6 +71,16 @@ namespace OpenTap.Tui.Views
             {
                 SelectionChanged.Invoke(Plan);
             }));
+        }
+
+        /// <summary>
+        /// Overrides SetFocus when called directly.
+        /// </summary>
+        public new void SetFocus() // new used as SetFocus is not virtual in gui.cs, but it works just as well.
+        {
+            base.SetFocus();
+            if(focusedStep != null)
+                SelectionChanged.Invoke(focusedStep);
         }
 
         string getTitle(ITestStep step)
