@@ -92,7 +92,7 @@ namespace OpenTap.Tui
         }
     }
 
-    [Display("tui", "Open a testplan using TUI.")]
+    [Display("tui", "View, edit and run test plans using TUI.")]
     public class TUI : TuiAction
     {
         [UnnamedCommandLineArgument("plan")]
