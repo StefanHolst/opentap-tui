@@ -10,7 +10,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui
 {
-    [Display("tui-pm")]
+    [Display("tui-pm", "Open package manager using TUI.")]
     public class TuiPm : TuiAction
     {
         public override int TuiExecute(CancellationToken cancellationToken)
