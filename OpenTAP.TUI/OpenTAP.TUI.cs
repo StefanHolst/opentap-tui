@@ -53,11 +53,25 @@ namespace OpenTap.Tui
 
             if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
             {
-                if (TestPlanView.HasFocus)
-                    StepSettingsView.FocusFirst();
+                if (keyEvent.IsShift)
+                {
+                    if (TestPlanView.HasFocus)
+                        LogFrame.SetFocus();
+                    else if (StepSettingsView.HasFocus)
+                        TestPlanView.SetFocus();
+                    else
+                        StepSettingsView.FocusFirst();
+                }
                 else
-                    TestPlanView.SetFocus();
-            
+                {
+                    if (TestPlanView.HasFocus)
+                        StepSettingsView.FocusFirst();
+                    else if (StepSettingsView.HasFocus)
+                        LogFrame.SetFocus();
+                    else
+                        TestPlanView.SetFocus();
+                }
+
                 return true;
             }
             
