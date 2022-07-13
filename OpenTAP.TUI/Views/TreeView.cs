@@ -12,6 +12,7 @@ namespace OpenTap.Tui
         private Func<T, List<T>> getChildren;
         private Func<T, T> getParent;
         private Func<T, TreeViewNode<T>> createNode;
+        private Func<TreeViewNode<T>, string, TreeViewNode<T>> createGroupNode;
         private IList<T> items;
         private Dictionary<T, TreeViewNode<T>> nodes;
         private Dictionary<string, TreeViewNode<T>> groups = new Dictionary<string, TreeViewNode<T>>();
@@ -28,12 +29,14 @@ namespace OpenTap.Tui
             set => SelectedItem = renderedItems.IndexOf(nodes[value]);
         }
 
-        public TreeView(Func<T, string> getTitle, Func<T, List<string>> getGroups)
+        public TreeView(Func<T, string> getTitle, Func<T, List<string>> getGroups, Func<T, TreeViewNode<T>> createNode = null, Func<TreeViewNode<T>, string, TreeViewNode<T>> createGroupNode = null)
         {
             this.getTitle = getTitle;
             this.getGroups = getGroups;
+            this.createNode = createNode;
+            this.createGroupNode = createGroupNode;
         }
-        internal TreeView(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent, Func<T, TreeViewNode<T>> createNode)
+        public TreeView(Func<T, string> getTitle, Func<T, List<T>> getChildren, Func<T, T> getParent, Func<T, TreeViewNode<T>> createNode)
         {
             this.getTitle = getTitle;
             this.getChildren = getChildren;
@@ -73,11 +76,11 @@ namespace OpenTap.Tui
                 if (groups.TryGetValue(group, out groupNode) == false)
                 {
                     // add the group
-                    groupNode = new TreeViewNode<T>(default(T), this)
+                    groupNode = createGroupNode?.Invoke(node, group) ?? new TreeViewNode<T>(default(T), this)
                     {
                         Title = group,
-                        IsGroup = true
                     };
+                    groupNode.IsGroup = true;
                     groups[group] = groupNode;
                 }
                     
@@ -310,7 +313,7 @@ namespace OpenTap.Tui
         }
     }
 
-    class TreeViewNode<T>
+    public class TreeViewNode<T>
     {
         public T Item { get; set; }
         public bool IsExpanded { get; set; }
