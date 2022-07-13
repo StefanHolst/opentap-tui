@@ -348,7 +348,7 @@ namespace OpenTap.Tui.Views
         public void LoadProperties(object obj)
         {
             this.obj = obj ?? new object();
-            if (!_allExpandedStepProperties.TryGetValue(obj, out _expandedStepProperties))
+            if (obj != null && !_allExpandedStepProperties.TryGetValue(obj, out _expandedStepProperties))
             {
                 _expandedStepProperties = new Dictionary<string, bool>();
                 _allExpandedStepProperties.Add(obj, _expandedStepProperties);

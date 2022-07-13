@@ -46,6 +46,9 @@ namespace OpenTap.Tui
             }
             catch (Exception ex)
             {
+                //re-add the console listener to print out the exception
+                if (consoleListener != null)
+                    OpenTap.Log.AddListener(consoleListener);
                 Log.Error(DefaultExceptionMessages.DefaultExceptionMessage);
                 Log.Debug(ex);
             }
