@@ -35,7 +35,7 @@ namespace OpenTap.Tui.Views
             CanFocus = true;
             Title = "Test Plan";
             
-            treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent)
+            treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent, createNode)
             {
                 Height = Dim.Fill(),
                 Width = Dim.Fill()
@@ -49,6 +49,7 @@ namespace OpenTap.Tui.Views
             };
             treeView.EnableFilter = true;
             treeView.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? "Test Plan" : $"Test Plan - {filter}"; };
+            treeView.NodeVisibilityChanged += (node, expanded) => ChildItemVisibility.SetVisibility(node.Item, expanded ? ChildItemVisibility.Visibility.Visible : ChildItemVisibility.Visibility.Collapsed);
             Add(treeView);
             
             actions = new List<MenuItem>();
@@ -99,6 +100,13 @@ namespace OpenTap.Tui.Views
         ITestStep getParent(ITestStep step)
         {
             return step.Parent as ITestStep;
+        }
+        TreeViewNode<ITestStep> createNode(ITestStep step)
+        {
+            return new TreeViewNode<ITestStep>(step, treeView)
+            {
+                IsExpanded = ChildItemVisibility.GetVisibility(step) == ChildItemVisibility.Visibility.Visible
+            };
         }
 
         public override bool OnEnter(View view)

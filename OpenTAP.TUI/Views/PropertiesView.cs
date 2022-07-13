@@ -77,13 +77,14 @@ namespace OpenTap.Tui.Views
         
         public PropertiesView(bool EnableFilter = false)
         {
-            treeView = new TreeView<AnnotationCollection>(getTitle, getGroup);
+            treeView = new TreeView<AnnotationCollection>(getTitle, getGroup, CreateNode, CreateGroupNode);
             treeView.CanFocus = true;
             treeView.Height = Dim.Percent(75);
             treeView.SelectedItemChanged += ListViewOnSelectedChanged;
             treeView.OpenSelectedItem += OpenSelectedItem;
             treeView.EnableFilter = EnableFilter;
             treeView.FilterChanged += (f) => TreeViewFilterChanged?.Invoke(f);
+            treeView.NodeVisibilityChanged += NodeVisibilityChanged;
             Add(treeView);
 
             // Description
@@ -214,6 +215,44 @@ namespace OpenTap.Tui.Views
             return annotationCollection?.Get<DisplayAttribute>().Group.ToList();
         }
 
+
+        private readonly Dictionary<object, Dictionary<string, bool>> _allExpandedStepProperties = new Dictionary<object, Dictionary<string, bool>>();
+        private Dictionary<string, bool> _expandedStepProperties;
+        private TreeViewNode<AnnotationCollection> CreateNode(AnnotationCollection annotations)
+        {
+            string name = annotations.Get<DisplayAttribute>().Name;
+            if (!_expandedStepProperties.TryGetValue(name, out bool expanded))
+            {
+                expanded = false;
+                _expandedStepProperties[name] = expanded;
+            }
+            var node = new TreeViewNode<AnnotationCollection>(annotations, treeView)
+            {
+                IsExpanded = expanded,
+            };
+            return node;
+        }
+
+        private TreeViewNode<AnnotationCollection> CreateGroupNode(TreeViewNode<AnnotationCollection> node, string group)
+        {
+            if (!_expandedStepProperties.TryGetValue(group, out bool expanded))
+            {
+                expanded = false;
+                _expandedStepProperties[group] = expanded;
+            }
+            var groupNode = new TreeViewNode<AnnotationCollection>(default(AnnotationCollection), treeView)
+            {
+                Title = group,
+                IsExpanded = expanded,
+            };
+            return groupNode;
+        }
+
+        private void NodeVisibilityChanged(TreeViewNode<AnnotationCollection> node, bool expanded)
+        {
+            _expandedStepProperties[node.Item?.Get<DisplayAttribute>().Name ?? node.Title] = expanded;
+        }
+
         List<Button> getSubmitButtons()
         {
             // Get submit buttons
@@ -309,6 +348,11 @@ namespace OpenTap.Tui.Views
         public void LoadProperties(object obj)
         {
             this.obj = obj ?? new object();
+            if (obj != null && !_allExpandedStepProperties.TryGetValue(obj, out _expandedStepProperties))
+            {
+                _expandedStepProperties = new Dictionary<string, bool>();
+                _allExpandedStepProperties.Add(obj, _expandedStepProperties);
+            }
             annotations = AnnotationCollection.Annotate(obj);
             var members = getMembers();
             if (members == null)
