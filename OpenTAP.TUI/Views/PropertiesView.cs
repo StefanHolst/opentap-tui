@@ -84,8 +84,7 @@ namespace OpenTap.Tui.Views
             treeView.OpenSelectedItem += OpenSelectedItem;
             treeView.EnableFilter = EnableFilter;
             treeView.FilterChanged += (f) => TreeViewFilterChanged?.Invoke(f);
-            treeView.NodeCollapsed += NodeCollapsed;
-            treeView.NodeExpanded += NodeExpanded;
+            treeView.NodeVisibilityChanged += NodeVisibilityChanged;
             Add(treeView);
 
             // Description
@@ -249,14 +248,9 @@ namespace OpenTap.Tui.Views
             return groupNode;
         }
 
-        private void NodeExpanded(TreeViewNode<AnnotationCollection> node)
+        private void NodeVisibilityChanged(TreeViewNode<AnnotationCollection> node, bool expanded)
         {
-            _expandedStepProperties[node.Item?.Get<DisplayAttribute>().Name ?? node.Title] = true;
-        }
-
-        private void NodeCollapsed(TreeViewNode<AnnotationCollection> node)
-        {
-            _expandedStepProperties[node.Item.Get<DisplayAttribute>().Name] = false;
+            _expandedStepProperties[node.Item?.Get<DisplayAttribute>().Name ?? node.Title] = expanded;
         }
 
         List<Button> getSubmitButtons()
