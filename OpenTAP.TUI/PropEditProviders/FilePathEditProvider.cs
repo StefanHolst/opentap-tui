@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using OpenTap;
 using OpenTap.Tui;
 using Terminal.Gui;
@@ -25,11 +26,15 @@ namespace OpenTap.Tui.PropEditProviders
             {
                 try
                 {
+                    if (dialog.Canceled) return;
                     var value = annotation.Get<IObjectValueAnnotation>().Value;
+                    var dialogUri = new Uri(dialog.FilePath.ToString());
+                    var workingUri = new Uri(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar);
+                    var path = workingUri.MakeRelativeUri(dialogUri).ToString();
                     if (value is MacroString ms)
-                        ms.Text = dialog.FilePath.ToString();
+                        ms.Text = path;
                     else
-                        annotation.Get<IStringValueAnnotation>().Value = dialog.FilePath.ToString();
+                        annotation.Get<IStringValueAnnotation>().Value = path;
                 }
                 catch (Exception exception)
                 {
