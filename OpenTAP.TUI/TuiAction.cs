@@ -14,6 +14,18 @@ namespace OpenTap.Tui
         public static TapThread MainThread;
         public static CancellationToken CancellationToken;
         public static ICliAction CurrentAction { get; private set; }
+
+        #if DEBUG
+        const bool isDebug = true;
+        #else
+        const bool isDebug = false;
+        #endif
+        
+        public static void AssertTuiThread()
+        {
+            if (isDebug && TapThread.Current != MainThread)
+                throw new InvalidOperationException("GUI invoked from outside the GUI thread.");
+        }
         
         public int Execute(CancellationToken cancellationToken)
         {
