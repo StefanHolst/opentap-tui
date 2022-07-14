@@ -93,6 +93,7 @@ namespace OpenTap.Tui.Views
 
         public void Update(bool noCache = false)
         {
+            TuiAction.AssertTuiThread();
             treeView.RenderTreeView(noCache);
             MainWindow.helperButtons.SetActions(actions, this);
         }
@@ -233,9 +234,12 @@ namespace OpenTap.Tui.Views
             {
                 // Run testplan and show progress bar
                 testPlanRun = Plan.Execute();
-                PlanIsRunning = false;
-                runAction.Title = "Run Test Plan";
-                Update();
+                Application.MainLoop.Invoke(() =>
+                    {
+                        PlanIsRunning = false;
+                        runAction.Title = "Run Test Plan";
+                        Update();
+                    });
             });
             
             Task.Run(() =>
