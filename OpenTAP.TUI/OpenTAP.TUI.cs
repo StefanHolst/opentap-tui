@@ -128,7 +128,7 @@ namespace OpenTap.Tui
             });
             var toolsmenu = new MenuBarItem("_Tools", new MenuItem[]
             {
-                new MenuItem("_Results Viewer", "", () =>
+                new MenuItem("_Results Viewer (Experimental)", "", () =>
                 {
                     var reswin = new ResultsViewerWindow()
                     {
@@ -140,7 +140,7 @@ namespace OpenTap.Tui
                     Application.Run(reswin);
                     TestPlanView.Update(); // make sure the helperbuttons have been refreshed
                 }),
-                new MenuItem("_Package Manager", "", () =>
+                new MenuItem("_Package Manager (Experimental)", "", () =>
                 {
                     var pmwin = new PackageManagerWindow()
                     {
