@@ -225,7 +225,7 @@ namespace OpenTap.Tui.Views
         }
         private void showAddStep()
         {
-            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step", null);
             Application.Run(newStep);
             if (newStep.PluginType != null)
                 AddNewStep(newStep.PluginType);
@@ -233,7 +233,7 @@ namespace OpenTap.Tui.Views
 
         private void showInsertStep()
         {
-            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child", TypeData.GetTypeData(treeView.SelectedObject));
             Application.Run(newStep);
             if (newStep.PluginType != null)
                 InsertNewChildStep(newStep.PluginType);
