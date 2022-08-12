@@ -216,8 +216,7 @@ namespace OpenTap.Tui.Views
         }
 
 
-        private readonly Dictionary<object, Dictionary<string, bool>> _allExpandedStepProperties = new Dictionary<object, Dictionary<string, bool>>();
-        private Dictionary<string, bool> _expandedStepProperties;
+        private Dictionary<string, bool> _expandedStepProperties = new Dictionary<string, bool>();
         private TreeViewNode<AnnotationCollection> CreateNode(AnnotationCollection annotations)
         {
             string name = annotations.Get<DisplayAttribute>().Name;
@@ -348,11 +347,6 @@ namespace OpenTap.Tui.Views
         public void LoadProperties(object obj)
         {
             this.obj = obj ?? new object();
-            if (obj != null && !_allExpandedStepProperties.TryGetValue(obj, out _expandedStepProperties))
-            {
-                _expandedStepProperties = new Dictionary<string, bool>();
-                _allExpandedStepProperties.Add(obj, _expandedStepProperties);
-            }
             annotations = AnnotationCollection.Annotate(obj);
             var members = getMembers();
             if (members == null)
