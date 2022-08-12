@@ -231,7 +231,7 @@ namespace OpenTap.Tui
         
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
+            if (renderedItems != null && renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
             {
                 var selectedNode = renderedItems[SelectedItem];
                 if (selectedNode.Children.Any())
@@ -252,12 +252,12 @@ namespace OpenTap.Tui
                     return base.ProcessKey(kb);
             
                 RenderTreeView();
-                return true;
+                return false;
             }
 
             if (EnableFilter)
             {
-                if (kb.KeyValue >= 32 && kb.KeyValue < 127) // any non-special character is in this range
+                if (kb.KeyValue >= 32 && kb.KeyValue < 127 && kb.Key != Key.Space) // any non-special character is in this range
                 {
                     Filter += (char) kb.KeyValue;
                     RenderTreeView();
