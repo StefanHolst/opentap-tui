@@ -168,8 +168,15 @@ namespace OpenTap.Tui.Views
 
             if (string.IsNullOrWhiteSpace(path) == false)
             {
-                Plan.Save(path);
-                TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                try
+                {
+                    Plan.Save(path);
+                    TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                }
+                catch (IOException ex)
+                {
+                    TUI.Log.Error(ex);
+                }
             }
         }
         
