@@ -11,7 +11,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui
 {
-    [Display("tui-results", "Open TUI results viewer.")]
+    [Display("tui-results", "Open TUI results viewer. (Experimental)")]
     public class TuiResults : TuiAction
     {
         public override int TuiExecute(CancellationToken cancellationToken)
