@@ -14,8 +14,9 @@ namespace OpenTap.Tui.PropEditProviders
         public View Edit(AnnotationCollection annotation)
         {
             var stredit = annotation.Get<IStringValueAnnotation>();
-            if (stredit == null) return null;
-            var text = stredit.Value ?? "";
+            var valueAnnotation = annotation.Get<IObjectValueAnnotation>();
+            if (stredit == null && !(valueAnnotation.Value is DateTime)) return null;
+            var text = stredit?.Value ?? valueAnnotation?.Value.ToString() ?? "";
             var view = new View();
             var textField = new TextViewWithEnter(){
                 Text = text,
@@ -36,7 +37,10 @@ namespace OpenTap.Tui.PropEditProviders
             {
                 try
                 {
-                    stredit.Value = textField.Text.ToString().Replace("\r", "");
+                    if (stredit != null)
+                        stredit.Value = textField.Text.ToString().Replace("\r", "");
+                    else if (valueAnnotation != null)
+                        valueAnnotation.Value = DateTime.Parse(textField.Text.ToString());
                 }
                 catch (Exception exception)
                 {
@@ -58,7 +62,7 @@ namespace OpenTap.Tui.PropEditProviders
                 {
                     FileDialog dialog = new OpenDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Choose file path"};
                     Application.Run(dialog);
-                    if (dialog.FilePath ==  null)
+                    if (dialog.DirectoryPath == null || dialog.FilePath ==  null || dialog.Canceled)
                         return;
 
                     var dialogUri = new Uri(dialog.FilePath.ToString());
