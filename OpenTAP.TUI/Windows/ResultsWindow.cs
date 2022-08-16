@@ -62,13 +62,13 @@ namespace OpenTap.Tui.Windows
             // Add export action
             var actions = new List<MenuItem>();
             var exporters = TypeData.GetDerivedTypes<ITableExport>().ToList();
-            var exportAction = new MenuItem("Export", "", () => Export(exporters));
+            var exportAction = new MenuItem("Export", "", () => Export(exporters), shortcut: Key.F5);
             exportAction.CanExecute += () => exporters.Any();
             actions.Add(exportAction);
 
-            var zoomAction = new MenuItem("Zoom", "", () => Zoom((float)0.8));
+            var zoomAction = new MenuItem("Zoom", "", () => Zoom((float)0.8), shortcut: Key.F6);
             actions.Add(zoomAction);
-            var zoomOutAction = new MenuItem("Zoom", "", () => Zoom((float)1.25));
+            var zoomOutAction = new MenuItem("Zoom", "", () => Zoom((float)1.25), shortcut: Key.F7);
             actions.Add(zoomOutAction);
             
             helperButtons.SetActions(actions, this);

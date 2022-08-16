@@ -38,14 +38,15 @@ namespace OpenTap.Tui.Views
                 MainWindow.helperButtons?.SetActions(list, this);
                 return;
             }
-            
+
+            int keyNum = 0;
             foreach (var _member in menu.MenuItems)
             {
                 var member = _member;
                 if (member.Get<IAccessAnnotation>()?.IsVisible == false)
                     continue;
                 
-                var item = new MenuItem();
+                var item = new MenuItem((Key)((int)Key.F5 + keyNum++));
                 item.Title = member.Get<DisplayAttribute>().Name;
                 item.Action = () =>
                 {

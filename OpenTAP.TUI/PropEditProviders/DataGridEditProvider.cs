@@ -221,7 +221,7 @@ namespace OpenTap.Tui.PropEditProviders
                 tableView.Update();
                 helperButtons.SetActions(actions, viewWrapper);
                 Application.Refresh();
-            }, () => fixedSize == false));
+            }, () => fixedSize == false, shortcut: Key.F5));
             actions.Add(new MenuItem("Remove Row", "", () =>
             {
                 var index = tableView.SelectedRow;
@@ -236,7 +236,7 @@ namespace OpenTap.Tui.PropEditProviders
                 tableView.Update();
                 helperButtons.SetActions(actions, viewWrapper);
                 Application.Refresh();
-            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false));
+            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false, shortcut: Key.F6));
             helperButtons.SetActions(actions, viewWrapper);
             
             return viewWrapper;

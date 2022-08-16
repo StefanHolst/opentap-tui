@@ -64,7 +64,7 @@ namespace OpenTap.Tui.Windows
             
             // Add actions
             var actions = new List<MenuItem>();
-            var runAction = new MenuItem("Plot Results", "", PlotResults);
+            var runAction = new MenuItem("Plot Results", "", PlotResults, shortcut: Key.F5);
             actions.Add(runAction);
             
             runList.ItemMarkedChanged += (args =>
