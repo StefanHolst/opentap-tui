@@ -140,7 +140,7 @@ namespace OpenTap.Tui.Views
                 TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
             else
             {
-                var win = new EditWindow(annotations.ToString());
+                var win = new EditWindow(member.ToString().Split(':')[0]);
                 win.Add(propEditor);
                 Application.Run(win);
             }

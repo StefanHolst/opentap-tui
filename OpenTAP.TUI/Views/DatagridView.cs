@@ -231,7 +231,7 @@ namespace OpenTap.Tui.Views
                                 TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>()?.ReflectionInfo.Name}");
                             else
                             {
-                                var win = new EditWindow(cell.ToString());
+                                var win = new EditWindow(cell.ToString().Split(':')[0]);
                                 win.Add(propEditor);
                                 Application.Run(win);
                             }
