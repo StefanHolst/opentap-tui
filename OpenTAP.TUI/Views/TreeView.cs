@@ -234,18 +234,26 @@ namespace OpenTap.Tui
             if (renderedItems != null && renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
             {
                 var selectedNode = renderedItems[SelectedItem];
-                if (selectedNode.AlwaysDisplayExpandState || selectedNode.Children.Any())
+                var hasChildren = selectedNode.AlwaysDisplayExpandState || selectedNode.Children.Any();
+                if (hasChildren && kb.Key == Key.CursorLeft && selectedNode.IsExpanded)
                 {
-                    if (kb.Key == Key.CursorLeft)
-                    {
-                        selectedNode.IsExpanded = false;
-                        NodeVisibilityChanged?.Invoke(selectedNode, false);
-                    }
-                    if (kb.Key == Key.CursorRight)
-                    {
-                        selectedNode.IsExpanded = true;
-                        NodeVisibilityChanged?.Invoke(selectedNode, true);
-                    }
+                    selectedNode.IsExpanded = false;
+                    NodeVisibilityChanged?.Invoke(selectedNode, false);
+                }
+                else if (hasChildren && kb.Key == Key.CursorRight && !selectedNode.IsExpanded)
+                {
+                    selectedNode.IsExpanded = true;
+                    NodeVisibilityChanged?.Invoke(selectedNode, true);
+                }
+                else if (selectedNode.Parent != null && kb.Key == Key.CursorLeft)
+                {
+                    SelectedItem = renderedItems.FindIndex(s => s == selectedNode.Parent);
+                    OnSelectedChanged();
+                }
+                else if (SelectedItem != 0 && kb.Key == Key.CursorLeft)
+                {
+                    SelectedItem = 0;
+                    OnSelectedChanged();
                 }
 
                 if (kb.Key == Key.Enter && selectedNode.IsGroup == false)
