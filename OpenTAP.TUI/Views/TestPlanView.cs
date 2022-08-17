@@ -66,7 +66,8 @@ namespace OpenTap.Tui.Views
             actions.Add(runAction);
             actions.Add(new MenuItem("Insert New Step", "", showAddStep));
             insertAction = new MenuItem("Insert New Step Child", "", showInsertStep);
-            insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
+            insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null ||
+                treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null;
             actions.Add(insertAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
@@ -224,7 +225,7 @@ namespace OpenTap.Tui.Views
         }
         private void showAddStep()
         {
-            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step", null);
             Application.Run(newStep);
             if (newStep.PluginType != null)
                 AddNewStep(newStep.PluginType);
@@ -232,7 +233,7 @@ namespace OpenTap.Tui.Views
 
         private void showInsertStep()
         {
-            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child", TypeData.GetTypeData(treeView.SelectedObject));
             Application.Run(newStep);
             if (newStep.PluginType != null)
                 InsertNewChildStep(newStep.PluginType);
@@ -308,7 +309,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
             
-            if (kb.Key == Key.CursorRight && moveStep != null && treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
+            if (kb.Key == Key.CursorRight && moveStep != null && (treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null || treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null))
             {
                 injectStep = true;
                 Update(true);
@@ -379,7 +380,7 @@ namespace OpenTap.Tui.Views
                 showAddStep();
                 return true;
             }
-            if (KeyMapHelper.IsKey(kb, KeyTypes.InsertNewStep) && treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.InsertNewStep) && (treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null || treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null))
             {
                 showInsertStep();
                 return true;

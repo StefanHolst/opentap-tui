@@ -190,7 +190,7 @@ namespace OpenTap.Tui.PropEditProviders
                 if (isComplicatedType)
                 {
                     Type type = (annotation.Get<IReflectionAnnotation>().ReflectionInfo as TypeData).Load();
-                    var win = new NewPluginWindow(TypeData.FromType(GetEnumerableElementType(type)), "Add Element");
+                    var win = new NewPluginWindow(TypeData.FromType(GetEnumerableElementType(type)), "Add Element", null);
                     Application.Run(win);
                     if (win.PluginType == null)
                         return;
