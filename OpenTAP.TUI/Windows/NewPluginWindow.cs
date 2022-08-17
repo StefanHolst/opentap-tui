@@ -26,7 +26,7 @@ namespace OpenTap.Tui.Windows
             var types = TypeData.GetDerivedTypes(type)
                 .Where(x => x.CanCreateInstance)
                 .Where(x => x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true)
-                .Where(x => parentType == null ? true : TestStepList.AllowChild(AsTypeData(parentType).Type, AsTypeData(x).Type));
+                .Where(x => parentType == null ? true : TestStepList.AllowChild(AsTypeData(parentType).Type, AsTypeData(x)?.Type));
 
             treeview.SetTreeViewSource(types.ToList());
             Add(treeview);
