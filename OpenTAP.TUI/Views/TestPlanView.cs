@@ -175,7 +175,8 @@ namespace OpenTap.Tui.Views
                 }
                 catch (IOException ex)
                 {
-                    TUI.Log.Error(ex);
+                    TUI.Log.Debug(ex);
+                    TUI.Log.Error(ex.Message);
                 }
             }
         }
