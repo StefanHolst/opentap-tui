@@ -43,7 +43,7 @@ namespace OpenTap.Tui
             this.createNode = createNode;
         }
 
-        private TreeViewNode<T> GetNodeFromItem(T item)
+        public TreeViewNode<T> GetNodeFromItem(T item)
         {
             TreeViewNode<T> node;
             if (nodes.TryGetValue(item, out node) == false)
@@ -234,7 +234,7 @@ namespace OpenTap.Tui
             if (renderedItems != null && renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
             {
                 var selectedNode = renderedItems[SelectedItem];
-                if (selectedNode.Children.Any())
+                if (selectedNode.AlwaysDisplayExpandState || selectedNode.Children.Any())
                 {
                     if (kb.Key == Key.CursorLeft)
                     {
@@ -252,12 +252,12 @@ namespace OpenTap.Tui
                     return base.ProcessKey(kb);
             
                 RenderTreeView();
-                return false;
+                return true;
             }
 
             if (EnableFilter)
             {
-                if (kb.KeyValue >= 32 && kb.KeyValue < 127 && kb.Key != Key.Space) // any non-special character is in this range
+                if (kb.KeyValue >= 32 && kb.KeyValue < 127) // any non-special character is in this range
                 {
                     Filter += (char) kb.KeyValue;
                     RenderTreeView();
@@ -316,6 +316,7 @@ namespace OpenTap.Tui
     {
         public T Item { get; set; }
         public bool IsExpanded { get; set; }
+        public bool AlwaysDisplayExpandState { get; set; }
         public bool IsGroup { get; set; }
         public string Title { get; set; }
         public List<string> Groups { get; set; }
@@ -368,7 +369,7 @@ namespace OpenTap.Tui
             }
             
             string text = new String(' ', indent);
-            if (Children.Any())
+            if (AlwaysDisplayExpandState || Children.Any())
                 text += IsExpanded || string.IsNullOrEmpty(Owner.Filter) == false ? "- " : "+ ";
             else
                 text += "  ";
