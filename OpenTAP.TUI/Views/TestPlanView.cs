@@ -64,8 +64,8 @@ namespace OpenTap.Tui.Views
                     RunTestPlan();
             }, shortcut: Key.F5);
             actions.Add(runAction);
-            actions.Add(new MenuItem("Insert New Step", "", showAddStep, shortcut: Key.F6));
-            insertAction = new MenuItem("Insert New Step Child", "", showInsertStep, shortcut: Key.F7);
+            actions.Add(new MenuItem("Insert New Step", "", showAddStep, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.AddNewStep)));
+            insertAction = new MenuItem("Insert New Step Child", "", showInsertStep, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertNewStep));
             insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null ||
                 treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null;
             actions.Add(insertAction);

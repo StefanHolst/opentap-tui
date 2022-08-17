@@ -167,7 +167,6 @@ namespace OpenTap.Tui
         public Action ResetSize { get; set; }
 
         [Display("Map", Group: "Key Mapping")]
-        [FixedSize]
         public List<KeyMap> KeyMap { get; set; } = new List<KeyMap>();
         
         [Browsable(true)]

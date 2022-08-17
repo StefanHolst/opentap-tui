@@ -47,7 +47,7 @@ namespace OpenTap.Tui.Views
 
             // Record key press
             NewKeyMap = kb;
-            NewKeyText.Text = $"New key: {NewKeyMap}";
+            NewKeyText.Text = $"New key: {NewKeyMap.Key}";
             return true;
         }
     }

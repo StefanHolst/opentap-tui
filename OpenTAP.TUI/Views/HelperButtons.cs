@@ -18,7 +18,7 @@ namespace OpenTap.Tui.Views
             for (int i = 0; i < actions.Count; i++)
             {
                 var item = actions[i];
-                var title = $"{item.Shortcut} {item.Title}";
+                var title = $"{KeyMapHelper.KeyToString(item.Shortcut)} {item.Title}";
                 var b = new Button(title)
                 {
                     X = offset,
