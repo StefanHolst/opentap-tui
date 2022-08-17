@@ -11,7 +11,6 @@ namespace OpenTap.Tui.Windows
         public static string[] Headers =  { "Run ID", "Name", "Verdict", "Source" };
         
         private SelectorView runList;
-        private PropertiesView propsView;
         private HelperButtons helperButtons;
 
         public ResultsViewerWindow() : base("Results Viewer")

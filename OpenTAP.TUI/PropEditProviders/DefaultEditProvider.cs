@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using OpenTap.Tui.Views;
-using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.PropEditProviders

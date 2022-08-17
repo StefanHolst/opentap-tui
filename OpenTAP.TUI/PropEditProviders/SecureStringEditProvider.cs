@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security;
-using OpenTap;
-using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.PropEditProviders

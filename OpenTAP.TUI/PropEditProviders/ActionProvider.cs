@@ -1,5 +1,4 @@
 using System;
-using OpenTap;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.PropEditProviders

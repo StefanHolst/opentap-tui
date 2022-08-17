@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using OpenTap.Plugins.BasicSteps;
-using OpenTap.Tui.Annotations;
 using OpenTap.Tui.Views;
 using Terminal.Gui;
 using Terminal.Gui.Graphs;
@@ -17,8 +14,6 @@ namespace OpenTap.Tui.Windows
         private PropertiesView propsView;
         private GraphView graphView;
         private HelperButtons helperButtons;
-        private List<IRunViewModel> runs;
-        private int selectedIndex = 0;
         private ChartSettings settings;
 
         public ResultsWindow(List<IRunViewModel> runs)

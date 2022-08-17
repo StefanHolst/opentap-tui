@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using OpenTap;
-using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.PropEditProviders

@@ -11,7 +11,6 @@ namespace OpenTap.Tui.Windows
     public class SettingsProfileWindow : Window
     {
         private ListView listView;
-        private HelperButtons helperButtons;
         private Button deleteButton;
         private string Group;
         private string SettingsDir;
