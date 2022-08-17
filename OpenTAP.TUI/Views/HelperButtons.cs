@@ -7,11 +7,12 @@ namespace OpenTap.Tui.Views
     {
         private static View Owner = null;
         private List<MenuItem> actions = null;
-        
+
         public void SetActions(List<MenuItem> actions, View owner)
         {
             Owner = owner;
             RemoveAll();
+            Clear();
             
             int offset = 0;
             for (int i = 0; i < actions.Count; i++)

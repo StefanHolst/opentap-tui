@@ -65,7 +65,7 @@ namespace OpenTap.Tui.Windows
             };
             addButton.Clicked += () =>
             {
-                var newPlugin = new NewPluginWindow(TypeData.FromType(DataGridEditProvider.GetEnumerableElementType(Resources.GetType())), title);
+                var newPlugin = new NewPluginWindow(TypeData.FromType(DataGridEditProvider.GetEnumerableElementType(Resources.GetType())), title, null);
                 Application.Run(newPlugin);
                 if (newPlugin.PluginType != null)
                 {
