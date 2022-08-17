@@ -46,7 +46,7 @@ namespace OpenTap.Tui
             return false;
         }
 
-        public double Order => 0;
+        public override double Order => 0;
 
         public static string fromModifiers(KeyEvent keyEvent)
         {

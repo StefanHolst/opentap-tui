@@ -1,10 +1,8 @@
-﻿using OpenTap;
-using OpenTap.Diagnostic;
+﻿using OpenTap.Diagnostic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terminal.Gui;
-using Attribute = Terminal.Gui.Attribute;
 
 namespace OpenTap.Tui.Views
 {

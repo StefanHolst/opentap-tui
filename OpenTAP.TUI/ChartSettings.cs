@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using OpenTap.Tui.Annotations;
-using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
 using Terminal.Gui.Graphs;

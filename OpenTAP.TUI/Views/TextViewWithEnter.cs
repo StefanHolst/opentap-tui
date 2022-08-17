@@ -8,7 +8,7 @@ namespace OpenTap.Tui.Views
         public bool CloseOnEnter { get; set; } = true;
 
         public Action Closing;
-        
+
         public override bool ProcessKey(KeyEvent kb)
         {
             if (kb.Key == Key.Enter && CloseOnEnter)

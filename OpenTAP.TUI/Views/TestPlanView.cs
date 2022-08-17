@@ -62,17 +62,17 @@ namespace OpenTap.Tui.Views
                 }
                 else
                     RunTestPlan();
-            });
+            }, shortcut: Key.F5);
             actions.Add(runAction);
-            actions.Add(new MenuItem("Insert New Step", "", showAddStep));
-            insertAction = new MenuItem("Insert New Step Child", "", showInsertStep);
+            actions.Add(new MenuItem("Insert New Step", "", showAddStep, shortcut: Key.F6));
+            insertAction = new MenuItem("Insert New Step Child", "", showInsertStep, shortcut: Key.F7);
             insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null ||
                 treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null;
             actions.Add(insertAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
                 SelectionChanged.Invoke(Plan);
-            }));
+            }, shortcut: Key.F8));
         }
 
         /// <summary>
