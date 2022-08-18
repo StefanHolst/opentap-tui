@@ -13,15 +13,16 @@ namespace OpenTap.Tui.PropEditProviders
         private readonly IReadOnlyDictionary<Type, Func<string, object>> _editorFor = new Dictionary<Type, Func<string, object>>()
         {
             {typeof(DateTime), (s) => DateTime.Parse(s) },
-            {typeof(string), (s) => s.Replace("\r", "") },
         };
 
 
         public View Edit(AnnotationCollection annotation)
         {
             var valueAnnotation = annotation.Get<IObjectValueAnnotation>();
-            if (valueAnnotation == null || !_editorFor.TryGetValue(valueAnnotation.Value.GetType(), out var parseFunc)) return null;
-            var text = valueAnnotation?.Value.ToString() ?? "";
+            if (valueAnnotation == null) return null;
+            var text = valueAnnotation.Value.ToString();
+            var strAnnotation = annotation.Get<IStringValueAnnotation>();
+            if (!_editorFor.TryGetValue(valueAnnotation.Value.GetType(), out var parseFunc) && strAnnotation == null) return null;
             var view = new View();
             var textField = new TextViewWithEnter(){
                 Text = text,
@@ -42,7 +43,10 @@ namespace OpenTap.Tui.PropEditProviders
             {
                 try
                 {
-                    valueAnnotation.Value = parseFunc(textField.Text.ToString());
+                    if (strAnnotation != null)
+                        strAnnotation.Value = textField.Text.ToString().Replace("\r", "");
+                    else
+                        valueAnnotation.Value = parseFunc(textField.Text.ToString());
                 }
                 catch (Exception exception)
                 {
