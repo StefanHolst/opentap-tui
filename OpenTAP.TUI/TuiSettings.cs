@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using OpenTap.Tui.PropEditProviders;
 using Terminal.Gui;
 
 namespace OpenTap.Tui

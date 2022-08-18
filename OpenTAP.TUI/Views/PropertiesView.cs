@@ -148,10 +148,11 @@ namespace OpenTap.Tui.Views
             // Save values to reference object
             annotations.Write();
             annotations.Read();
+            MainWindow.ContainsUnsavedChanges = true;
 
             // Load new values
             LoadProperties(obj);
-                
+            
             // Invoke property changed event
             PropertiesChanged?.Invoke();
         }

@@ -20,7 +20,7 @@ namespace OpenTap.Tui.Views
         private MenuItem runAction;
         private TreeView<ITestStep> treeView;
         private TestPlanRun testPlanRun;
-        private bool PlanIsRunning = false;
+        private bool PlanIsRunning = false; 
         
         ///<summary> Keeps track of the most recently focused step - even when the test plan is selected. </summary>
         ITestStep focusedStep;
@@ -31,7 +31,6 @@ namespace OpenTap.Tui.Views
 
         public TestPlanView()
         {
-            
             CanFocus = true;
             Title = $"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusTestPlan)} Test Plan]";
             
@@ -156,6 +155,7 @@ namespace OpenTap.Tui.Views
         {
             Plan = new TestPlan();
             treeView.SetTreeViewSource(Plan.Steps);
+            MainWindow.ContainsUnsavedChanges = true;
         }
         public void SaveTestPlan(string path)
         {
@@ -170,6 +170,7 @@ namespace OpenTap.Tui.Views
             if (string.IsNullOrWhiteSpace(path) == false)
             {
                 Plan.Save(path);
+                MainWindow.ContainsUnsavedChanges = false;
                 TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
             }
         }
@@ -192,6 +193,7 @@ namespace OpenTap.Tui.Views
                     Update(true);
                     treeView.SelectedObject = newStep;
                 }
+                MainWindow.ContainsUnsavedChanges = true;
             }
             catch(Exception ex)
             {
@@ -353,6 +355,7 @@ namespace OpenTap.Tui.Views
                     moveStep = null;
                     injectStep = false;
                     Update(true);
+                    MainWindow.ContainsUnsavedChanges = true;
                 }
                 
                 return true;
@@ -416,6 +419,7 @@ namespace OpenTap.Tui.Views
                     treeView.SelectedObject = newStep;
                     Update();
                 }
+                MainWindow.ContainsUnsavedChanges = true;
                 
                 return true;
             }

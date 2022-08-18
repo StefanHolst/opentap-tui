@@ -9,18 +9,24 @@ using System.Threading;
 using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
+using System.Diagnostics;
 
 namespace OpenTap.Tui
 {
     public class MainWindow : Window
     {
+        private static MainWindow _instance;
+
         public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
         public static HelperButtons helperButtons { get; private set; }
 
+        public static bool ContainsUnsavedChanges { get; set; }
+
         public MainWindow(string title) : base(title)
         {
+            _instance = this;
             Modal = true;
             
             helperButtons = new HelperButtons
@@ -36,6 +42,39 @@ namespace OpenTap.Tui
             };
         }
 
+        public static bool TryToRestart()
+        {
+            if (TryToExit())
+            {
+                Process.Start("tap.exe", $"tui {_instance.TestPlanView.Plan.Path}");
+                return true;
+            }
+            return false;
+        }
+
+        public static bool TryToExit()
+        {
+            if (ContainsUnsavedChanges)
+            {
+                switch (MessageBox.Query(50, 7, "Unsaved changes!", "Do you want to save before exiting?", "Save", "Don't save", "Cancel"))
+                {
+                    case 0:
+                        // Save.
+                        _instance.TestPlanView.SaveTestPlan(_instance.TestPlanView.Plan.Path);
+                        break;
+                    case 1:
+                        // Don't save.
+                        break;
+                    case 2:
+                    // Cancel.
+                    default:
+                        return false;
+                }
+            }
+            Application.RequestStop();
+            return true;
+        }
+
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView && this.IsTopActive())
@@ -46,8 +85,7 @@ namespace OpenTap.Tui
 
             if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Close))
             {
-                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
-                    Application.RequestStop();
+                TryToExit();
                 return true;
             }
 
