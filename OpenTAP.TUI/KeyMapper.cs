@@ -48,8 +48,8 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.Close, Key.Esc, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.X, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.C, ctrl: true, shift: false, alt: false),
-            new KeyMap(KeyTypes.AddNewStep, Key.T, ctrl: true, shift: false, alt: false),
-            new KeyMap(KeyTypes.InsertNewStep, Key.T, ctrl: true, shift: true, alt: false),
+            new KeyMap(KeyTypes.AddNewStep, Key.N, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertNewStep, Key.N, ctrl: true, shift: true, alt: false),
             new KeyMap(KeyTypes.DeleteStep, Key.Backspace, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.DeleteStep, Key.DeleteChar, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: false, alt: false),
@@ -60,9 +60,8 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.FocusLog, Key.F4, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TestPlanSettings, Key.F8, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.TableAddRow, Key.F1, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.TableRemoveRow, Key.F2, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.F1, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.TableAddRow, Key.N, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.TableRemoveRow, Key.N, ctrl: true, shift: true, alt: false),
             new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.O, ctrl: false, shift: true, alt: false),
             new KeyMap(KeyTypes.HelperButton1, Key.F5, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton2, Key.F6, ctrl: false, shift: false, alt: false),
@@ -78,6 +77,11 @@ namespace OpenTap.Tui
         public static Key GetShortcutKey(KeyTypes keyType)
         {
             return GetFirstKeymap(keyType).KeyEvent.Key;
+        }
+
+        public static string GetKeyName(KeyTypes keyType)
+        {
+            return KeyToString(GetShortcutKey(keyType));
         }
         
         public static bool IsKey(KeyEvent keyEvent, KeyTypes keyType)

@@ -33,7 +33,7 @@ namespace OpenTap.Tui.Views
         {
             
             CanFocus = true;
-            Title = "Test Plan";
+            Title = $"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusTestPlan)} Test Plan]";
             
             treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent, createNode)
             {

@@ -241,19 +241,20 @@ namespace OpenTap.Tui
             win.Add(TestPlanView);
 
             // Add step settings view
-            var settingsFrame = new FrameView("Settings")
+            string settingsName = $"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusStepSettings)} Settings ]";
+            var settingsFrame = new FrameView(settingsName)
             {
                 X = Pos.Right(TestPlanView),
                 Y = 1,
                 Width = Dim.Fill(),
                 Height = Dim.Height(TestPlanView)
             };
-            StepSettingsView.TreeViewFilterChanged += (filter) => { settingsFrame.Title = string.IsNullOrEmpty(filter) ? "Settings" : $"Settings - {filter}"; };
+            StepSettingsView.TreeViewFilterChanged += (filter) => { settingsFrame.Title = string.IsNullOrEmpty(filter) ? settingsName : $"{settingsName} - {filter}"; };
             settingsFrame.Add(StepSettingsView);
             win.Add(settingsFrame);
 
             // Add log panel
-            LogFrame = new FrameView("Log Panel")
+            LogFrame = new FrameView($"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusLog)} Log Panel ]")
             {
                 Y = Pos.Bottom(TestPlanView),
                 Width = Dim.Fill(),
