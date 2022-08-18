@@ -197,7 +197,8 @@ namespace OpenTap.Tui.Views
             }
             catch(Exception ex)
             {
-                TUI.Log.Error(ex);
+                TUI.Log.Debug(ex);
+                TUI.Log.Error(ex.Message);
             }
         }
         private void InsertNewChildStep(ITypeData type)
