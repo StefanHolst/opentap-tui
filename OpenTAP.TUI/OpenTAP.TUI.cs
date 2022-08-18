@@ -42,39 +42,6 @@ namespace OpenTap.Tui
             };
         }
 
-        public static bool TryToRestart()
-        {
-            if (TryToExit())
-            {
-                Process.Start("tap.exe", $"tui {_instance.TestPlanView.Plan.Path}");
-                return true;
-            }
-            return false;
-        }
-
-        public static bool TryToExit()
-        {
-            if (ContainsUnsavedChanges)
-            {
-                switch (MessageBox.Query(50, 7, "Unsaved changes!", "Do you want to save before exiting?", "Save", "Don't save", "Cancel"))
-                {
-                    case 0:
-                        // Save.
-                        _instance.TestPlanView.SaveTestPlan(_instance.TestPlanView.Plan.Path);
-                        break;
-                    case 1:
-                        // Don't save.
-                        break;
-                    case 2:
-                    // Cancel.
-                    default:
-                        return false;
-                }
-            }
-            Application.RequestStop();
-            return true;
-        }
-
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView && this.IsTopActive())
@@ -85,7 +52,24 @@ namespace OpenTap.Tui
 
             if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Close))
             {
-                TryToExit();
+                if (ContainsUnsavedChanges)
+                {
+                    switch (MessageBox.Query(50, 7, "Unsaved changes!", "Do you want to save before exiting?", "Save", "Don't save", "Cancel"))
+                    {
+                        case 0:
+                            // Save.
+                            _instance.TestPlanView.SaveTestPlan(_instance.TestPlanView.Plan.Path);
+                            break;
+                        case 1:
+                            // Don't save.
+                            break;
+                        case 2:
+                        // Cancel.
+                        default:
+                            return false;
+                    }
+                }
+                Application.RequestStop();
                 return true;
             }
 
@@ -119,7 +103,13 @@ namespace OpenTap.Tui
                 LogFrame.SetFocus();
                 return true;
             }
-            
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Help))
+            {
+                var helpWin = new HelpWindow();
+                Application.Run(helpWin);
+                return true;
+            }
+
             if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Save))
                 return TestPlanView.ProcessKey(keyEvent);
 
@@ -151,7 +141,7 @@ namespace OpenTap.Tui
                 Height = Dim.Percent(gridHeight)
             };
             StepSettingsView = new PropertiesView(true);
-            
+
             var filemenu = new MenuBarItem("_File", new MenuItem[]
             {
                 new MenuItem("_New", "", () =>
@@ -191,7 +181,7 @@ namespace OpenTap.Tui
                     TestPlanView.Update(); // make sure the helperbuttons have been refreshed
                 })
             });
-            var helpmenu = new MenuBarItem("_Help", new MenuItem[]
+            var helpmenu = new MenuBarItem($"[ {KeyMapHelper.GetKeyName(KeyTypes.Help)} Help]", new MenuItem[]
             {
                 new MenuItem("_Help", "", () =>
                 {
@@ -259,6 +249,7 @@ namespace OpenTap.Tui
             }
             menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
+            var menu = new MenuBar(menuBars.ToArray());
             
             // Create main window and add it to top item of application
             var win = new MainWindow("OpenTAP TUI")
@@ -268,11 +259,10 @@ namespace OpenTap.Tui
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
                 StepSettingsView = StepSettingsView,
-                TestPlanView = TestPlanView
+                TestPlanView = TestPlanView,
             };
             
             // Add menu bar
-            var menu = new MenuBar(menuBars.ToArray());
             win.Add(menu);
 
             // Add testplan view
