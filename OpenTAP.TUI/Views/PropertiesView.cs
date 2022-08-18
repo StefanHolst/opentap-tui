@@ -46,7 +46,7 @@ namespace OpenTap.Tui.Views
                 if (member.Get<IAccessAnnotation>()?.IsVisible == false)
                     continue;
                 
-                var item = new MenuItem((Key)((int)Key.F5 + keyNum++));
+                var item = new MenuItem(KeyMapHelper.GetShortcutKey((KeyTypes)((int)KeyTypes.HelperButton1 + keyNum++)));
                 item.Title = member.Get<DisplayAttribute>().Name;
                 item.Action = () =>
                 {

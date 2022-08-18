@@ -44,14 +44,14 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (keyEvent.IsShift == false && (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView && this.IsTopActive())))
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Close))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                     Application.RequestStop();
                 return true;
             }
 
-            if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapView))
             {
                 if (TestPlanView.HasFocus)
                     StepSettingsView.FocusFirst();
@@ -60,23 +60,23 @@ namespace OpenTap.Tui
             
                 return true;
             }
-            
-            if (keyEvent.Key == Key.F1)
+
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusTestPlan))
             {
                 TestPlanView.SetFocus();
                 return true;
             }
-            if (keyEvent.Key == Key.F2)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusStepSettings))
             {
                 StepSettingsView.FocusFirst();
                 return true;
             }
-            if (keyEvent.Key == Key.F3)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusDescription))
             {
                 StepSettingsView.FocusLast();
                 return true;
             }
-            if (keyEvent.Key == Key.F4)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusLog))
             {
                 LogFrame.SetFocus();
                 return true;

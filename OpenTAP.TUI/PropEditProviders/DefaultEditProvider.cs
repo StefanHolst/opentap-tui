@@ -60,7 +60,7 @@ namespace OpenTap.Tui.PropEditProviders
             view.Add(helperButtons);
             helperButtons.SetActions(new List<MenuItem>()
             {
-                new MenuItem("Insert file path", "", shortcut: Key.F5, action: () =>
+                new MenuItem("Insert file path", "", shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.StringEditorInsertFilePath), action: () =>
                 {
                     FileDialog dialog = new OpenDialog(annotation.Get<DisplayAttribute>()?.Name ?? "...", "") { NameFieldLabel = "Choose file path"};
                     Application.Run(dialog);

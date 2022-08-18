@@ -20,7 +20,7 @@ namespace OpenTap.Tui.PropEditProviders
 
             listView.KeyPress += args =>
             {
-                if (args.KeyEvent.Key == Key.Enter)
+                if (KeyMapHelper.IsKey(args.KeyEvent, KeyTypes.Select))
                 {
                     try
                     {

@@ -9,23 +9,65 @@ namespace OpenTap.Tui
         Save,
         SaveAs,
         Open,
+        Copy,
+        Paste,
+        Select,
+        Cancel,
+        Close,
         AddNewStep,
         InsertNewStep,
-        Copy,
-        Paste
+        DeleteStep,
+        SwapView,
+        FocusTestPlan,
+        FocusStepSettings,
+        FocusDescription,
+        FocusLog,
+        RunTestPlan,
+        TestPlanSettings,
+        TableAddRow,
+        TableRemoveRow,
+        StringEditorInsertFilePath,
+        HelperButton1,
+        HelperButton2,
+        HelperButton3,
+        HelperButton4,
+        HelperButton5,
     }
 
     public static class KeyMapHelper
     {
         public static List<KeyMap> DefaultKeys = new[]
         {
-            new KeyMap(new KeyEvent(Key.S | Key.CtrlMask, new KeyModifiers() { Ctrl = true }), KeyTypes.Save),
-            new KeyMap(new KeyEvent(Key.S | Key.CtrlMask, new KeyModifiers() { Ctrl = true, Shift = true}), KeyTypes.SaveAs),
-            new KeyMap(new KeyEvent(Key.O | Key.CtrlMask, new KeyModifiers() { Ctrl = true }), KeyTypes.Open),
-            new KeyMap(new KeyEvent(Key.T | Key.CtrlMask, new KeyModifiers() { Ctrl = true }), KeyTypes.AddNewStep),
-            new KeyMap(new KeyEvent(Key.T | Key.CtrlMask | Key.ShiftMask, new KeyModifiers() { Ctrl = true, Shift = true}), KeyTypes.InsertNewStep),
-            new KeyMap(new KeyEvent(Key.C, new KeyModifiers() { Shift = true}), KeyTypes.Copy),
-            new KeyMap(new KeyEvent(Key.V, new KeyModifiers() { Shift = true}), KeyTypes.Paste),
+            new KeyMap(KeyTypes.Save, Key.S, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.SaveAs, Key.S, ctrl: true, shift: true, alt: false),
+            new KeyMap(KeyTypes.Open, Key.O, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.Copy, Key.C, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.Paste, Key.V, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.Select, Key.Enter, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.Cancel, Key.Esc, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.Close, Key.Esc, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.Close, Key.X, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.Close, Key.C, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.AddNewStep, Key.T, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertNewStep, Key.T, ctrl: true, shift: true, alt: false),
+            new KeyMap(KeyTypes.DeleteStep, Key.Backspace, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.DeleteStep, Key.DeleteChar, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.SwapView, Key.BackTab, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.FocusTestPlan, Key.F1, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusStepSettings, Key.F2, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusDescription, Key.F3, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusLog, Key.F4, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.TestPlanSettings, Key.F8, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.TableAddRow, Key.F1, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.TableRemoveRow, Key.F2, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.F1, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.O, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.HelperButton1, Key.F5, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.HelperButton2, Key.F6, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.HelperButton3, Key.F7, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.HelperButton4, Key.F8, ctrl: false, shift: false, alt: false),
         }.ToList();
 
         public static KeyMap GetFirstKeymap(KeyTypes keyType)
@@ -100,6 +142,23 @@ namespace OpenTap.Tui
         {
             KeyType = type;
             KeyEvent = keyEvent;
+        }
+
+        public KeyMap(Key key, KeyTypes type)
+        {
+            KeyType = type;
+            KeyEvent = new KeyEvent(key, 
+                new KeyModifiers() { 
+                    Alt = key.HasFlag(Key.AltMask), 
+                    Shift = key.HasFlag(Key.ShiftMask), 
+                    Ctrl = key.HasFlag(Key.CtrlMask),
+                });
+        }
+
+        public KeyMap(KeyTypes type, Key key, bool ctrl, bool shift, bool alt) :
+            this(key | (ctrl ? Key.CtrlMask : 0) | (shift ? Key.ShiftMask : 0) | (alt ? Key.AltMask : 0), type)
+        {
+
         }
 
         public override string ToString()

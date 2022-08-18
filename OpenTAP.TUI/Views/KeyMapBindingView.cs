@@ -33,13 +33,13 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (kb.Key == Key.Enter)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Select))
             {
                 Closing(true);
                 return false;
             }
 
-            if (kb.Key == Key.Esc)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel))
             {
                 Closing(false);
                 return false;

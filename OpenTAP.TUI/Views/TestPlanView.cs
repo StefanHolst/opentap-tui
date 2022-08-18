@@ -62,7 +62,7 @@ namespace OpenTap.Tui.Views
                 }
                 else
                     RunTestPlan();
-            }, shortcut: Key.F5);
+            }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.RunTestPlan));
             actions.Add(runAction);
             actions.Add(new MenuItem("Insert New Step", "", showAddStep, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.AddNewStep)));
             insertAction = new MenuItem("Insert New Step Child", "", showInsertStep, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertNewStep));
@@ -72,7 +72,7 @@ namespace OpenTap.Tui.Views
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
                 SelectionChanged.Invoke(Plan);
-            }, shortcut: Key.F8));
+            }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TestPlanSettings)));
         }
 
         /// <summary>
@@ -298,7 +298,7 @@ namespace OpenTap.Tui.Views
                 return true;
             }
             
-            if (kb.Key == Key.DeleteChar)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.DeleteStep))
             {
                 if (treeView.SelectedObject != null)
                 {
