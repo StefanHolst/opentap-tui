@@ -28,7 +28,7 @@ namespace OpenTap.Tui.Views
                 b.Visible = item.IsEnabled();
                 
                 Add(b);
-                offset += title.Length + 4;
+                offset += title.Length + 10;
             }
 
             this.actions = actions;

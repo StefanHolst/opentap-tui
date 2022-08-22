@@ -20,7 +20,7 @@ namespace OpenTap.Tui.Views
         private MenuItem runAction;
         private TreeView<ITestStep> treeView;
         private TestPlanRun testPlanRun;
-        private bool PlanIsRunning = false; 
+        private bool PlanIsRunning = false;
         
         ///<summary> Keeps track of the most recently focused step - even when the test plan is selected. </summary>
         ITestStep focusedStep;
@@ -32,7 +32,6 @@ namespace OpenTap.Tui.Views
         public TestPlanView()
         {
             CanFocus = true;
-            Title = $"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusTestPlan)} Test Plan]";
             
             treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent, createNode)
             {
@@ -47,7 +46,7 @@ namespace OpenTap.Tui.Views
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
             };
             treeView.EnableFilter = true;
-            treeView.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? "Test Plan" : $"Test Plan - {filter}"; };
+            treeView.FilterChanged += (filter) => { UpdateTitle(); };
             treeView.NodeVisibilityChanged += (node, expanded) => ChildItemVisibility.SetVisibility(node.Item, expanded ? ChildItemVisibility.Visibility.Visible : ChildItemVisibility.Visibility.Collapsed);
             Add(treeView);
             
@@ -72,6 +71,20 @@ namespace OpenTap.Tui.Views
             {
                 SelectionChanged.Invoke(Plan);
             }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TestPlanSettings)));
+            MainWindow.UnsavedChangesCreated += UpdateTitle;
+            UpdateTitle();
+        }
+
+        private void UpdateTitle()
+        {
+            Title = KeyMapHelper.GetKeyName(KeyTypes.FocusTestPlan, Plan.Name) +
+                (MainWindow.ContainsUnsavedChanges ? "*" : string.Empty) +
+                (string.IsNullOrEmpty(treeView.Filter) ? string.Empty : $" - {treeView.Filter}") + 
+                (PlanIsRunning ? " - Running " : string.Empty);
+            for (int i = 0; PlanIsRunning && i < DateTime.Now.Second % 4; i++)
+            {
+                Title += ">";
+            }
         }
 
         /// <summary>
@@ -149,6 +162,7 @@ namespace OpenTap.Tui.Views
         {
             Plan = TestPlan.Load(path);
             treeView.SetTreeViewSource(Plan.Steps);
+            UpdateTitle();
         }
         
         public void NewTestPlan()
@@ -274,17 +288,11 @@ namespace OpenTap.Tui.Views
             {
                 while (PlanIsRunning)
                 {
-                    Application.MainLoop.Invoke(() => Title = $"Test Plan - Running ");
+                    Application.MainLoop.Invoke(UpdateTitle);
                     Thread.Sleep(1000);
-                    
-                    for (int i = 0; i < 3 && PlanIsRunning; i++)
-                    {
-                        Application.MainLoop.Invoke(() => Title += ">");
-                        Thread.Sleep(1000);
-                    }
                 }
                 
-                Application.MainLoop.Invoke(() => Title = "Test Plan");
+                Application.MainLoop.Invoke(UpdateTitle);
             });
         }
 

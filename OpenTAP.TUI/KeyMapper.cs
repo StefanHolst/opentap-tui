@@ -14,24 +14,43 @@ namespace OpenTap.Tui
         Select,
         Cancel,
         Close,
-        AddNewStep,
-        InsertNewStep,
-        DeleteStep,
+        [Display("Swap Between Test Plan & Settings")]
         SwapView,
+        [Display("Focus Test Plan view")]
         FocusTestPlan,
+        [Display("Focus Settings view")]
         FocusStepSettings,
+        [Display("Focus Description box")]
         FocusDescription,
+        [Display("Focus Log view")]
         FocusLog,
+        [Display("Open Help menu")]
         Help,
+        [Display("Run Test Plan")]
         RunTestPlan,
+        [Display("Test Plan Settings")]
         TestPlanSettings,
+        [Display("Table - New Row")]
         TableAddRow,
+        [Display("Table - Remove Row")]
         TableRemoveRow,
+        [Display("Test Plan - Insert New Step")]
+        AddNewStep,
+        [Display("Test Plan - Insert New Step Child")]
+        InsertNewStep,
+        [Display("Test Plan - Delete Step")]
+        DeleteStep,
+        [Display("String Editor - Insert File Path")]
         StringEditorInsertFilePath,
+        [Display("Helper Menu - Button 1")]
         HelperButton1,
+        [Display("Helper Menu - Button 2")]
         HelperButton2,
+        [Display("Helper Menu - Button 3")]
         HelperButton3,
+        [Display("Helper Menu - Button 4")]
         HelperButton4,
+        [Display("Helper Menu - Button 5")]
         HelperButton5,
     }
 
@@ -49,26 +68,27 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.Close, Key.Esc, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.X, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.C, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.FocusTestPlan, Key.F6, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusStepSettings, Key.F7, ctrl: false, shift: false, alt: false),
+            //new KeyMap(KeyTypes.FocusDescription, Key.Null, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusLog, Key.F8, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.Help, Key.F12, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.TestPlanSettings, Key.F1, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.TableAddRow, Key.N, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.TableRemoveRow, Key.Backspace, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.TableRemoveRow, Key.DeleteChar, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.AddNewStep, Key.N, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.InsertNewStep, Key.N, ctrl: true, shift: true, alt: false),
             new KeyMap(KeyTypes.DeleteStep, Key.Backspace, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.DeleteStep, Key.DeleteChar, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.SwapView, Key.BackTab, ctrl: false, shift: true, alt: false),
-            new KeyMap(KeyTypes.FocusTestPlan, Key.F1, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.FocusStepSettings, Key.F2, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.FocusDescription, Key.F3, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.FocusLog, Key.F4, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.Help, Key.F12, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.TestPlanSettings, Key.F8, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.TableAddRow, Key.N, ctrl: true, shift: false, alt: false),
-            new KeyMap(KeyTypes.TableRemoveRow, Key.N, ctrl: true, shift: true, alt: false),
-            new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.O, ctrl: false, shift: true, alt: false),
-            new KeyMap(KeyTypes.HelperButton1, Key.F5, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.HelperButton2, Key.F6, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.HelperButton3, Key.F7, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.HelperButton4, Key.F8, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.O, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.HelperButton1, Key.F1, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.HelperButton2, Key.F2, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.HelperButton3, Key.F3, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.HelperButton4, Key.F4, ctrl: false, shift: false, alt: false),
         }.ToList();
 
         public static KeyMap GetFirstKeymap(KeyTypes keyType)
@@ -78,14 +98,23 @@ namespace OpenTap.Tui
 
         public static Key GetShortcutKey(KeyTypes keyType)
         {
-            return GetFirstKeymap(keyType).KeyEvent.Key;
+            return GetFirstKeymap(keyType)?.KeyEvent.Key ?? Key.Null;
         }
 
         public static string GetKeyName(KeyTypes keyType)
         {
             return KeyToString(GetShortcutKey(keyType));
         }
-        
+
+
+        public static string GetKeyName(KeyTypes keyType, string name)
+        {
+            Key shortcut = GetShortcutKey(keyType);
+            if (shortcut != Key.Null)
+                return $"[ {KeyToString(shortcut)} {name} ]";
+            return name;
+        }
+
         public static bool IsKey(KeyEvent keyEvent, KeyTypes keyType)
         {
             var maps = TuiSettings.Current.KeyMap.Where(k => k.KeyType == keyType);
@@ -128,7 +157,10 @@ namespace OpenTap.Tui
                 s.Add("Win");
                 key -= Key.SpecialMask;
             }
-            s.Add(key.ToString());
+            if (key != Key.Null)
+            {
+                s.Add(key.ToString());
+            }
             return string.Join("-", s);
         }
     }

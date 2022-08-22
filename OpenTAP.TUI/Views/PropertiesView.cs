@@ -94,7 +94,7 @@ namespace OpenTap.Tui.Views
                 ReadOnly = true,
                 AllowsTab = false
             };
-            descriptionFrame = new FrameView($"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusDescription)} Description ]")
+            descriptionFrame = new FrameView(KeyMapHelper.GetKeyName(KeyTypes.FocusDescription, "Description"))
             {
                 // X = 0,
                 Y = Pos.Bottom(treeView),

@@ -22,7 +22,17 @@ namespace OpenTap.Tui
         public View LogFrame { get; set; }
         public static HelperButtons helperButtons { get; private set; }
 
-        public static bool ContainsUnsavedChanges { get; set; }
+        public static event Action UnsavedChangesCreated;
+        private static bool _containsUnsavedChanges;
+        public static bool ContainsUnsavedChanges
+        {
+            get => _containsUnsavedChanges;
+            set
+            {
+                _containsUnsavedChanges = value;
+                UnsavedChangesCreated?.Invoke();
+            }
+        }
 
         public MainWindow(string title) : base(title)
         {
@@ -58,7 +68,7 @@ namespace OpenTap.Tui
                     {
                         case 0:
                             // Save.
-                            _instance.TestPlanView.SaveTestPlan(_instance.TestPlanView.Plan.Path);
+                            TestPlanView.SaveTestPlan(_instance.TestPlanView.Plan.Path);
                             break;
                         case 1:
                             // Don't save.
@@ -68,6 +78,10 @@ namespace OpenTap.Tui
                         default:
                             return false;
                     }
+                }
+                else if (TestPlanView.Plan.IsRunning && MessageBox.Query(50, 7, "Are you sure?", "A test plan is currently running, are you sure you want to exit?", "Exit", "Cancel") == 1)
+                {
+                    return false;
                 }
                 Application.RequestStop();
                 return true;
@@ -181,7 +195,7 @@ namespace OpenTap.Tui
                     TestPlanView.Update(); // make sure the helperbuttons have been refreshed
                 })
             });
-            var helpmenu = new MenuBarItem($"[ {KeyMapHelper.GetKeyName(KeyTypes.Help)} Help]", new MenuItem[]
+            var helpmenu = new MenuBarItem(KeyMapHelper.GetKeyName(KeyTypes.Help, "Help"), new MenuItem[]
             {
                 new MenuItem("_Help", "", () =>
                 {
@@ -269,7 +283,7 @@ namespace OpenTap.Tui
             win.Add(TestPlanView);
 
             // Add step settings view
-            string settingsName = $"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusStepSettings)} Settings ]";
+            string settingsName = KeyMapHelper.GetKeyName(KeyTypes.FocusStepSettings, "Settings");
             var settingsFrame = new FrameView(settingsName)
             {
                 X = Pos.Right(TestPlanView),
@@ -282,7 +296,7 @@ namespace OpenTap.Tui
             win.Add(settingsFrame);
 
             // Add log panel
-            LogFrame = new FrameView($"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusLog)} Log Panel ]")
+            LogFrame = new FrameView(KeyMapHelper.GetKeyName(KeyTypes.FocusLog, "Log Panel"))
             {
                 Y = Pos.Bottom(TestPlanView),
                 Width = Dim.Fill(),
