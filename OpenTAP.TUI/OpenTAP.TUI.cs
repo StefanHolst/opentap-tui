@@ -15,7 +15,6 @@ namespace OpenTap.Tui
 {
     public class MainWindow : Window
     {
-        private static MainWindow _instance;
 
         public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
@@ -36,7 +35,6 @@ namespace OpenTap.Tui
 
         public MainWindow(string title) : base(title)
         {
-            _instance = this;
             Modal = true;
             
             helperButtons = new HelperButtons
@@ -68,7 +66,7 @@ namespace OpenTap.Tui
                     {
                         case 0:
                             // Save.
-                            TestPlanView.SaveTestPlan(_instance.TestPlanView.Plan.Path);
+                            TestPlanView.SaveTestPlan(TestPlanView.Plan.Path);
                             break;
                         case 1:
                             // Don't save.
