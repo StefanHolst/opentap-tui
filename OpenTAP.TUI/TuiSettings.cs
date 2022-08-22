@@ -254,6 +254,8 @@ namespace OpenTap.Tui
 
         public ColorScheme ToColorScheme()
         {
+            if (Application.Driver == null)
+                return new ColorScheme();
             return new ColorScheme()
             {
                 Normal = Application.Driver.MakeAttribute(NormalForeground, NormalBackground),
