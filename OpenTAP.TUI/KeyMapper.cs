@@ -72,8 +72,8 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: true, alt: false),
             new KeyMap(KeyTypes.FocusTestPlan, Key.F6, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusStepSettings, Key.F7, ctrl: false, shift: false, alt: false),
-            //new KeyMap(KeyTypes.FocusDescription, Key.Null, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusLog, Key.F8, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusDescription, Key.Null, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.Help, Key.F12, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TestPlanSettings, Key.F1, ctrl: false, shift: false, alt: false),
@@ -159,7 +159,19 @@ namespace OpenTap.Tui
             }
             if (key != Key.Null)
             {
-                s.Add(key.ToString());
+                switch(key)
+                {
+                    case Key.Backspace:
+                        s.Add("<--");
+                        break;
+                    case Key.Delete:
+                    case Key.DeleteChar:
+                        s.Add("Del");
+                        break;
+                    default:
+                        s.Add(key.ToString());
+                        break;
+                }
             }
             return string.Join("-", s);
         }
@@ -167,7 +179,9 @@ namespace OpenTap.Tui
 
     public class KeyMap
     {
+        [Display("Key Type", Order: 0)]
         public KeyTypes KeyType { get; set; }
+        [Display("Key Event", Order: 100)]
         public KeyEvent KeyEvent { get; set; }
 
         public KeyMap()

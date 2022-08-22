@@ -222,21 +222,25 @@ namespace OpenTap.Tui.PropEditProviders
                 helperButtons.SetActions(actions, viewWrapper);
                 Application.Refresh();
             }, () => fixedSize == false, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TableAddRow)));
-            actions.Add(new MenuItem("Remove Row", "", () =>
+            tableView.KeyPress += e =>
             {
-                var index = tableView.SelectedRow;
-                var list = items.ToList();
-                list.RemoveAt(index);
-                collectionAnnotation.AnnotatedElements = list;
-                items = collectionAnnotation.AnnotatedElements.ToArray();
+                if (KeyMapHelper.IsKey(e.KeyEvent, KeyTypes.TableRemoveRow) && tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false)
+                {
+                    var index = tableView.SelectedRow;
+                    var list = items.ToList();
+                    list.RemoveAt(index);
+                    collectionAnnotation.AnnotatedElements = list;
+                    items = collectionAnnotation.AnnotatedElements.ToArray();
 
-                // Refresh table
-                table = LoadTable(Headers, Columns, items);
-                tableView.Table = table;
-                tableView.Update();
-                helperButtons.SetActions(actions, viewWrapper);
-                Application.Refresh();
-            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TableRemoveRow)));
+                    // Refresh table
+                    table = LoadTable(Headers, Columns, items);
+                    tableView.Table = table;
+                    tableView.Update();
+                    helperButtons.SetActions(actions, viewWrapper);
+                    Application.Refresh();
+                    e.Handled = true;
+                }
+            };
             helperButtons.SetActions(actions, viewWrapper);
             
             return viewWrapper;
