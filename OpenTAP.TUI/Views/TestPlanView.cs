@@ -13,6 +13,8 @@ namespace OpenTap.Tui.Views
 {
     public class TestPlanView : FrameView
     {
+        private ITestStep moveStep = null;
+        private bool injectStep = false;
         private List<MenuItem> actions;
         private MenuItem insertAction;
         private MenuItem runAction;
@@ -48,6 +50,16 @@ namespace OpenTap.Tui.Views
             treeView.EnableFilter = true;
             treeView.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? "Test Plan" : $"Test Plan - {filter}"; };
             treeView.NodeVisibilityChanged += (node, expanded) => ChildItemVisibility.SetVisibility(node.Item, expanded ? ChildItemVisibility.Visibility.Visible : ChildItemVisibility.Visibility.Collapsed);
+            SubscribeStepMoveEvent();
+            TuiSettings.Current.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(TuiSettings.StepMoveMethod))
+                {
+                    treeView.KeyPress -= SelectMoveStep;
+                    treeView.KeyPress -= KeyMoveStep;
+                    SubscribeStepMoveEvent();
+                }
+            };
             Add(treeView);
             
             actions = new List<MenuItem>();
@@ -72,6 +84,135 @@ namespace OpenTap.Tui.Views
             }));
         }
 
+        private void SubscribeStepMoveEvent()
+        {
+            switch (TuiSettings.Current.StepMoveMethod)
+            {
+                case StepMoveMethod.Select:
+                    treeView.KeyPress += SelectMoveStep;
+                    break;
+                case StepMoveMethod.Key:
+                    treeView.KeyPress += KeyMoveStep;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void SelectMoveStep(KeyEventEventArgs kbEvent)
+        {
+            var kb = kbEvent.KeyEvent;
+            if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
+            {
+                injectStep = false;
+                base.ProcessKey(kb);
+                Update(true);
+                kbEvent.Handled = true;
+            }
+            if (kb.Key == Key.Space)
+            {
+                if (Plan.ChildTestSteps.Count == 0 || treeView.SelectedObject == null)
+                    return;
+
+                if (moveStep == null)
+                {
+                    moveStep = treeView.SelectedObject;
+                    Update(true);
+                }
+                else if (moveStep == treeView.SelectedObject)
+                {
+                    moveStep = null;
+                    injectStep = false;
+                    Update(true);
+                }
+                else
+                {
+                    var currentIndex = treeView.SelectedObject.Parent.ChildTestSteps.IndexOf(treeView.SelectedObject);
+                    if (injectStep)
+                    {
+                        moveStep.Parent.ChildTestSteps.Remove(moveStep);
+                        treeView.SelectedObject.ChildTestSteps.Add(moveStep);
+                        treeView.ExpandObject(treeView.SelectedObject);
+                    }
+                    else
+                    {
+                        moveStep.Parent.ChildTestSteps.Remove(moveStep);
+                        treeView.SelectedObject.Parent.ChildTestSteps.Insert(currentIndex, moveStep);
+                    }
+
+                    Update(true);
+                    treeView.SelectedObject = moveStep;
+                    moveStep = null;
+                    injectStep = false;
+                    Update(true);
+                }
+                kbEvent.Handled = true;
+            }
+            if (kb.Key == Key.CursorRight && moveStep != null && TestStepList.AllowChild(TypeData.GetTypeData(treeView.SelectedObject), TypeData.GetTypeData(moveStep)))
+            {
+                injectStep = true;
+                Update(true);
+                kbEvent.Handled = true;
+            }
+        }
+
+        private void KeyMoveStep(KeyEventEventArgs kbEvent)
+        {
+            var kb = kbEvent.KeyEvent;
+
+
+            if (kb.Key == (Key.AltMask | Key.CursorDown) || kb.Key == (Key.AltMask | Key.CursorUp))
+            {
+                bool movingDown = kb.Key.HasFlag(Key.CursorDown);
+                var indexDelta = movingDown ? +1 : -1;
+                var step = treeView.SelectedObject;
+                var childIndex = step.Parent.ChildTestSteps.IndexOf(step);
+                var newChildIndex = childIndex + indexDelta;
+
+                // Move out of parent.
+                if (newChildIndex == -1 || newChildIndex == step.Parent.ChildTestSteps.Count)
+                {
+                    if (step.Parent is ITestStep parent)
+                    {
+                        parent.ChildTestSteps.RemoveAt(childIndex);
+                        var parentIndex = parent.Parent.ChildTestSteps.IndexOf(parent);
+                        parent.Parent.ChildTestSteps.Insert(parentIndex + (movingDown ? 1 : 0), step);
+                        Update(true);
+                        treeView.SelectedObject = step;
+                        Update(true);
+                    }
+                    kbEvent.Handled = true;
+                    return;
+                }
+
+                // Move into new parent.
+                var possibleParent = step.Parent.ChildTestSteps[newChildIndex];
+                if (treeView.GetNodeFromItem(possibleParent).IsExpanded && TestStepList.AllowChild(step.Parent.ChildTestSteps[newChildIndex].GetType(), step.GetType()))
+                {
+                    step.Parent.ChildTestSteps.Remove(step);
+                    if (indexDelta == 1)
+                        possibleParent.ChildTestSteps.Insert(0, step);
+                    else
+                        possibleParent.ChildTestSteps.Add(step);
+                    treeView.ExpandObject(possibleParent);
+                    treeView.SelectedItem = newChildIndex;
+                    Update(true);
+                    treeView.SelectedObject = step;
+                    Update(true);
+                }
+                // Move within parent.
+                else
+                {
+                    step.Parent.ChildTestSteps.Move(childIndex, newChildIndex);
+                }
+                kbEvent.Handled = true;
+
+                Update(true);
+                treeView.SelectedObject = step;
+                Update(true);
+            }
+        }
+
         /// <summary>
         /// Overrides SetFocus when called directly.
         /// </summary>
@@ -84,7 +225,12 @@ namespace OpenTap.Tui.Views
 
         string getTitle(ITestStep step)
         {
-            return step.GetFormattedName();
+            string title = step.GetFormattedName();
+            if (moveStep == step)
+                title += " *";
+            else if (injectStep && treeView.SelectedObject == step)
+                title += " >";
+            return title;
         }
         List<ITestStep> getChildren(ITestStep step)
         {
@@ -282,54 +428,6 @@ namespace OpenTap.Tui.Views
         {
             if (Plan.IsRunning)
                 return base.ProcessKey(kb);
-
-            if (kb.Key == (Key.AltMask | Key.CursorDown) || kb.Key == (Key.AltMask | Key.CursorUp))
-            {
-                bool movingDown = kb.Key.HasFlag(Key.CursorDown);
-                var indexDelta = movingDown ? +1 : -1;
-                var step = treeView.SelectedObject;
-                var childIndex = step.Parent.ChildTestSteps.IndexOf(step);
-                var newChildIndex = childIndex + indexDelta;
-
-                // Move out of parent.
-                if (newChildIndex == -1 || newChildIndex == step.Parent.ChildTestSteps.Count)
-                {
-                    if (step.Parent is ITestStep parent)
-                    {
-                        parent.ChildTestSteps.RemoveAt(childIndex);
-                        var parentIndex = parent.Parent.ChildTestSteps.IndexOf(parent);
-                        parent.Parent.ChildTestSteps.Insert(parentIndex + (movingDown ? 1 : 0), step);
-                        Update(true);
-                        treeView.SelectedObject = step;
-                        Update(true);
-                    }
-                    return true;
-                }
-
-                // Move into new parent.
-                var possibleParent = step.Parent.ChildTestSteps[newChildIndex];
-                if (treeView.GetNodeFromItem(possibleParent).IsExpanded && TestStepList.AllowChild(step.Parent.ChildTestSteps[newChildIndex].GetType(), step.GetType()))
-                {
-                    step.Parent.ChildTestSteps.Remove(step);
-                    if (indexDelta == 1)
-                        possibleParent.ChildTestSteps.Insert(0, step);
-                    else
-                        possibleParent.ChildTestSteps.Add(step);
-                    treeView.ExpandObject(possibleParent);
-                    treeView.SelectedItem = newChildIndex;
-                    Update(true);
-                    treeView.SelectedObject = step;
-                    Update(true);
-                    return true;
-                }
-
-                // Move within parent.
-                step.Parent.ChildTestSteps.Move(childIndex, newChildIndex);
-                Update(true);
-                treeView.SelectedObject = step;
-                Update(true);
-                return true;
-            }
 
             if (kb.Key == Key.DeleteChar)
             {
