@@ -221,22 +221,26 @@ namespace OpenTap.Tui.PropEditProviders
                 tableView.Update();
                 helperButtons.SetActions(actions, viewWrapper);
                 Application.Refresh();
-            }, () => fixedSize == false, shortcut: Key.F5));
-            actions.Add(new MenuItem("Remove Row", "", () =>
+            }, () => fixedSize == false, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TableAddRow)));
+            tableView.KeyPress += e =>
             {
-                var index = tableView.SelectedRow;
-                var list = items.ToList();
-                list.RemoveAt(index);
-                collectionAnnotation.AnnotatedElements = list;
-                items = collectionAnnotation.AnnotatedElements.ToArray();
+                if (KeyMapHelper.IsKey(e.KeyEvent, KeyTypes.TableRemoveRow) && tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false)
+                {
+                    var index = tableView.SelectedRow;
+                    var list = items.ToList();
+                    list.RemoveAt(index);
+                    collectionAnnotation.AnnotatedElements = list;
+                    items = collectionAnnotation.AnnotatedElements.ToArray();
 
-                // Refresh table
-                table = LoadTable(Headers, Columns, items);
-                tableView.Table = table;
-                tableView.Update();
-                helperButtons.SetActions(actions, viewWrapper);
-                Application.Refresh();
-            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false, shortcut: Key.F6));
+                    // Refresh table
+                    table = LoadTable(Headers, Columns, items);
+                    tableView.Table = table;
+                    tableView.Update();
+                    helperButtons.SetActions(actions, viewWrapper);
+                    Application.Refresh();
+                    e.Handled = true;
+                }
+            };
             helperButtons.SetActions(actions, viewWrapper);
             
             return viewWrapper;

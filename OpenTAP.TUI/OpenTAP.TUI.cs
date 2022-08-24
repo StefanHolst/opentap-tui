@@ -9,15 +9,29 @@ using System.Threading;
 using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
+using System.Diagnostics;
 
 namespace OpenTap.Tui
 {
     public class MainWindow : Window
     {
+
         public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
         public static HelperButtons helperButtons { get; private set; }
+
+        public static event Action UnsavedChangesCreated;
+        private static bool _containsUnsavedChanges;
+        public static bool ContainsUnsavedChanges
+        {
+            get => _containsUnsavedChanges;
+            set
+            {
+                _containsUnsavedChanges = value;
+                UnsavedChangesCreated?.Invoke();
+            }
+        }
 
         public MainWindow(string title) : base(title)
         {
@@ -44,14 +58,34 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (keyEvent.IsShift == false && (keyEvent.Key == (Key.X | Key.CtrlMask) || keyEvent.Key == (Key.C | Key.CtrlMask) || (keyEvent.Key == Key.Esc && MostFocused is TestPlanView && this.IsTopActive())))
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Close))
             {
-                if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
-                    Application.RequestStop();
+                if (ContainsUnsavedChanges)
+                {
+                    switch (MessageBox.Query(50, 7, "Unsaved changes!", "Do you want to save before exiting?", "Save", "Don't save", "Cancel"))
+                    {
+                        case 0:
+                            // Save.
+                            TestPlanView.SaveTestPlan(TestPlanView.Plan.Path);
+                            break;
+                        case 1:
+                            // Don't save.
+                            break;
+                        case 2:
+                        // Cancel.
+                        default:
+                            return false;
+                    }
+                }
+                else if (TestPlanView.Plan.IsRunning && MessageBox.Query(50, 7, "Are you sure?", "A test plan is currently running, are you sure you want to exit?", "Exit", "Cancel") == 1)
+                {
+                    return false;
+                }
+                Application.RequestStop();
                 return true;
             }
 
-            if (keyEvent.Key == Key.Tab || keyEvent.Key == Key.BackTab)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapView))
             {
                 if (TestPlanView.HasFocus)
                     StepSettingsView.FocusFirst();
@@ -60,28 +94,34 @@ namespace OpenTap.Tui
             
                 return true;
             }
-            
-            if (keyEvent.Key == Key.F1)
+
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusTestPlan))
             {
                 TestPlanView.SetFocus();
                 return true;
             }
-            if (keyEvent.Key == Key.F2)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusStepSettings))
             {
                 StepSettingsView.FocusFirst();
                 return true;
             }
-            if (keyEvent.Key == Key.F3)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusDescription))
             {
                 StepSettingsView.FocusLast();
                 return true;
             }
-            if (keyEvent.Key == Key.F4)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.FocusLog))
             {
                 LogFrame.SetFocus();
                 return true;
             }
-            
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Help))
+            {
+                var helpWin = new HelpWindow();
+                Application.Run(helpWin);
+                return true;
+            }
+
             if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Save))
                 return TestPlanView.ProcessKey(keyEvent);
 
@@ -113,7 +153,7 @@ namespace OpenTap.Tui
                 Height = Dim.Percent(gridHeight)
             };
             StepSettingsView = new PropertiesView(true);
-            
+
             var filemenu = new MenuBarItem("_File", new MenuItem[]
             {
                 new MenuItem("_New", "", () =>
@@ -153,7 +193,7 @@ namespace OpenTap.Tui
                     TestPlanView.Update(); // make sure the helperbuttons have been refreshed
                 })
             });
-            var helpmenu = new MenuBarItem("_Help", new MenuItem[]
+            var helpmenu = new MenuBarItem(KeyMapHelper.GetKeyName(KeyTypes.Help, "Help"), new MenuItem[]
             {
                 new MenuItem("_Help", "", () =>
                 {
@@ -221,6 +261,7 @@ namespace OpenTap.Tui
             }
             menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
+            var menu = new MenuBar(menuBars.ToArray());
             
             // Create main window and add it to top item of application
             var win = new MainWindow("OpenTAP TUI")
@@ -230,30 +271,30 @@ namespace OpenTap.Tui
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
                 StepSettingsView = StepSettingsView,
-                TestPlanView = TestPlanView
+                TestPlanView = TestPlanView,
             };
             
             // Add menu bar
-            var menu = new MenuBar(menuBars.ToArray());
             win.Add(menu);
 
             // Add testplan view
             win.Add(TestPlanView);
 
             // Add step settings view
-            var settingsFrame = new FrameView("Settings")
+            string settingsName = KeyMapHelper.GetKeyName(KeyTypes.FocusStepSettings, "Settings");
+            var settingsFrame = new FrameView(settingsName)
             {
                 X = Pos.Right(TestPlanView),
                 Y = 1,
                 Width = Dim.Fill(),
                 Height = Dim.Height(TestPlanView)
             };
-            StepSettingsView.TreeViewFilterChanged += (filter) => { settingsFrame.Title = string.IsNullOrEmpty(filter) ? "Settings" : $"Settings - {filter}"; };
+            StepSettingsView.TreeViewFilterChanged += (filter) => { settingsFrame.Title = string.IsNullOrEmpty(filter) ? settingsName : $"{settingsName} - {filter}"; };
             settingsFrame.Add(StepSettingsView);
             win.Add(settingsFrame);
 
             // Add log panel
-            LogFrame = new FrameView("Log Panel")
+            LogFrame = new FrameView(KeyMapHelper.GetKeyName(KeyTypes.FocusLog, "Log Panel"))
             {
                 Y = Pos.Bottom(TestPlanView),
                 Width = Dim.Fill(),

@@ -46,7 +46,7 @@ namespace OpenTap.Tui.Views
                 if (member.Get<IAccessAnnotation>()?.IsVisible == false)
                     continue;
                 
-                var item = new MenuItem((Key)((int)Key.F5 + keyNum++));
+                var item = new MenuItem(KeyMapHelper.GetShortcutKey((KeyTypes)((int)KeyTypes.HelperButton1 + keyNum++)));
                 item.Title = member.Get<DisplayAttribute>().Name;
                 item.Action = () =>
                 {
@@ -94,7 +94,7 @@ namespace OpenTap.Tui.Views
                 ReadOnly = true,
                 AllowsTab = false
             };
-            descriptionFrame = new FrameView("Description")
+            descriptionFrame = new FrameView(KeyMapHelper.GetKeyName(KeyTypes.FocusDescription, "Description"))
             {
                 // X = 0,
                 Y = Pos.Bottom(treeView),
@@ -148,10 +148,11 @@ namespace OpenTap.Tui.Views
             // Save values to reference object
             annotations.Write();
             annotations.Read();
+            MainWindow.ContainsUnsavedChanges = true;
 
             // Load new values
             LoadProperties(obj);
-                
+            
             // Invoke property changed event
             PropertiesChanged?.Invoke();
         }

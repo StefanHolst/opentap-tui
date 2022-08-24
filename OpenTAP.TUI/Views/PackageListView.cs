@@ -29,7 +29,7 @@ namespace OpenTap.Tui.Views
         
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter && Application.Current is PackageVersionSelectorWindow == false)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Select) && Application.Current is PackageVersionSelectorWindow == false)
             {
                 var dialog = new PackageVersionSelectorWindow(SelectedPackage, installation, installedOpentap);
                 Application.Run(dialog);

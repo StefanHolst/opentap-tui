@@ -299,7 +299,7 @@ namespace OpenTap.Tui.Windows
         
         public override bool ProcessKey (KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Esc)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Cancel))
             {
                 Running = false;
                 return true;

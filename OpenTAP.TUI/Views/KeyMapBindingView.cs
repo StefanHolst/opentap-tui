@@ -33,13 +33,13 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (kb.Key == Key.Enter)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Select))
             {
                 Closing(true);
                 return false;
             }
 
-            if (kb.Key == Key.Esc)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel))
             {
                 Closing(false);
                 return false;
@@ -47,7 +47,7 @@ namespace OpenTap.Tui.Views
 
             // Record key press
             NewKeyMap = kb;
-            NewKeyText.Text = $"New key: {NewKeyMap}";
+            NewKeyText.Text = $"New key: {NewKeyMap.Key}";
             return true;
         }
     }
