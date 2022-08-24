@@ -14,7 +14,7 @@ namespace OpenTap.Tui.Windows
         private readonly PackageListView packageList;
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (TuiAction.CurrentAction is TuiPm && (keyEvent.Key == (Key.CtrlMask | Key.X) || keyEvent.Key == (Key.CtrlMask | Key.C) || keyEvent.Key == Key.Esc))
+            if (TuiAction.CurrentAction is TuiPm && KeyMapHelper.IsKey(keyEvent, KeyTypes.Close))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
@@ -23,7 +23,7 @@ namespace OpenTap.Tui.Windows
 
                 return true;
             }
-            else if (keyEvent.Key == Key.Esc)
+            else if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Cancel))
             {
                 var handled = base.ProcessKey(keyEvent);
                 if (handled) return true;

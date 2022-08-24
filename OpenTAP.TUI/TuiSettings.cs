@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using OpenTap.Tui.PropEditProviders;
 using Terminal.Gui;
 
 namespace OpenTap.Tui
@@ -167,7 +166,6 @@ namespace OpenTap.Tui
         public Action ResetSize { get; set; }
 
         [Display("Map", Group: "Key Mapping")]
-        [FixedSize]
         public List<KeyMap> KeyMap { get; set; } = new List<KeyMap>();
         
         [Browsable(true)]
