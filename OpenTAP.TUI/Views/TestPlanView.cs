@@ -115,14 +115,13 @@ namespace OpenTap.Tui.Views
         private void SelectMoveStep(KeyEventEventArgs kbEvent)
         {
             var kb = kbEvent.KeyEvent;
-            if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
+            if ((KeyMapHelper.IsKey(kb, KeyTypes.MoveStepSelectUp) || KeyMapHelper.IsKey(kb, KeyTypes.MoveStepSelectDown)) && injectStep)
             {
                 injectStep = false;
-                base.ProcessKey(kb);
                 Update(true);
                 kbEvent.Handled = true;
             }
-            if (kb.Key == Key.Space)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.MoveStepSelectSelect))
             {
                 if (Plan.ChildTestSteps.Count == 0 || treeView.SelectedObject == null)
                     return;
@@ -161,7 +160,7 @@ namespace OpenTap.Tui.Views
                 }
                 kbEvent.Handled = true;
             }
-            if (kb.Key == Key.CursorRight && moveStep != null && TestStepList.AllowChild(TypeData.GetTypeData(treeView.SelectedObject), TypeData.GetTypeData(moveStep)))
+            if (KeyMapHelper.IsKey(kb, KeyTypes.MoveStepSelectIn) && moveStep != null && TestStepList.AllowChild(TypeData.GetTypeData(treeView.SelectedObject), TypeData.GetTypeData(moveStep)))
             {
                 injectStep = true;
                 Update(true);
@@ -174,9 +173,9 @@ namespace OpenTap.Tui.Views
             var kb = kbEvent.KeyEvent;
 
 
-            if (kb.Key == (Key.AltMask | Key.CursorDown) || kb.Key == (Key.AltMask | Key.CursorUp))
+            if (KeyMapHelper.IsKey(kb, KeyTypes.MoveStepKeyDown) || KeyMapHelper.IsKey(kb, KeyTypes.MoveStepKeyUp))
             {
-                bool movingDown = kb.Key.HasFlag(Key.CursorDown);
+                bool movingDown = KeyMapHelper.IsKey(kb, KeyTypes.MoveStepKeyDown);
                 var indexDelta = movingDown ? +1 : -1;
                 var step = treeView.SelectedObject;
                 var childIndex = step.Parent.ChildTestSteps.IndexOf(step);
