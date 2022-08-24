@@ -159,7 +159,7 @@ namespace OpenTap.Tui.PropEditProviders
                     TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>()?.ReflectionInfo.Name}");
                 else
                 {
-                    var win = new EditWindow(cell.ToString());
+                    var win = new EditWindow(cell.ToString().Split(':')[0]);
                     win.Add(propEditor);
                     Application.Run(win);
                 }
@@ -190,7 +190,7 @@ namespace OpenTap.Tui.PropEditProviders
                 if (isComplicatedType)
                 {
                     Type type = (annotation.Get<IReflectionAnnotation>().ReflectionInfo as TypeData).Load();
-                    var win = new NewPluginWindow(TypeData.FromType(GetEnumerableElementType(type)), "Add Element");
+                    var win = new NewPluginWindow(TypeData.FromType(GetEnumerableElementType(type)), "Add Element", null);
                     Application.Run(win);
                     if (win.PluginType == null)
                         return;
@@ -221,22 +221,26 @@ namespace OpenTap.Tui.PropEditProviders
                 tableView.Update();
                 helperButtons.SetActions(actions, viewWrapper);
                 Application.Refresh();
-            }, () => fixedSize == false));
-            actions.Add(new MenuItem("Remove Row", "", () =>
+            }, () => fixedSize == false, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TableAddRow)));
+            tableView.KeyPress += e =>
             {
-                var index = tableView.SelectedRow;
-                var list = items.ToList();
-                list.RemoveAt(index);
-                collectionAnnotation.AnnotatedElements = list;
-                items = collectionAnnotation.AnnotatedElements.ToArray();
+                if (KeyMapHelper.IsKey(e.KeyEvent, KeyTypes.TableRemoveRow) && tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false)
+                {
+                    var index = tableView.SelectedRow;
+                    var list = items.ToList();
+                    list.RemoveAt(index);
+                    collectionAnnotation.AnnotatedElements = list;
+                    items = collectionAnnotation.AnnotatedElements.ToArray();
 
-                // Refresh table
-                table = LoadTable(Headers, Columns, items);
-                tableView.Table = table;
-                tableView.Update();
-                helperButtons.SetActions(actions, viewWrapper);
-                Application.Refresh();
-            }, () => tableView.SelectedRow >= 0 && tableView.SelectedRow < items.Length && fixedSize == false));
+                    // Refresh table
+                    table = LoadTable(Headers, Columns, items);
+                    tableView.Table = table;
+                    tableView.Update();
+                    helperButtons.SetActions(actions, viewWrapper);
+                    Application.Refresh();
+                    e.Handled = true;
+                }
+            };
             helperButtons.SetActions(actions, viewWrapper);
             
             return viewWrapper;

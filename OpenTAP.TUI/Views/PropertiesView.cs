@@ -38,14 +38,15 @@ namespace OpenTap.Tui.Views
                 MainWindow.helperButtons?.SetActions(list, this);
                 return;
             }
-            
+
+            int keyNum = 0;
             foreach (var _member in menu.MenuItems)
             {
                 var member = _member;
                 if (member.Get<IAccessAnnotation>()?.IsVisible == false)
                     continue;
                 
-                var item = new MenuItem();
+                var item = new MenuItem(KeyMapHelper.GetShortcutKey((KeyTypes)((int)KeyTypes.HelperButton1 + keyNum++)));
                 item.Title = member.Get<DisplayAttribute>().Name;
                 item.Action = () =>
                 {
@@ -93,7 +94,7 @@ namespace OpenTap.Tui.Views
                 ReadOnly = true,
                 AllowsTab = false
             };
-            descriptionFrame = new FrameView("Description")
+            descriptionFrame = new FrameView(KeyMapHelper.GetKeyName(KeyTypes.FocusDescription, "Description"))
             {
                 // X = 0,
                 Y = Pos.Bottom(treeView),
@@ -139,7 +140,7 @@ namespace OpenTap.Tui.Views
                 TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
             else
             {
-                var win = new EditWindow(annotations.ToString());
+                var win = new EditWindow(member.ToString().Split(':')[0]);
                 win.Add(propEditor);
                 Application.Run(win);
             }
@@ -147,10 +148,11 @@ namespace OpenTap.Tui.Views
             // Save values to reference object
             annotations.Write();
             annotations.Read();
+            MainWindow.ContainsUnsavedChanges = true;
 
             // Load new values
             LoadProperties(obj);
-                
+            
             // Invoke property changed event
             PropertiesChanged?.Invoke();
         }

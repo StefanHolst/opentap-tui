@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using OpenTap;
-using OpenTap.Tui;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.PropEditProviders
@@ -22,7 +20,7 @@ namespace OpenTap.Tui.PropEditProviders
 
             listView.KeyPress += args =>
             {
-                if (args.KeyEvent.Key == Key.Enter)
+                if (KeyMapHelper.IsKey(args.KeyEvent, KeyTypes.Select))
                 {
                     try
                     {

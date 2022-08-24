@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using OpenTap;
 using Terminal.Gui;
-using OpenTap.Tui;
 
 namespace OpenTap.Tui.Windows
 {
@@ -16,7 +12,7 @@ namespace OpenTap.Tui.Windows
 
         private string _originalTitle;
 
-        public NewPluginWindow(TypeData type, string title) : base(title)
+        public NewPluginWindow(TypeData type, string title, ITypeData parentType) : base(title)
         {
             _originalTitle = title;
             treeview = new TreeView<ITypeData>(getTitle, getGroup);
@@ -25,11 +21,24 @@ namespace OpenTap.Tui.Windows
 
             var types = TypeData.GetDerivedTypes(type)
                 .Where(x => x.CanCreateInstance)
-                .Where(x => x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true);
-                
+                .Where(x => x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true)
+                .Where(x => parentType == null ? true : TestStepList.AllowChild(AsTypeData(parentType).Type, AsTypeData(x)?.Type));
+
             treeview.SetTreeViewSource(types.ToList());
             Add(treeview);
+            
+            TypeData AsTypeData(ITypeData typedata)
+            {
+                do
+                {
+                    if (typedata is TypeData td)
+                        return td;
+                    typedata = typedata?.BaseType;
+                } while (typedata != null);
+                return null;
+            }
         }
+
 
         string getTitle(ITypeData item)
         {

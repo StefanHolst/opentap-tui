@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using System.Threading;
-using OpenTap.Cli;
-using OpenTap.Package;
-using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
 

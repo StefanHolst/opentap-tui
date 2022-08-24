@@ -11,7 +11,6 @@ namespace OpenTap.Tui.Windows
     public class SettingsProfileWindow : Window
     {
         private ListView listView;
-        private HelperButtons helperButtons;
         private Button deleteButton;
         private string Group;
         private string SettingsDir;
@@ -169,7 +168,7 @@ namespace OpenTap.Tui.Windows
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Esc)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Cancel))
             {
                 Application.RequestStop();
                 return true;

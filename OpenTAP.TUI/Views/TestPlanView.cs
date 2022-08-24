@@ -31,9 +31,7 @@ namespace OpenTap.Tui.Views
 
         public TestPlanView()
         {
-            
             CanFocus = true;
-            Title = "Test Plan";
             
             treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent, createNode)
             {
@@ -48,7 +46,7 @@ namespace OpenTap.Tui.Views
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
             };
             treeView.EnableFilter = true;
-            treeView.FilterChanged += (filter) => { Title = string.IsNullOrEmpty(filter) ? "Test Plan" : $"Test Plan - {filter}"; };
+            treeView.FilterChanged += (filter) => { UpdateTitle(); };
             treeView.NodeVisibilityChanged += (node, expanded) => ChildItemVisibility.SetVisibility(node.Item, expanded ? ChildItemVisibility.Visibility.Visible : ChildItemVisibility.Visibility.Collapsed);
             SubscribeStepMoveEvent();
             TuiSettings.Current.PropertyChanged += (_, args) =>
@@ -72,16 +70,31 @@ namespace OpenTap.Tui.Views
                 }
                 else
                     RunTestPlan();
-            });
+            }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.RunTestPlan));
             actions.Add(runAction);
-            actions.Add(new MenuItem("Insert New Step", "", showAddStep));
-            insertAction = new MenuItem("Insert New Step Child", "", showInsertStep);
-            insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null;
+            actions.Add(new MenuItem("Insert New Step", "", showAddStep, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.AddNewStep)));
+            insertAction = new MenuItem("Insert New Step Child", "", showInsertStep, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertNewStep));
+            insertAction.CanExecute += () => treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null ||
+                treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null;
             actions.Add(insertAction);
             actions.Add(new MenuItem("Test Plan Settings", "", () =>
             {
                 SelectionChanged.Invoke(Plan);
-            }));
+            }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TestPlanSettings)));
+            MainWindow.UnsavedChangesCreated += UpdateTitle;
+            UpdateTitle();
+        }
+
+        private void UpdateTitle()
+        {
+            Title = KeyMapHelper.GetKeyName(KeyTypes.FocusTestPlan, Plan.Name) +
+                (MainWindow.ContainsUnsavedChanges ? "*" : string.Empty) +
+                (string.IsNullOrEmpty(treeView.Filter) ? string.Empty : $" - {treeView.Filter}") + 
+                (PlanIsRunning ? " - Running " : string.Empty);
+            for (int i = 0; PlanIsRunning && i < DateTime.Now.Second % 4; i++)
+            {
+                Title += ">";
+            }
         }
 
         private void SubscribeStepMoveEvent()
@@ -289,12 +302,14 @@ namespace OpenTap.Tui.Views
         {
             Plan = TestPlan.Load(path);
             treeView.SetTreeViewSource(Plan.Steps);
+            UpdateTitle();
         }
         
         public void NewTestPlan()
         {
             Plan = new TestPlan();
             treeView.SetTreeViewSource(Plan.Steps);
+            MainWindow.ContainsUnsavedChanges = true;
         }
         public void SaveTestPlan(string path)
         {
@@ -309,6 +324,7 @@ namespace OpenTap.Tui.Views
             if (string.IsNullOrWhiteSpace(path) == false)
             {
                 Plan.Save(path);
+                MainWindow.ContainsUnsavedChanges = false;
                 TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
             }
         }
@@ -331,10 +347,12 @@ namespace OpenTap.Tui.Views
                     Update(true);
                     treeView.SelectedObject = newStep;
                 }
+                MainWindow.ContainsUnsavedChanges = true;
             }
             catch(Exception ex)
             {
-                TUI.Log.Error(ex);
+                TUI.Log.Debug(ex);
+                TUI.Log.Error(ex.Message);
             }
         }
         private void InsertNewChildStep(ITypeData type)
@@ -364,7 +382,7 @@ namespace OpenTap.Tui.Views
         }
         private void showAddStep()
         {
-            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step");
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step", null);
             Application.Run(newStep);
             if (newStep.PluginType != null)
                 AddNewStep(newStep.PluginType);
@@ -372,7 +390,7 @@ namespace OpenTap.Tui.Views
 
         private void showInsertStep()
         {
-            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child");
+            var newStep = new NewPluginWindow(TypeData.FromType(typeof(ITestStep)), "New Step Child", TypeData.GetTypeData(treeView.SelectedObject));
             Application.Run(newStep);
             if (newStep.PluginType != null)
                 InsertNewChildStep(newStep.PluginType);
@@ -410,17 +428,11 @@ namespace OpenTap.Tui.Views
             {
                 while (PlanIsRunning)
                 {
-                    Application.MainLoop.Invoke(() => Title = $"Test Plan - Running ");
+                    Application.MainLoop.Invoke(UpdateTitle);
                     Thread.Sleep(1000);
-                    
-                    for (int i = 0; i < 3 && PlanIsRunning; i++)
-                    {
-                        Application.MainLoop.Invoke(() => Title += ">");
-                        Thread.Sleep(1000);
-                    }
                 }
                 
-                Application.MainLoop.Invoke(() => Title = "Test Plan");
+                Application.MainLoop.Invoke(UpdateTitle);
             });
         }
 
@@ -428,8 +440,16 @@ namespace OpenTap.Tui.Views
         {
             if (Plan.IsRunning)
                 return base.ProcessKey(kb);
-
-            if (kb.Key == Key.DeleteChar)
+            
+            if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
+            {
+                injectStep = false;
+                base.ProcessKey(kb);
+                Update(true);
+                return true;
+            }
+            
+            if (KeyMapHelper.IsKey(kb, KeyTypes.DeleteStep))
             {
                 if (treeView.SelectedObject != null)
                 {
@@ -462,7 +482,7 @@ namespace OpenTap.Tui.Views
                 showAddStep();
                 return true;
             }
-            if (KeyMapHelper.IsKey(kb, KeyTypes.InsertNewStep) && treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null)
+            if (KeyMapHelper.IsKey(kb, KeyTypes.InsertNewStep) && (treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null || treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null))
             {
                 showInsertStep();
                 return true;
@@ -498,6 +518,7 @@ namespace OpenTap.Tui.Views
                     treeView.SelectedObject = newStep;
                     Update();
                 }
+                MainWindow.ContainsUnsavedChanges = true;
                 
                 return true;
             }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using OpenTap.Tui.PropEditProviders;
 using Terminal.Gui;
 
 namespace OpenTap.Tui
@@ -167,7 +166,6 @@ namespace OpenTap.Tui
         public Action ResetSize { get; set; }
 
         [Display("Map", Group: "Key Mapping")]
-        [FixedSize]
         public List<KeyMap> KeyMap { get; set; } = new List<KeyMap>();
 
         private StepMoveMethod _stepMoveMethod;
@@ -273,6 +271,8 @@ namespace OpenTap.Tui
 
         public ColorScheme ToColorScheme()
         {
+            if (Application.Driver == null)
+                return new ColorScheme();
             return new ColorScheme()
             {
                 Normal = Application.Driver.MakeAttribute(NormalForeground, NormalBackground),

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
@@ -14,7 +11,12 @@ namespace OpenTap.Tui.Windows
             var text = new TextView()
             {
                 Text =
-"Navigate using arrows, 'TAB' and 'Enter'. Open the menu using 'F9'.\n\nMove steps using space to select a step, then navigate to the place you want to drop the step and press space.\nYou can also use right arrow ('>') to insert a step into another step as a child step.",
+@"Navigate using arrows, 'TAB' and 'Enter'. Open the menu using 'F9'.
+
+Move steps using space to select a step, then navigate to the place you want to drop the step and press space.
+You can also use right arrow ('>') to insert a step into another step as a child step.
+
+View and change other shortcuts by navigating to settings -> TUI Settings -> Key Mapping -> Map",
                 ReadOnly = true,
             };
             Add(text);

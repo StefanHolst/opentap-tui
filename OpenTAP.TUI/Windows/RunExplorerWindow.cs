@@ -11,7 +11,6 @@ namespace OpenTap.Tui.Windows
         public static string[] Headers =  { "Run ID", "Name", "Verdict", "Source" };
         
         private SelectorView runList;
-        private PropertiesView propsView;
         private HelperButtons helperButtons;
 
         public ResultsViewerWindow() : base("Results Viewer")
@@ -64,7 +63,7 @@ namespace OpenTap.Tui.Windows
             
             // Add actions
             var actions = new List<MenuItem>();
-            var runAction = new MenuItem("Plot Results", "", PlotResults);
+            var runAction = new MenuItem("Plot Results", "", PlotResults, shortcut: Key.F5);
             actions.Add(runAction);
             
             runList.ItemMarkedChanged += (args =>
@@ -150,7 +149,7 @@ namespace OpenTap.Tui.Windows
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (TuiAction.CurrentAction is TuiResults && (keyEvent.Key == (Key.X|Key.CtrlMask) || keyEvent.Key == (Key.C|Key.CtrlMask) || keyEvent.Key == Key.Esc))
+            if (TuiAction.CurrentAction is TuiResults && KeyMapHelper.IsKey(keyEvent, KeyTypes.Close))
             {
                 if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") == 0)
                 {
@@ -159,7 +158,7 @@ namespace OpenTap.Tui.Windows
 
                 return true;
             }
-            else if (keyEvent.Key == Key.Esc)
+            else if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Cancel))
             {
                 var handled = base.ProcessKey(keyEvent);
                 if (handled) return true;

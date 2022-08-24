@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Terminal.Gui;
 
@@ -19,7 +18,7 @@ namespace OpenTap.Tui.Views
             for (int i = 0; i < actions.Count; i++)
             {
                 var item = actions[i];
-                var title = $"F{i + 5} {item.Title}";
+                var title = $"{KeyMapHelper.KeyToString(item.Shortcut)} {item.Title}";
                 var b = new Button(title)
                 {
                     X = offset,
@@ -29,7 +28,7 @@ namespace OpenTap.Tui.Views
                 b.Visible = item.IsEnabled();
                 
                 Add(b);
-                offset += title.Length + 4;
+                offset += title.Length + 10;
             }
 
             this.actions = actions;
@@ -37,15 +36,18 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessHotKey(KeyEvent keyEvent)
         {
-            var keyValue = keyEvent.KeyValue - (int) Key.F5;
-            if (keyValue <= 4 && keyValue >= 0 && actions.Count > keyValue)
+            foreach (var item in actions)
             {
-                var action = actions[keyValue];
-                if (action.IsEnabled())
-                    action.Action.Invoke();
-                return true;
+                if (keyEvent.Key == item.Shortcut)
+                {
+                    if (item.IsEnabled())
+                    {
+                        item.Action.Invoke();
+                    }
+                    return true;
+                }
             }
-            
+
             return base.ProcessHotKey(keyEvent);
         }
     }

@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading;
 using OpenTap.Package;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
@@ -30,7 +29,7 @@ namespace OpenTap.Tui.Views
         
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (keyEvent.Key == Key.Enter && Application.Current is PackageVersionSelectorWindow == false)
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Select) && Application.Current is PackageVersionSelectorWindow == false)
             {
                 var dialog = new PackageVersionSelectorWindow(SelectedPackage, installation, installedOpentap);
                 Application.Run(dialog);

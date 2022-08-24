@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using OpenTap.Tui.PropEditProviders;
 using OpenTap.Tui.Views;
@@ -66,7 +65,7 @@ namespace OpenTap.Tui.Windows
             };
             addButton.Clicked += () =>
             {
-                var newPlugin = new NewPluginWindow(TypeData.FromType(DataGridEditProvider.GetEnumerableElementType(Resources.GetType())), title);
+                var newPlugin = new NewPluginWindow(TypeData.FromType(DataGridEditProvider.GetEnumerableElementType(Resources.GetType())), title, null);
                 Application.Run(newPlugin);
                 if (newPlugin.PluginType != null)
                 {
