@@ -1,11 +1,38 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 using NStack;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.Views
 {
+    static class FocusMode
+    {
+        public static void StartFocusMode(FocusModeUnlocks unlock, bool showDialogue)
+        {
+            TuiSettings.Current.FocusModeProgress |= unlock;
+            TuiSettings.Current.Save();
+            if (showDialogue && MessageBox.Query("Easter egg", "You found another unlock for the easter egg, do you want to open the menu now?", "Yes", "No") != 0)
+            {
+                return;
+            }
+
+            foreach (FocusModeUnlocks value in Enum.GetValues(typeof(FocusModeUnlocks)))
+            {
+                if (!TuiSettings.Current.FocusModeProgress.HasFlag(value))
+                {
+                    var focusModeUnlock = new FocusModeUnlock();
+                    Application.Run(focusModeUnlock);
+                    return;
+                }
+            }
+            var focusModeWindow = new FocusModeWindow();
+            Application.Run(focusModeWindow);
+        }
+    }
+
     class FocusModeWindow : Window
     {
         public static StatsView Stats { get; set; }
@@ -722,6 +749,58 @@ namespace OpenTap.Tui.Views
             }
 
             return false;
+        }
+    }
+
+    [Flags]
+    public enum FocusModeUnlocks
+    {
+        [Display("Help I'm bored and I wanna play a game.")]
+        HelpMenu = 1 << 0,
+        [Display("I need to search for a solution.")]
+        Search = 1 << 1,
+        [Display("Without a delay i must run for a minute.")]
+        Wait = 1 << 2,
+        [Display("But my boss commands that i focus.")]
+        Command = 1 << 3,
+    }
+
+    class FocusModeUnlock : Window
+    {
+        private static readonly string checkedPrefix = "[X] ";
+        private static readonly string uncheckedPrefix = "[ ] ";
+
+        public FocusModeUnlock()
+        {
+            TextView textView = new TextView();
+            FocusModeUnlocks unlock = TuiSettings.Current.FocusModeProgress;
+            foreach (Enum value in Enum.GetValues(typeof(FocusModeUnlocks)))
+            {
+                AnnotationCollection annotations = AnnotationCollection.Annotate(value);
+                textView.Text += (unlock.HasFlag(value) ? checkedPrefix : uncheckedPrefix) + annotations.Get<IStringValueAnnotation>().Value + '\n';
+            }
+            Add(textView);
+        }
+
+        public override bool ProcessKey(KeyEvent kb)
+        {
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Close))
+            {
+                Application.RequestStop();
+                return true;
+            }
+            return base.ProcessKey(kb);
+        }
+    }
+
+    [Browsable(false)]
+    [Display("tui-focus")]
+    public class FocusCommand : TuiAction
+    {
+        public override int TuiExecute(CancellationToken cancellationToken)
+        {
+            FocusMode.StartFocusMode(FocusModeUnlocks.Command, false);
+            return 0;
         }
     }
 }

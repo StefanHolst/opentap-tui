@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using OpenTap.Tui.PropEditProviders;
+using OpenTap.Tui.Views;
 using Terminal.Gui;
 
 namespace OpenTap.Tui
@@ -126,6 +128,10 @@ namespace OpenTap.Tui
                 }
             }
         }
+
+        [Browsable(false)]
+        [Display("", "", "")]
+        public FocusModeUnlocks FocusModeProgress { get; set; }
 
         
         private int testPlanGridWidth = 75;

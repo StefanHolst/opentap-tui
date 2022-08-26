@@ -23,6 +23,7 @@ namespace OpenTap.Tui.Windows
             if (keyEvent.Key == Key.Esc)
             {
                 setting.Save();
+                MainWindow.ContainsUnsavedChanges = false;
                 Application.RequestStop();
                 
                 // If changes were made to the tui's own settings we should reload the settings

@@ -1,3 +1,5 @@
+using OpenTap.Tui.Views;
+using System.Collections.Generic;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
@@ -7,19 +9,31 @@ namespace OpenTap.Tui.Windows
         public HelpWindow() : base("Help")
         {
             Modal = true;
-            
+
             var text = new TextView()
             {
                 Text =
-@"Navigate using arrows, 'TAB' and 'Enter'. Open the menu using 'F9'.
+$@"Highlight the tool bar using F9.
+View and change shortcut by navigating to settings -> TUI Settings -> Key Mapping -> Map
 
-Move steps using space to select a step, then navigate to the place you want to drop the step and press space.
-You can also use right arrow ('>') to insert a step into another step as a child step.
+Press {KeyMapHelper.GetKeyName(KeyTypes.Cancel)} to close this window.
 
-View and change other shortcuts by navigating to settings -> TUI Settings -> Key Mapping -> Map",
+If you wish to report issues or contribute to the TUI you can do so at: https://github.com/StefanHolst/opentap-tui/
+",
                 ReadOnly = true,
+                Height = Dim.Fill(1),
             };
             Add(text);
+
+            HelperButtons helperButtons = new HelperButtons()
+            {
+                Y = Pos.Bottom(text),
+            };
+            helperButtons.SetActions(new List<MenuItem>
+            {
+                new MenuItem("Help I'm bored", "", () => FocusMode.StartFocusMode(FocusModeUnlocks.HelpMenu, false), shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.HelperButton1))
+            }, this);
+            Add(helperButtons);
         }
     }
 }
