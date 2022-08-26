@@ -90,7 +90,7 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapView))
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapView) || KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapViewBack))
             {
                 if (TestPlanView.HasFocus)
                     StepSettingsView.FocusFirst();
@@ -239,6 +239,7 @@ namespace OpenTap.Tui
                             settingsView = new ComponentSettingsWindow(obj);
                         }
                         Application.Run(settingsView);
+                        TestPlanView.UpdateHelperButtons();
                     });
                     groupItems[menuItem] = setgroup;
                 }

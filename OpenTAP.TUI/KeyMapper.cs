@@ -14,8 +14,10 @@ namespace OpenTap.Tui
         Select,
         Cancel,
         Close,
-        [Display("Swap Between Test Plan & Settings")]
+        [Display("Swap Selected View")]
         SwapView,
+        [Display("Swap Selected View Backwards")]
+        SwapViewBack,
         [Display("Focus Test Plan view")]
         FocusTestPlan,
         [Display("Focus Settings view")]
@@ -81,7 +83,8 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.Close, Key.X, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.C, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.SwapViewBack, Key.Tab, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.SwapViewBack, Key.BackTab, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusTestPlan, Key.F6, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusStepSettings, Key.F7, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusLog, Key.F8, ctrl: false, shift: false, alt: false),
@@ -90,11 +93,9 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TestPlanSettings, Key.F1, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TableAddRow, Key.N, ctrl: true, shift: false, alt: false),
-            new KeyMap(KeyTypes.TableRemoveRow, Key.Backspace, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TableRemoveRow, Key.DeleteChar, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.AddNewStep, Key.N, ctrl: true, shift: false, alt: false),
-            new KeyMap(KeyTypes.InsertNewStep, Key.N, ctrl: true, shift: true, alt: false),
-            new KeyMap(KeyTypes.DeleteStep, Key.Backspace, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.AddNewStep, Key.F2, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertNewStep, Key.F3, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.DeleteStep, Key.DeleteChar, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.O, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton1, Key.F1, ctrl: false, shift: false, alt: false),

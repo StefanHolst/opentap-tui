@@ -41,8 +41,8 @@ namespace OpenTap.Tui.Views
             treeView.SetTreeViewSource(Plan.Steps);
             treeView.SelectedItemChanged += args =>
             {
+                UpdateHelperButtons();
                 focusedStep = args.Value as ITestStep;
-                MainWindow.helperButtons.SetActions(actions, this);
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
             };
             treeView.EnableFilter = true;
@@ -60,6 +60,12 @@ namespace OpenTap.Tui.Views
             };
             Add(treeView);
             
+            MainWindow.UnsavedChangesCreated += UpdateTitle;
+            UpdateTitle();
+        }
+
+        public void UpdateHelperButtons()
+        {
             actions = new List<MenuItem>();
             runAction = new MenuItem("Run Test Plan", "", () =>
             {
@@ -81,8 +87,7 @@ namespace OpenTap.Tui.Views
             {
                 SelectionChanged.Invoke(Plan);
             }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TestPlanSettings)));
-            MainWindow.UnsavedChangesCreated += UpdateTitle;
-            UpdateTitle();
+            MainWindow.helperButtons.SetActions(actions, this);
         }
 
         private void UpdateTitle()
