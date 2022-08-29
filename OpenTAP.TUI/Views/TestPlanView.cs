@@ -272,7 +272,9 @@ namespace OpenTap.Tui.Views
         public new void SetFocus() // new used as SetFocus is not virtual in gui.cs, but it works just as well.
         {
             base.SetFocus();
-            if(focusedStep != null)
+            if (moveSteps.Any())
+                SelectionChanged?.Invoke(moveSteps.ToArray());
+            else if(focusedStep != null)
                 SelectionChanged.Invoke(focusedStep);
         }
 
