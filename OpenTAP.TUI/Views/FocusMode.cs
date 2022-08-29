@@ -10,12 +10,14 @@ namespace OpenTap.Tui.Views
 {
     static class FocusMode
     {
-        public static void StartFocusMode(FocusModeUnlocks unlock, bool showDialogue)
+        public static void StartFocusMode(FocusModeUnlocks unlock, bool useLogMessage)
         {
             TuiSettings.Current.FocusModeProgress |= unlock;
             TuiSettings.Current.Save();
-            if (showDialogue && MessageBox.Query("Easter egg", "You found another unlock for the easter egg, do you want to open the menu now?", "Yes", "No") != 0)
+            if (useLogMessage)
             {
+                AnnotationCollection annotations = AnnotationCollection.Annotate(unlock);
+                TUI.Log.Debug($"You found an easteregg unlock: {annotations.Get<IStringValueAnnotation>().Value}");
                 return;
             }
 
@@ -790,17 +792,6 @@ namespace OpenTap.Tui.Views
                 return true;
             }
             return base.ProcessKey(kb);
-        }
-    }
-
-    [Browsable(false)]
-    [Display("tui-focus")]
-    public class FocusCommand : TuiAction
-    {
-        public override int TuiExecute(CancellationToken cancellationToken)
-        {
-            FocusMode.StartFocusMode(FocusModeUnlocks.Command, false);
-            return 0;
         }
     }
 }
