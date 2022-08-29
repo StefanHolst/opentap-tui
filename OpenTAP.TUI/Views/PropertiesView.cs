@@ -162,6 +162,9 @@ namespace OpenTap.Tui.Views
             if (x == null)
                 return "";
 
+            try
+            {
+
             var nameBuilder = new StringBuilder();
             var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value 
                          ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value 
@@ -210,6 +213,11 @@ namespace OpenTap.Tui.Views
                 nameBuilder.Append(" !");
             
             return nameBuilder.ToString();
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         List<string> getGroup(AnnotationCollection annotationCollection)

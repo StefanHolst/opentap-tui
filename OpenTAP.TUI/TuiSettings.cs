@@ -167,18 +167,6 @@ namespace OpenTap.Tui
 
         [Display("Map", Group: "Key Mapping")]
         public List<KeyMap> KeyMap { get; set; } = new List<KeyMap>();
-
-        private StepMoveMethod _stepMoveMethod;
-        [Display("Step Move Method", Group: "Key Mapping")]
-        public StepMoveMethod StepMoveMethod
-        {
-            get => _stepMoveMethod;
-            set
-            {
-                _stepMoveMethod = value;
-                OnPropertyChanged(nameof(StepMoveMethod));
-            }
-        }
         
         [Browsable(true)]
         [XmlIgnore]
@@ -206,7 +194,6 @@ namespace OpenTap.Tui
             ResetKeyMapping += () =>
             {
                 KeyMap = KeyMapHelper.DefaultKeys;
-                StepMoveMethod = StepMoveMethod.Key;
             };
         }
 
@@ -237,12 +224,6 @@ namespace OpenTap.Tui
         // it should still deserialize without error.
         [Browsable(false)]
         Hacker
-    }
-
-    public enum StepMoveMethod
-    {
-        Select,
-        Key,
     }
     
     public class ColorSchemeViewmodel

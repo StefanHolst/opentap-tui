@@ -54,18 +54,12 @@ namespace OpenTap.Tui
         HelperButton4,
         [Display("Helper Menu - Button 5")]
         HelperButton5,
-        [Display("Move Step (Select) - Select")]
-        MoveStepSelectSelect,
-        [Display("Move Step (Select) - Up")]
-        MoveStepSelectUp,
-        [Display("Move Step (Select) - Down")]
-        MoveStepSelectDown,
-        [Display("Move Step (Select) - In")]
-        MoveStepSelectIn,
-        [Display("Move Step (Key) - Up")]
-        MoveStepKeyUp,
-        [Display("Move Step (Key) - Down")]
-        MoveStepKeyDown,
+        [Display("Select Step")]
+        SelectStep,
+        [Display("Insert Selected Steps")]
+        InsertSelectedSteps,
+        [Display("Insert Selected Steps As Children")]
+        InsertSelectedStepsAsChildren,
     }
 
     public static class KeyMapHelper
@@ -102,12 +96,9 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.HelperButton2, Key.F2, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton3, Key.F3, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton4, Key.F4, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.MoveStepSelectSelect, Key.Space, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.MoveStepSelectUp, Key.CursorUp, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.MoveStepSelectDown, Key.CursorDown, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.MoveStepSelectIn, Key.CursorRight, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.MoveStepKeyUp, Key.CursorUp, ctrl: false, shift: false, alt: true),
-            new KeyMap(KeyTypes.MoveStepKeyDown, Key.CursorDown, ctrl: false, shift: false, alt: true),
+            new KeyMap(KeyTypes.SelectStep, Key.Space, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertSelectedSteps, Key.F2, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertSelectedStepsAsChildren, Key.F3, ctrl: false, shift: false, alt: false),
         }.ToList();
 
         public static KeyMap GetFirstKeymap(KeyTypes keyType)
