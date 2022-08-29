@@ -183,7 +183,7 @@ namespace OpenTap.Tui.Views
                 Update(true);
                 kbEvent.Handled = true;
             }
-            if (KeyMapHelper.IsKey(kb, KeyTypes.SelectStep))
+            if (KeyMapHelper.IsKey(kb, KeyTypes.SelectStep) && treeView.SelectedObject != null)
             {
                 if (moveSteps.Contains(treeView.SelectedObject))
                 {
@@ -272,7 +272,9 @@ namespace OpenTap.Tui.Views
         public new void SetFocus() // new used as SetFocus is not virtual in gui.cs, but it works just as well.
         {
             base.SetFocus();
-            if(focusedStep != null)
+            if (moveSteps.Any())
+                SelectionChanged?.Invoke(moveSteps.ToArray());
+            else if(focusedStep != null)
                 SelectionChanged.Invoke(focusedStep);
         }
 
