@@ -26,6 +26,8 @@ namespace OpenTap.Tui
         FocusDescription,
         [Display("Focus Log view")]
         FocusLog,
+        [Display("Focus Menu bar")]
+        FocusMenu,
         [Display("Open Help menu")]
         Help,
         [Display("Run Test Plan")]
@@ -82,6 +84,7 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.FocusTestPlan, Key.F6, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusStepSettings, Key.F7, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusLog, Key.F8, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusMenu, Key.F9, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusDescription, Key.Null, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.Help, Key.F12, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),

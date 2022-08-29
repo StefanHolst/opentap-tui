@@ -173,7 +173,7 @@ namespace OpenTap.Tui
             });
             var toolsmenu = new MenuBarItem("Tools", new MenuItem[]
             {
-                new MenuItem("_Results Viewer (Experimental)", "", () =>
+                new MenuItem("Results Viewer (Experimental)", "", () =>
                 {
                     var reswin = new ResultsViewerWindow()
                     {
@@ -268,8 +268,15 @@ namespace OpenTap.Tui
             }
             menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
-            var menu = new MenuBar(menuBars.ToArray());
-            
+            var menuLabel = new Label($"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusMenu)} ]")
+            {
+                ColorScheme = TuiSettings.Current.MenuColor.ToColorScheme(),
+            };
+            var menu = new MenuBar(menuBars.ToArray()) {
+                Shortcut = KeyMapHelper.GetShortcutKey(KeyTypes.FocusMenu),
+                X = Pos.Right(menuLabel),
+            };
+
             // Create main window and add it to top item of application
             var win = new MainWindow("OpenTAP TUI")
             {
@@ -282,6 +289,7 @@ namespace OpenTap.Tui
             };
             
             // Add menu bar
+            win.Add(menuLabel);
             win.Add(menu);
 
             // Add testplan view
