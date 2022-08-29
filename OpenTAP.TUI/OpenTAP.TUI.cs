@@ -82,6 +82,10 @@ namespace OpenTap.Tui
                             return false;
                     }
                 }
+                else if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") != 0)
+                {
+                    return false;
+                }
                 else if (TestPlanView.Plan.IsRunning && MessageBox.Query(50, 7, "Are you sure?", "A test plan is currently running, are you sure you want to exit?", "Exit", "Cancel") == 1)
                 {
                     return false;
@@ -270,7 +274,7 @@ namespace OpenTap.Tui
             menuBars.Add(helpmenu);
             var menuLabel = new Label($"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusMenu)} ]")
             {
-                ColorScheme = TuiSettings.Current.MenuColor.ToColorScheme(),
+                ColorScheme = Colors.Menu,
             };
             var menu = new MenuBar(menuBars.ToArray()) {
                 Shortcut = KeyMapHelper.GetShortcutKey(KeyTypes.FocusMenu),

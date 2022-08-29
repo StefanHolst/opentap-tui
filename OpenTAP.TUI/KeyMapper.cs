@@ -134,6 +134,8 @@ namespace OpenTap.Tui
 
             foreach (var map in maps)
             {
+                if (keyEvent.IsShift == map.KeyEvent.IsShift && (keyEvent.Key | Key.ShiftMask) == map.KeyEvent.Key)
+                    return true;
                 if (keyEvent.IsCtrl && keyEvent.Key != (map.KeyEvent.Key | Key.CtrlMask) && keyEvent.Key != map.KeyEvent.Key)
                     continue;
                 if (keyEvent.Key != map.KeyEvent.Key)
