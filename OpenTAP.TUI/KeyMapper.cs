@@ -14,8 +14,10 @@ namespace OpenTap.Tui
         Select,
         Cancel,
         Close,
-        [Display("Swap Between Test Plan & Settings")]
+        [Display("Swap Selected View")]
         SwapView,
+        [Display("Swap Selected View Backwards")]
+        SwapViewBack,
         [Display("Focus Test Plan view")]
         FocusTestPlan,
         [Display("Focus Settings view")]
@@ -24,6 +26,8 @@ namespace OpenTap.Tui
         FocusDescription,
         [Display("Focus Log view")]
         FocusLog,
+        [Display("Focus Menu bar")]
+        FocusMenu,
         [Display("Open Help menu")]
         Help,
         [Display("Run Test Plan")]
@@ -52,6 +56,12 @@ namespace OpenTap.Tui
         HelperButton4,
         [Display("Helper Menu - Button 5")]
         HelperButton5,
+        [Display("Select Step")]
+        SelectStep,
+        [Display("Insert Selected Steps")]
+        InsertSelectedSteps,
+        [Display("Insert Selected Steps As Children")]
+        InsertSelectedStepsAsChildren,
     }
 
     public static class KeyMapHelper
@@ -69,26 +79,29 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.Close, Key.X, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.C, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.SwapViewBack, Key.Tab, ctrl: false, shift: true, alt: false),
+            new KeyMap(KeyTypes.SwapViewBack, Key.BackTab, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusTestPlan, Key.F6, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusStepSettings, Key.F7, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusLog, Key.F8, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.FocusMenu, Key.F9, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.FocusDescription, Key.Null, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.Help, Key.F12, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.RunTestPlan, Key.F5, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TestPlanSettings, Key.F1, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TableAddRow, Key.N, ctrl: true, shift: false, alt: false),
-            new KeyMap(KeyTypes.TableRemoveRow, Key.Backspace, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.TableRemoveRow, Key.DeleteChar, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.AddNewStep, Key.N, ctrl: true, shift: false, alt: false),
-            new KeyMap(KeyTypes.InsertNewStep, Key.N, ctrl: true, shift: true, alt: false),
-            new KeyMap(KeyTypes.DeleteStep, Key.Backspace, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.AddNewStep, Key.F2, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertNewStep, Key.F3, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.DeleteStep, Key.DeleteChar, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.StringEditorInsertFilePath, Key.O, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton1, Key.F1, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton2, Key.F2, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton3, Key.F3, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.HelperButton4, Key.F4, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.SelectStep, Key.Space, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertSelectedSteps, Key.F2, ctrl: false, shift: false, alt: false),
+            new KeyMap(KeyTypes.InsertSelectedStepsAsChildren, Key.F3, ctrl: false, shift: false, alt: false),
         }.ToList();
 
         public static KeyMap GetFirstKeymap(KeyTypes keyType)
@@ -121,6 +134,8 @@ namespace OpenTap.Tui
 
             foreach (var map in maps)
             {
+                if (keyEvent.IsShift == map.KeyEvent.IsShift && (keyEvent.Key | Key.ShiftMask) == map.KeyEvent.Key)
+                    return true;
                 if (keyEvent.IsCtrl && keyEvent.Key != (map.KeyEvent.Key | Key.CtrlMask) && keyEvent.Key != map.KeyEvent.Key)
                     continue;
                 if (keyEvent.Key != map.KeyEvent.Key)

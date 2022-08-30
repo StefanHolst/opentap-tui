@@ -50,6 +50,11 @@ namespace OpenTap.Tui
             };
         }
 
+        public override bool OnKeyUp(KeyEvent keyEvent)
+        {
+            return keyEvent.Key.HasFlag(Key.AltMask) ? true : base.OnKeyUp(keyEvent);
+        }
+
         public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (keyEvent.Key == Key.Enter && MostFocused is TestPlanView && this.IsTopActive())
@@ -77,6 +82,10 @@ namespace OpenTap.Tui
                             return false;
                     }
                 }
+                else if (MessageBox.Query(50, 7, "Quit?", "Are you sure you want to quit?", "Yes", "No") != 0)
+                {
+                    return false;
+                }
                 else if (TestPlanView.Plan.IsRunning && MessageBox.Query(50, 7, "Are you sure?", "A test plan is currently running, are you sure you want to exit?", "Exit", "Cancel") == 1)
                 {
                     return false;
@@ -85,7 +94,7 @@ namespace OpenTap.Tui
                 return true;
             }
 
-            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapView))
+            if (KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapView) || KeyMapHelper.IsKey(keyEvent, KeyTypes.SwapViewBack))
             {
                 if (TestPlanView.HasFocus)
                     StepSettingsView.FocusFirst();
@@ -154,21 +163,21 @@ namespace OpenTap.Tui
             };
             StepSettingsView = new PropertiesView(true);
 
-            var filemenu = new MenuBarItem("_File", new MenuItem[]
+            var filemenu = new MenuBarItem("File", new MenuItem[]
             {
-                new MenuItem("_New", "", () =>
+                new MenuItem("New", "", () =>
                 {
                     TestPlanView.NewTestPlan();
                     StepSettingsView.LoadProperties(null);
                 }),
-                new MenuItem("_Open", "", TestPlanView.LoadTestPlan),
-                new MenuItem("_Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
-                new MenuItem("Save _As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                new MenuItem("_Quit", "", () => Application.RequestStop())
+                new MenuItem("Open", "", TestPlanView.LoadTestPlan),
+                new MenuItem("Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
+                new MenuItem("Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
+                new MenuItem("Quit", "", () => Application.RequestStop())
             });
-            var toolsmenu = new MenuBarItem("_Tools", new MenuItem[]
+            var toolsmenu = new MenuBarItem("Tools", new MenuItem[]
             {
-                new MenuItem("_Results Viewer (Experimental)", "", () =>
+                new MenuItem("Results Viewer (Experimental)", "", () =>
                 {
                     var reswin = new ResultsViewerWindow()
                     {
@@ -180,7 +189,7 @@ namespace OpenTap.Tui
                     Application.Run(reswin);
                     TestPlanView.Update(); // make sure the helperbuttons have been refreshed
                 }),
-                new MenuItem("_Package Manager (Experimental)", "", () =>
+                new MenuItem("Package Manager (Experimental)", "", () =>
                 {
                     var pmwin = new PackageManagerWindow()
                     {
@@ -193,9 +202,10 @@ namespace OpenTap.Tui
                     TestPlanView.Update(); // make sure the helperbuttons have been refreshed
                 })
             });
+
             var helpmenu = new MenuBarItem(KeyMapHelper.GetKeyName(KeyTypes.Help, "Help"), new MenuItem[]
             {
-                new MenuItem("_Help", "", () =>
+                new MenuItem("Help", "", () =>
                 {
                     var helpWin = new HelpWindow();
                     Application.Run(helpWin);
@@ -217,7 +227,7 @@ namespace OpenTap.Tui
                     var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
                     var name = setting.GetDisplayAttribute().Name;
 
-                    var menuItem = new MenuItem("_" + name, "", () =>
+                    var menuItem = new MenuItem(name, "", () =>
                     {
                         Window settingsView;
                         if (setting.DescendsTo(TypeData.FromType(typeof(ConnectionSettings))))
@@ -233,6 +243,7 @@ namespace OpenTap.Tui
                             settingsView = new ComponentSettingsWindow(obj);
                         }
                         Application.Run(settingsView);
+                        TestPlanView.UpdateHelperButtons();
                     });
                     groupItems[menuItem] = setgroup;
                 }
@@ -254,15 +265,22 @@ namespace OpenTap.Tui
             menuBars.Add(filemenu);
             foreach (var group in groupItems.GroupBy(x => x.Value))
             {
-                var m = new MenuBarItem("_" + group.Key,
+                var m = new MenuBarItem(group.Key,
                     group.OrderBy(x => x.Key.Title).Select(x => x.Key).ToArray()
                 );
                 menuBars.Add(m);
             }
             menuBars.Add(toolsmenu);
             menuBars.Add(helpmenu);
-            var menu = new MenuBar(menuBars.ToArray());
-            
+            var menuLabel = new Label($"[ {KeyMapHelper.GetKeyName(KeyTypes.FocusMenu)} ]")
+            {
+                ColorScheme = Colors.Menu,
+            };
+            var menu = new MenuBar(menuBars.ToArray()) {
+                Shortcut = KeyMapHelper.GetShortcutKey(KeyTypes.FocusMenu),
+                X = Pos.Right(menuLabel),
+            };
+
             // Create main window and add it to top item of application
             var win = new MainWindow("OpenTAP TUI")
             {
@@ -275,6 +293,7 @@ namespace OpenTap.Tui
             };
             
             // Add menu bar
+            win.Add(menuLabel);
             win.Add(menu);
 
             // Add testplan view
