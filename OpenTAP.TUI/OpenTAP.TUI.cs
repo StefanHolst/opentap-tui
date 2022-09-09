@@ -147,6 +147,9 @@ namespace OpenTap.Tui
         [UnnamedCommandLineArgument("plan")]
         public string path { get; set; }
 
+        [CommandLineArgument("focus", Description = "If true will open the tui in focus mode.")]
+        public bool focusMode { get; set; } = false;
+
         public TestPlanView TestPlanView { get; set; }
         public PropertiesView StepSettingsView { get; set; }
         public FrameView LogFrame { get; set; }
@@ -372,6 +375,8 @@ namespace OpenTap.Tui
                 }
             }
 
+            if (focusMode)
+                Application.MainLoop.Invoke(() => FocusMode.StartFocusMode(FocusModeUnlocks.Command, false));
             // Run application
             Application.Run(win);
 

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using NStack;
+using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
 namespace OpenTap.Tui.Views
@@ -12,14 +13,20 @@ namespace OpenTap.Tui.Views
     {
         public static void StartFocusMode(FocusModeUnlocks unlock, bool useLogMessage)
         {
-            TuiSettings.Current.FocusModeProgress |= unlock;
-            TuiSettings.Current.Save();
-            if (useLogMessage)
+
+            if (TuiSettings.Current.FocusModeProgress.HasFlag(unlock) == false)
             {
-                AnnotationCollection annotations = AnnotationCollection.Annotate(unlock);
-                TUI.Log.Debug($"You found an easteregg unlock: {annotations.Get<IStringValueAnnotation>().Value}");
-                return;
+                TuiSettings.Current.FocusModeProgress |= unlock;
+                TuiSettings.Current.Save();
+                if (useLogMessage)
+                {
+                    AnnotationCollection annotations = AnnotationCollection.Annotate(unlock);
+                    TUI.Log.Debug($"You found an easteregg unlock: {annotations.Get<IStringValueAnnotation>().Value}");
+                    return;
+                }
             }
+            else if (useLogMessage)
+                return;
 
             foreach (FocusModeUnlocks value in Enum.GetValues(typeof(FocusModeUnlocks)))
             {
@@ -35,15 +42,14 @@ namespace OpenTap.Tui.Views
         }
     }
 
-    class FocusModeWindow : Window
+    class FocusModeWindow : EditWindow
     {
         public static StatsView Stats { get; set; }
         public static Figure Figure { get; set; }
         public static Shop Shop { get; set; }
 
-        public FocusModeWindow()
+        public FocusModeWindow(): base("Diiiiig!")
         {
-            Title = "Diiiiig!";
             Stats = new StatsView();
             Figure = new Figure();
             Shop = new Shop();
@@ -767,14 +773,15 @@ namespace OpenTap.Tui.Views
         Command = 1 << 3,
     }
 
-    class FocusModeUnlock : Window
+    class FocusModeUnlock : EditWindow
     {
         private static readonly string checkedPrefix = "[X] ";
         private static readonly string uncheckedPrefix = "[ ] ";
 
-        public FocusModeUnlock()
+        public FocusModeUnlock() : base("Bored?")
         {
             TextView textView = new TextView();
+            textView.ReadOnly = true;
             FocusModeUnlocks unlock = TuiSettings.Current.FocusModeProgress;
             foreach (Enum value in Enum.GetValues(typeof(FocusModeUnlocks)))
             {
@@ -782,16 +789,6 @@ namespace OpenTap.Tui.Views
                 textView.Text += (unlock.HasFlag(value) ? checkedPrefix : uncheckedPrefix) + annotations.Get<IStringValueAnnotation>().Value + '\n';
             }
             Add(textView);
-        }
-
-        public override bool ProcessKey(KeyEvent kb)
-        {
-            if (KeyMapHelper.IsKey(kb, KeyTypes.Close))
-            {
-                Application.RequestStop();
-                return true;
-            }
-            return base.ProcessKey(kb);
         }
     }
 }
