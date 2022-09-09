@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenTap.Plugins;
+using OpenTap.Plugins.BasicSteps;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
 
@@ -47,7 +48,14 @@ namespace OpenTap.Tui.Views
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
             };
             treeView.EnableFilter = true;
-            treeView.FilterChanged += (filter) => { UpdateTitle(); };
+            treeView.FilterChanged += (filter) => 
+            {
+                UpdateTitle();
+                if (filter == "solution")
+                {
+                    FocusMode.StartFocusMode(FocusModeUnlocks.Search, true);
+                }
+            };
             treeView.NodeVisibilityChanged += (node, expanded) => ChildItemVisibility.SetVisibility(node.Item, expanded ? ChildItemVisibility.Visibility.Visible : ChildItemVisibility.Visibility.Collapsed);
             treeView.KeyPress += TreeviewKeyPress;
 
@@ -466,10 +474,16 @@ namespace OpenTap.Tui.Views
             
             Task.Run(() =>
             {
+                DateTime startTime = DateTime.Now;
                 while (PlanIsRunning)
                 {
                     Application.MainLoop.Invoke(UpdateTitle);
                     Thread.Sleep(1000);
+                }
+                DateTime dt = DateTime.Now;
+                if (dt - startTime >= TimeSpan.FromSeconds(59) && dt - startTime <= TimeSpan.FromSeconds(61) && !Plan.EnabledSteps.Any(s => s is DelayStep))
+                {
+                    FocusMode.StartFocusMode(FocusModeUnlocks.Wait, true);
                 }
                 
                 Application.MainLoop.Invoke(UpdateTitle);
