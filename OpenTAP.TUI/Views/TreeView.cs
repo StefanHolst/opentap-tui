@@ -43,7 +43,7 @@ namespace OpenTap.Tui
             this.createNode = createNode;
         }
 
-        private TreeViewNode<T> GetNodeFromItem(T item)
+        public TreeViewNode<T> GetNodeFromItem(T item)
         {
             TreeViewNode<T> node;
             if (nodes.TryGetValue(item, out node) == false)
@@ -231,10 +231,10 @@ namespace OpenTap.Tui
         
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
+            if (renderedItems != null && renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
             {
                 var selectedNode = renderedItems[SelectedItem];
-                var hasChildren = selectedNode.Children.Any();
+                var hasChildren = selectedNode.AlwaysDisplayExpandState || selectedNode.Children.Any();
                 if (hasChildren && kb.Key == Key.CursorLeft && selectedNode.IsExpanded)
                 {
                     selectedNode.IsExpanded = false;
@@ -324,6 +324,7 @@ namespace OpenTap.Tui
     {
         public T Item { get; set; }
         public bool IsExpanded { get; set; }
+        public bool AlwaysDisplayExpandState { get; set; }
         public bool IsGroup { get; set; }
         public string Title { get; set; }
         public List<string> Groups { get; set; }
@@ -376,7 +377,7 @@ namespace OpenTap.Tui
             }
             
             string text = new String(' ', indent);
-            if (Children.Any())
+            if (AlwaysDisplayExpandState || Children.Any())
                 text += IsExpanded || string.IsNullOrEmpty(Owner.Filter) == false ? "- " : "+ ";
             else
                 text += "  ";

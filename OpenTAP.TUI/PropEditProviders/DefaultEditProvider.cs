@@ -10,9 +10,9 @@ namespace OpenTap.Tui.PropEditProviders
     {
         public int Order => 1000;
 
-        private readonly IReadOnlyDictionary<Type, Func<string, object>> _editorFor = new Dictionary<Type, Func<string, object>>()
+        private readonly IReadOnlyDictionary<ITypeData, Func<string, object>> _editorFor = new Dictionary<ITypeData, Func<string, object>>()
         {
-            {typeof(DateTime), (s) => DateTime.Parse(s) },
+            {TypeData.FromType(typeof(DateTime)), (s) => DateTime.Parse(s) },
         };
 
 
@@ -20,9 +20,11 @@ namespace OpenTap.Tui.PropEditProviders
         {
             var valueAnnotation = annotation.Get<IObjectValueAnnotation>();
             if (valueAnnotation == null) return null;
-            var text = valueAnnotation.Value.ToString();
+            var typeInfo = annotation.Get<IReflectionAnnotation>().ReflectionInfo;
+            
+            var text = valueAnnotation.Value?.ToString() ?? "";
             var strAnnotation = annotation.Get<IStringValueAnnotation>();
-            if (!_editorFor.TryGetValue(valueAnnotation.Value.GetType(), out var parseFunc) && strAnnotation == null) return null;
+            if (!_editorFor.TryGetValue(typeInfo, out var parseFunc) && strAnnotation == null) return null;
             var view = new View();
             var textField = new TextViewWithEnter(){
                 Text = text,

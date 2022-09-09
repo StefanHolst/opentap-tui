@@ -136,6 +136,23 @@ namespace OpenTap.Tui.PropEditProviders
             var table = LoadTable(Headers, Columns, items);
             tableView.Table = table;
 
+            tableView.KeyPress += keyEvent =>
+            {
+                if (KeyMapHelper.IsKey(keyEvent.KeyEvent, KeyTypes.SwapView))
+                {
+                    int selectedColumn = (tableView.SelectedColumn + 1) % Columns.Count;
+                    tableView.ChangeSelectionToStartOfRow(false);
+                    tableView.ChangeSelectionByOffset(selectedColumn, 0, false);
+                    keyEvent.Handled = true;
+                }
+                else if (KeyMapHelper.IsKey(keyEvent.KeyEvent, KeyTypes.SwapViewBack))
+                {
+                    int selectedColumn = tableView.SelectedColumn == 0 ? Columns.Count : (tableView.SelectedColumn - 1);
+                    tableView.ChangeSelectionToStartOfRow(false);
+                    tableView.ChangeSelectionByOffset(selectedColumn, 0, false);
+                    keyEvent.Handled = true;
+                }
+            };
             tableView.CellActivated += args =>
             {
                 if (isReadOnly || args.Row > items.Length || args.Row < 0)
