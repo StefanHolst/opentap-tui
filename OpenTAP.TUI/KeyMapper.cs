@@ -7,6 +7,7 @@ namespace OpenTap.Tui
     public enum KeyTypes
     {
         Save,
+        [Display("Save As")]
         SaveAs,
         Open,
         Copy,
