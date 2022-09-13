@@ -156,6 +156,8 @@ namespace OpenTap.Tui
 
         public override int TuiExecute(CancellationToken cancellationToken)
         {
+            int bufferHeight = Console.BufferHeight;
+
             var gridWidth = TuiSettings.Current.TestPlanGridWidth;
             var gridHeight = TuiSettings.Current.TestPlanGridHeight;
             TestPlanView = new TestPlanView()
@@ -379,6 +381,10 @@ namespace OpenTap.Tui
                 Application.MainLoop.Invoke(() => FocusMode.StartFocusMode(FocusModeUnlocks.Command, false));
             // Run application
             Application.Run(win);
+
+            Application.Shutdown();
+
+            Console.BufferHeight = bufferHeight;
 
             return 0;
         }
