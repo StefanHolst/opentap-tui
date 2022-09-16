@@ -537,7 +537,7 @@ namespace OpenTap.Tui.Views
 
         public Recovery()
         {
-            recStream = File.OpenWrite($"~{Process.GetCurrentProcess().Id}.TuiRecovery");
+            recStream = File.OpenWrite($".{Process.GetCurrentProcess().Id}.TuiRecovery");
             MainWindow.UnsavedChangesCreated += Save;
             Application.MainLoop.Invoke(() =>
             {
@@ -571,7 +571,7 @@ namespace OpenTap.Tui.Views
 
         public bool Load()
         {
-            string[] files = Directory.GetFiles("./", "~*.TuiRecovery");
+            string[] files = Directory.GetFiles("./", ".*.TuiRecovery");
             if (files.Length == 0)
                 return false;
 
@@ -608,7 +608,7 @@ namespace OpenTap.Tui.Views
         public void Dispose()
         {
             recStream.Dispose();
-            File.Delete($"~{Process.GetCurrentProcess().Id}.TuiRecovery");
+            File.Delete($".{Process.GetCurrentProcess().Id}.TuiRecovery");
         }
     }
 }

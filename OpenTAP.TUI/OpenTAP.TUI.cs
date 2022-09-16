@@ -380,13 +380,9 @@ namespace OpenTap.Tui
             // Run application
             Application.Run(win);
 
-<<<<<<< Updated upstream
-=======
             Application.Shutdown();
             TestPlanView.Dispose();
-            Console.BufferHeight = bufferHeight;
 
->>>>>>> Stashed changes
             return 0;
         }
     }
