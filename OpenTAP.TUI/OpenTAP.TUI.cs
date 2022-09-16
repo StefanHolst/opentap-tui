@@ -381,7 +381,7 @@ namespace OpenTap.Tui
             Application.Run(win);
 
             Application.Shutdown();
-            TestPlanView.Dispose();
+            TestPlanView.CloseEverythingWentWell();
 
             return 0;
         }
