@@ -14,6 +14,7 @@ namespace OpenTap.Tui
         Select,
         Cancel,
         Close,
+        Kill,
         [Display("Swap Selected View")]
         SwapView,
         [Display("Swap Selected View Backwards")]
@@ -76,8 +77,8 @@ namespace OpenTap.Tui
             new KeyMap(KeyTypes.Select, Key.Enter, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.Cancel, Key.Esc, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.Esc, ctrl: false, shift: false, alt: false),
-            new KeyMap(KeyTypes.Close, Key.X, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.Close, Key.C, ctrl: true, shift: false, alt: false),
+            new KeyMap(KeyTypes.Kill, Key.Q, ctrl: true, shift: false, alt: false),
             new KeyMap(KeyTypes.SwapView, Key.Tab, ctrl: false, shift: false, alt: false),
             new KeyMap(KeyTypes.SwapViewBack, Key.Tab, ctrl: false, shift: true, alt: false),
             new KeyMap(KeyTypes.SwapViewBack, Key.BackTab, ctrl: false, shift: false, alt: false),

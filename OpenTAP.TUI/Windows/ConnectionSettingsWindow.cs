@@ -3,7 +3,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class ConnectionSettingsWindow : Window
+    public class ConnectionSettingsWindow : BaseWindow
     {
         AnnotationCollection annotation;
         public ConnectionSettingsWindow(string title) : base(title)

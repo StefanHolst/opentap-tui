@@ -7,7 +7,7 @@ using OpenTap.Tui.Views;
 
 namespace OpenTap.Tui.Windows
 {
-    public class PackageManagerWindow : Window
+    public class PackageManagerWindow : BaseWindow
     {
         private PackageDetailsView detailsView { get; set; }
         private readonly FrameView packageFrame;

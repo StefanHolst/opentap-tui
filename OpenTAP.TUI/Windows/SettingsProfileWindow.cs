@@ -8,7 +8,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class SettingsProfileWindow : Window
+    public class SettingsProfileWindow : BaseWindow
     {
         private ListView listView;
         private Button deleteButton;

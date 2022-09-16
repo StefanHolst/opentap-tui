@@ -12,7 +12,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class PackageVersionSelectorWindow : Window
+    public class PackageVersionSelectorWindow : BaseWindow
     {
         private ListView versionsView { get; set; }
         private PackageDetailsView detailsView { get; set; }

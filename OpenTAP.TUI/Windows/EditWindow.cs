@@ -1,8 +1,9 @@
-﻿using Terminal.Gui;
+﻿using System.Diagnostics;
+using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class EditWindow : Window
+    public class EditWindow : BaseWindow
     {
         public EditWindow(string title) : base(title)
         {

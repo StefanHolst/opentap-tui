@@ -6,7 +6,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class ResultsViewerWindow : Window
+    public class ResultsViewerWindow : BaseWindow
     {
         public static string[] Headers =  { "Run ID", "Name", "Verdict", "Source" };
         

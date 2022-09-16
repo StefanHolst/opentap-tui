@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace OpenTap.Tui
 {
-    public class MainWindow : Window
+    public class MainWindow : BaseWindow
     {
 
         public PropertiesView StepSettingsView { get; set; }
