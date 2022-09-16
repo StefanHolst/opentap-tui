@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTap;
 using OpenTap.Plugins;
 using OpenTap.Plugins.BasicSteps;
 using OpenTap.Tui.Windows;
@@ -12,7 +14,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Views
 {
-    public class TestPlanView : FrameView
+    public class TestPlanView : FrameView, IDisposable
     {
         private HashSet<ITestStep> moveSteps = new HashSet<ITestStep>();
         private bool injectStep = false;
@@ -21,17 +23,20 @@ namespace OpenTap.Tui.Views
         private TreeView<ITestStep> treeView;
         private TestPlanRun testPlanRun;
         private bool PlanIsRunning = false;
+        private readonly Recovery recoveryFile;
         
         ///<summary> Keeps track of the most recently focused step - even when the test plan is selected. </summary>
         ITestStep focusedStep;
-        
-        public TestPlan Plan { get; set; } = new TestPlan();
+
+        public TestPlan Plan => recoveryFile.Plan;
 
         public Action<object> SelectionChanged;
 
         public TestPlanView()
         {
             CanFocus = true;
+            recoveryFile = new Recovery();
+            recoveryFile.TestPlanChanged += LoadTestPlan;
             
             treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent, createNode)
             {
@@ -350,14 +355,18 @@ namespace OpenTap.Tui.Views
 
         public void LoadTestPlan(string path)
         {
-            Plan = TestPlan.Load(path);
+            recoveryFile.Plan = TestPlan.Load(path);
+        }
+
+        private void LoadTestPlan(TestPlan plan)
+        {
             treeView.SetTreeViewSource(Plan.Steps);
             UpdateTitle();
         }
         
         public void NewTestPlan()
         {
-            Plan = new TestPlan();
+            recoveryFile.Plan = new TestPlan();
             treeView.SetTreeViewSource(Plan.Steps);
             MainWindow.ContainsUnsavedChanges = true;
         }
@@ -488,6 +497,118 @@ namespace OpenTap.Tui.Views
                 
                 Application.MainLoop.Invoke(UpdateTitle);
             });
+        }
+
+        public void Dispose()
+        {
+            recoveryFile.Dispose();
+        }
+    }
+
+    public class Recovery : IDisposable
+    {
+        public class RecFile {
+            public string FilePath { get; set; }
+            public string TestPlan { get; set; }
+        }
+        public RecFile file = new RecFile();
+        public string FilePath { get => file.FilePath; set => file.FilePath = value; }
+        public string TestPlan { get => file.TestPlan; set => file.TestPlan = value; }
+
+        private TestPlan plan = new TestPlan();
+        public TestPlan Plan
+        {
+            get
+            {
+                return plan;
+            }
+            set 
+            {
+                plan = value;
+                FilePath = plan.Path;
+                Save();
+                TestPlanChanged?.Invoke(plan);
+            }
+        }
+
+        private Stream recStream;
+
+        public event Action<TestPlan> TestPlanChanged;
+
+        public Recovery()
+        {
+            recStream = File.OpenWrite($"~{Process.GetCurrentProcess().Id}.TuiRecovery");
+            MainWindow.UnsavedChangesCreated += Save;
+            Application.MainLoop.Invoke(() =>
+            {
+                if (string.IsNullOrEmpty(plan.Path))
+                {
+                    if (!Load())
+                    {
+                        Plan = new TestPlan();
+                    }
+                }
+            });
+        }
+
+        private static TapSerializer TapSerializer = new TapSerializer();
+
+        public void Save()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Plan.Save(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                using (StreamReader sr = new StreamReader(ms))
+                {
+                    TestPlan = sr.ReadToEnd();
+                }
+            }
+
+            recStream.Seek(0, SeekOrigin.Begin);
+            TapSerializer.Serialize(recStream, file);
+        }
+
+        public bool Load()
+        {
+            string[] files = Directory.GetFiles("./", "~*.TuiRecovery");
+            if (files.Length == 0)
+                return false;
+
+            foreach (var file in files)
+            {
+                RecFile recfile = null;
+                try
+                {
+                    recfile = TapSerializer.DeserializeFromFile(file, type: TypeData.FromType(typeof(Recovery))) as RecFile;
+                    if (recfile == null)
+                        continue;
+                }
+                catch
+                {
+                    continue;
+                }
+                TUI.Log.Debug("Recovery test plan detected." + file);
+                File.Delete(file);
+                MainWindow.ContainsUnsavedChanges = true;
+
+                using (MemoryStream ms = new MemoryStream(recfile.TestPlan.Length * 2))
+                {
+                    StreamWriter sw = new StreamWriter(ms);
+                    sw.Write(recfile.TestPlan);
+                    sw.Flush();
+                    ms.Seek(0, SeekOrigin.Begin);
+                    Plan = OpenTap.TestPlan.Load(ms, recfile.FilePath);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void Dispose()
+        {
+            recStream.Dispose();
+            File.Delete($"~{Process.GetCurrentProcess().Id}.TuiRecovery");
         }
     }
 }
