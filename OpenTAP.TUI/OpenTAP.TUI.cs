@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace OpenTap.Tui
 {
-    public class MainWindow : Window
+    public class MainWindow : BaseWindow
     {
 
         public PropertiesView StepSettingsView { get; set; }
@@ -385,7 +385,7 @@ namespace OpenTap.Tui
             Application.Run(win);
 
             Application.Shutdown();
-
+            TestPlanView.RemoveRecoveryfile();
             Console.BufferHeight = bufferHeight;
 
             return 0;

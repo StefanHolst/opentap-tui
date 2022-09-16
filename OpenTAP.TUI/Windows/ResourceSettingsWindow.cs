@@ -8,7 +8,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class ResourceSettingsWindow : Window
+    public class ResourceSettingsWindow : BaseWindow
     {
         public IList Resources { get; set; }
         private List<string> list { get; set; }

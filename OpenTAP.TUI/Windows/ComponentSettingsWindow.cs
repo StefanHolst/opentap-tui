@@ -5,7 +5,7 @@ using Terminal.Gui;
 
 namespace OpenTap.Tui.Windows
 {
-    public class ComponentSettingsWindow : Window
+    public class ComponentSettingsWindow : BaseWindow
     {
         private ComponentSettings setting { get; set; }
 

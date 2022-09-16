@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTap;
 using OpenTap.Plugins;
 using OpenTap.Plugins.BasicSteps;
 using OpenTap.Tui.Windows;
@@ -16,22 +17,22 @@ namespace OpenTap.Tui.Views
     {
         private HashSet<ITestStep> moveSteps = new HashSet<ITestStep>();
         private bool injectStep = false;
-        private MenuItem insertAction;
-        private MenuItem runAction;
         private TreeView<ITestStep> treeView;
-        private TestPlanRun testPlanRun;
         private bool PlanIsRunning = false;
+        private readonly Recovery recoveryFile;
         
         ///<summary> Keeps track of the most recently focused step - even when the test plan is selected. </summary>
         ITestStep focusedStep;
-        
-        public TestPlan Plan { get; set; } = new TestPlan();
+
+        public TestPlan Plan => recoveryFile.Plan;
 
         public Action<object> SelectionChanged;
 
         public TestPlanView()
         {
             CanFocus = true;
+            recoveryFile = new Recovery();
+            recoveryFile.TestPlanChanged += LoadTestPlan;
             
             treeView = new TreeView<ITestStep>(getTitle, getChildren, getParent, createNode)
             {
@@ -350,14 +351,18 @@ namespace OpenTap.Tui.Views
 
         public void LoadTestPlan(string path)
         {
-            Plan = TestPlan.Load(path);
+            recoveryFile.Plan = TestPlan.Load(path);
+        }
+
+        private void LoadTestPlan(TestPlan plan)
+        {
             treeView.SetTreeViewSource(Plan.Steps);
             UpdateTitle();
         }
         
         public void NewTestPlan()
         {
-            Plan = new TestPlan();
+            recoveryFile.Plan = new TestPlan();
             treeView.SetTreeViewSource(Plan.Steps);
             MainWindow.ContainsUnsavedChanges = true;
         }
@@ -463,7 +468,7 @@ namespace OpenTap.Tui.Views
             testPlanThread = TapThread.Start(() =>
             {
                 // Run testplan and show progress bar
-                testPlanRun = Plan.Execute(ResultSettings.Current, stepsOverride: runSelection ? moveSteps : null);
+                Plan.Execute(ResultSettings.Current, stepsOverride: runSelection ? moveSteps : null);
                 Application.MainLoop.Invoke(() =>
                     {
                         PlanIsRunning = false;
@@ -488,6 +493,11 @@ namespace OpenTap.Tui.Views
                 
                 Application.MainLoop.Invoke(UpdateTitle);
             });
+        }
+
+        public void RemoveRecoveryfile()
+        {
+            recoveryFile.RemoveRecoveryfile();
         }
     }
 }

@@ -9,7 +9,7 @@ using Terminal.Gui.Graphs;
 
 namespace OpenTap.Tui.Windows
 {
-    public class ResultsWindow : Window
+    public class ResultsWindow : BaseWindow
     {
         private PropertiesView propsView;
         private GraphView graphView;
