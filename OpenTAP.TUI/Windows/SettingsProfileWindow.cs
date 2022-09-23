@@ -17,9 +17,10 @@ namespace OpenTap.Tui.Windows
         private List<string> Profiles;
         private string CurrentProfile;
 
-        public SettingsProfileWindow(string group)
+        public SettingsProfileWindow(string group) : base(group)
         {
             Group = group;
+            Border.Child.RefreshColorScheme();
             
             var listFrame = new FrameView("Profiles")
             {
@@ -137,6 +138,10 @@ namespace OpenTap.Tui.Windows
             SettingsDir = ComponentSettings.GetSettingsDirectory(Group, false);
             
             // Get directories in Settings dir
+            if (!Directory.Exists(SettingsDir))
+            {
+                Directory.CreateDirectory(SettingsDir);
+            }
             Profiles = Directory.GetDirectories(SettingsDir).Select(d => Path.GetFileName(d)).ToList();
             if (Profiles.Any() == false)
                 Profiles.Add("Default");
