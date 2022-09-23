@@ -17,9 +17,10 @@ namespace OpenTap.Tui.Windows
         private List<string> Profiles;
         private string CurrentProfile;
 
-        public SettingsProfileWindow(string group)
+        public SettingsProfileWindow(string group) : base(group)
         {
             Group = group;
+            Border.Child.RefreshColorScheme();
             
             var listFrame = new FrameView("Profiles")
             {
