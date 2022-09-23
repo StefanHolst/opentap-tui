@@ -16,11 +16,18 @@ namespace OpenTap.Tui.PropEditProviders
 
             foreach (var item in editProviders)
             {
-                View view = item.Edit(annotation);
-                if (view != null)
+                try
                 {
-                    provider = item;
-                    return view;
+                    View view = item.Edit(annotation);
+                    if (view != null)
+                    {
+                        provider = item;
+                        return view;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TUI.Log.Error(ex);
                 }
             }
 
