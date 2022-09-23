@@ -13,6 +13,7 @@ Either build it from source or install it from the OpenTAP package repository ([
 - Install: `tap package install TUI --version any`
 - Run: `tap tui`
 - Run Package Manager: `tap tui-pm`
+- Run Results Viewer: `tap tui-results`
 
 ### From source
 - Build: `dotnet build`
