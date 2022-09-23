@@ -138,6 +138,10 @@ namespace OpenTap.Tui.Windows
             SettingsDir = ComponentSettings.GetSettingsDirectory(Group, false);
             
             // Get directories in Settings dir
+            if (!Directory.Exists(SettingsDir))
+            {
+                Directory.CreateDirectory(SettingsDir);
+            }
             Profiles = Directory.GetDirectories(SettingsDir).Select(d => Path.GetFileName(d)).ToList();
             if (Profiles.Any() == false)
                 Profiles.Add("Default");
