@@ -130,11 +130,11 @@ namespace OpenTap.Tui.Views
         private void OpenSelectedItem(ListViewItemEventArgs listViewItemEventArgs)
         {
             var members = getMembers();
-            if (members == null)
+            var member = treeView.SelectedObject;
+            if (members == null || member == null)
                 return;
 
             // Find edit provider
-            var member = treeView.SelectedObject;
             var propEditor = PropEditProvider.GetProvider(member, out var provider);
             if (propEditor == null)
                 TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
