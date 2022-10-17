@@ -36,6 +36,9 @@ namespace OpenTap.Tui.Views
 
         public override bool ProcessHotKey(KeyEvent keyEvent)
         {
+            if (actions == null)
+                return base.ProcessHotKey(keyEvent);
+
             foreach (var item in actions)
             {
                 if (keyEvent.Key == item.Shortcut)
