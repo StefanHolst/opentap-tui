@@ -380,7 +380,7 @@ namespace OpenTap.Tui
             Application.IsMouseDisabled = true;
             if (focusMode)
                 Application.MainLoop.Invoke(() => FocusMode.StartFocusMode(FocusModeUnlocks.Command, false));
-            LogFrame.MouseClick += ev => ev.Handled = true;
+
             // Run application
             Application.Run(win);
 
