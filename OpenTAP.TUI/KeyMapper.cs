@@ -185,6 +185,9 @@ namespace OpenTap.Tui
                     case Key.DeleteChar:
                         s.Add("Del");
                         break;
+                    case Key.Space:
+                        s.Add("Space");
+                        break;
                     default:
                         s.Add(key.ToString());
                         break;
@@ -232,7 +235,7 @@ namespace OpenTap.Tui
 
         public override string ToString()
         {
-            return KeyEvent.ToString();
+            return KeyMapHelper.KeyToString(KeyEvent.Key);
         }
     }
 }
