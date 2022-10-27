@@ -7,7 +7,7 @@ namespace OpenTap.Tui.PropEditProviders
     public class EnumEditProvider : IPropEditProvider
     {
         public int Order => 10;
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var availableValue = annotation.Get<IAvailableValuesAnnotationProxy>();
             if (availableValue == null)

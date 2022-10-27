@@ -16,7 +16,7 @@ namespace OpenTap.Tui.Windows
                 var prov = new DataGridEditProvider();
                 annotation = AnnotationCollection.Annotate(Resources);
                 
-                var settingsView = prov.Edit(annotation);
+                var settingsView = prov.Edit(annotation, false);
                 if (settingsView != null)
                     Add(settingsView);
             }

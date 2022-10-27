@@ -16,7 +16,7 @@ namespace OpenTap.Tui.PropEditProviders
         };
 
 
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var valueAnnotation = annotation.Get<IObjectValueAnnotation>();
             if (valueAnnotation == null) return null;
@@ -31,9 +31,7 @@ namespace OpenTap.Tui.PropEditProviders
                 Height = Dim.Fill(1)
             };
             view.Add(textField);
-            textField.ReadOnly = annotation.Get<IAccessAnnotation>()?.IsReadOnly ?? false;
-            if (annotation.Get<IEnabledAnnotation>()?.IsEnabled == false)
-                textField.ReadOnly = true;
+            textField.ReadOnly = isReadOnly;
             LayoutAttribute layout = annotation.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>();
             if ((layout?.RowHeight ?? 0) > 1)
             {

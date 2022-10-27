@@ -21,7 +21,7 @@ namespace OpenTap.Tui.PropEditProviders
             }
         }
         public int Order => 0;
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var isSecureString = annotation.Get<IReflectionAnnotation>().ReflectionInfo.DescendsTo(typeof(SecureString));
             if (isSecureString == false)
