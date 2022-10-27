@@ -8,7 +8,7 @@ namespace OpenTap.Tui.PropEditProviders
     public class MultiSelectProvider : IPropEditProvider
     {
         public int Order { get; } = 9;
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var multi = annotation.Get<IMultiSelectAnnotationProxy>();
             if (multi == null) return null;

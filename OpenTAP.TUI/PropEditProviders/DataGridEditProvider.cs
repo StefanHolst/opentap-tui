@@ -90,12 +90,11 @@ namespace OpenTap.Tui.PropEditProviders
             return name;
         }
 
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var collectionAnnotation = annotation.Get<ICollectionAnnotation>();
             if (collectionAnnotation == null) return null;
             if (annotation.Get<ReadOnlyMemberAnnotation>() != null) return null;
-            var isReadOnly = annotation.Get<IAccessAnnotation>()?.IsReadOnly == true;
             var fixedSize = annotation.Get<IFixedSizeCollectionAnnotation>()?.IsFixedSize ?? false;
             if (fixedSize == false)
                 fixedSize = annotation.Get<IMemberAnnotation>()?.Member.Attributes.Any(a => a is FixedSizeAttribute) ?? false;
@@ -171,7 +170,7 @@ namespace OpenTap.Tui.PropEditProviders
                 if (cell == null) return;
 
                 // Find edit provider
-                var propEditor = PropEditProvider.GetProvider(cell, out var provider);
+                var propEditor = PropEditProvider.GetProvider(cell, isReadOnly, out var provider);
                 if (propEditor == null)
                     TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>()?.ReflectionInfo.Name}");
                 else

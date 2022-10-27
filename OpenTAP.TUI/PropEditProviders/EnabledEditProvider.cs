@@ -7,7 +7,7 @@ namespace OpenTap.Tui.PropEditProviders
     public class EnabledEditProvider : IPropEditProvider
     {
         public int Order => 5;
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var members = annotation.Get<IMembersAnnotation>()?.Members.ToArray();
             if (members == null || members.Length != 2)
@@ -24,7 +24,7 @@ namespace OpenTap.Tui.PropEditProviders
             var viewbox = new View();
             viewbox.Add(check);
             
-            var valuebox = PropEditProvider.GetProvider(value, out var _);
+            var valuebox = PropEditProvider.GetProvider(value, isReadOnly, out var _);
             if (valuebox == null) return null;
             valuebox.Y = Pos.Bottom(check) + 1;
             valuebox.Width = Dim.Fill();

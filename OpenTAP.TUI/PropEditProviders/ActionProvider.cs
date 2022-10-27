@@ -6,7 +6,7 @@ namespace OpenTap.Tui.PropEditProviders
     public class ActionProvider : IPropEditProvider
     {
         public int Order => 100;
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var actionEdit = annotation.Get<IObjectValueAnnotation>();
             if (actionEdit.Value is Action ac)
