@@ -278,7 +278,16 @@ namespace OpenTap.Tui.PropEditProviders
                     if (members == null) cell = item;
                     else cell = members.FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns[i]);
 
-                    var cellValue = cell?.Get<IStringReadOnlyValueAnnotation>()?.Value ?? cell?.Get<IObjectValueAnnotation>().Value?.ToString();
+                    string cellValue;
+                    // Allows us to override what is displayed for keys, ex. turns the space key from " " into "Space"
+                    if (cell?.Get<IObjectValueAnnotation>().Value is KeyEvent key)
+                    {
+                        cellValue = KeyMapHelper.KeyToString(key.Key);
+                    }
+                    else
+                    {
+                        cellValue = cell?.Get<IStringReadOnlyValueAnnotation>()?.Value ?? cell?.Get<IObjectValueAnnotation>().Value?.ToString();
+                    }
 
                     if (string.IsNullOrEmpty(cellValue))
                         row[i] = DBNull.Value;
