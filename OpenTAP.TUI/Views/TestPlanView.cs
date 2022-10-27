@@ -192,6 +192,12 @@ namespace OpenTap.Tui.Views
                 Update(true);
                 kbEvent.Handled = true;
             }
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel) && moveSteps.Any())
+            {
+                moveSteps.Clear();
+                Update(true);
+                kbEvent.Handled = true;
+            }
             if (KeyMapHelper.IsKey(kb, KeyTypes.SelectStep) && treeView.SelectedObject != null)
             {
                 if (moveSteps.Contains(treeView.SelectedObject))
