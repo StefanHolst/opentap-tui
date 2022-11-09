@@ -20,7 +20,8 @@ namespace OpenTap.Tui.Views
         private TreeView<ITestStep> treeView;
         private bool PlanIsRunning = false;
         private readonly Recovery recoveryFile;
-        
+        public event Action RunStarted;
+
         ///<summary> Keeps track of the most recently focused step - even when the test plan is selected. </summary>
         ITestStep focusedStep;
 
@@ -458,6 +459,7 @@ namespace OpenTap.Tui.Views
         }
         
         private TapThread testPlanThread;
+
         private void AbortTestPlan()
         {
             if (Plan.IsRunning)
@@ -469,6 +471,7 @@ namespace OpenTap.Tui.Views
         private void RunTestPlan(bool runSelection)
         {
             PlanIsRunning = true;
+            RunStarted?.Invoke();
             Update();
             this.Plan.PrintTestPlanRunSummary = true;
             testPlanThread = TapThread.Start(() =>

@@ -65,6 +65,12 @@ namespace OpenTap.Tui.Views
             SetSource(messages);
         }
 
+        public override bool OnEnter(View view)
+        {
+            MainWindow.helperButtons.SetActions(new List<MenuItem>() { new MenuItem("Clear Log", "", ClearLog, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.HelperButton1)) }, this);
+            return base.OnEnter(view);
+        }
+
         private void UpdateColorTheme()
         {
             var currentColor = TuiSettings.Current.BaseColor;
@@ -81,6 +87,13 @@ namespace OpenTap.Tui.Views
 
             errorScheme.Normal = Application.Driver.MakeAttribute(currentColor.NormalBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.NormalBackground);
             errorScheme.Focus = Application.Driver.MakeAttribute(currentColor.FocusBackground == Color.BrightRed ? Color.Red : Color.BrightRed, currentColor.FocusBackground);
+        }
+
+        public void ClearLog()
+        {
+            messages.Clear();
+            SetNeedsDisplay();
+            RefreshAction?.Invoke();
         }
 
         private void Refresh()
@@ -114,7 +127,7 @@ namespace OpenTap.Tui.Views
             lock (messages)
             {
                 messages.AddRange(Events.Select(e => new LogEvent(e)));
-                if (TuiSettings.Current.LogScrollbackLimit.IsEnabled)
+                if (TuiSettings.Current.LogScrollbackLimit.IsEnabled && messages.Count >= TuiSettings.Current.LogScrollbackLimit.Value)
                 {
                     messages.RemoveRange(0, messages.Count - TuiSettings.Current.LogScrollbackLimit.Value);
                 }
