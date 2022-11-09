@@ -114,6 +114,10 @@ namespace OpenTap.Tui.Views
             lock (messages)
             {
                 messages.AddRange(Events.Select(e => new LogEvent(e)));
+                if (TuiSettings.Current.LogScrollbackLimit.IsEnabled)
+                {
+                    messages.RemoveRange(0, messages.Count - TuiSettings.Current.LogScrollbackLimit.Value);
+                }
             }
 
             RefreshAction?.Invoke();
