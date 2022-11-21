@@ -380,13 +380,39 @@ namespace OpenTap.Tui.Views
                 Application.Run(dialog);
                 if (dialog.FileName != null)
                     path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+
+                if (File.Exists(path))
+                {
+                    // Open dialog to ask the user if they want to override the file.
+                    if (MessageBox.Query("Override existing file?", $"Are you sure you want to override\n{Path.GetFileName(path)}", "Override", "Cancel") == 1)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            if (Directory.Exists(path))
+            {
+                TUI.Log.Error("Invalid filepath, path cannot be a directory.");
+                return;
             }
 
             if (string.IsNullOrWhiteSpace(path) == false)
             {
-                Plan.Save(path);
-                MainWindow.ContainsUnsavedChanges = false;
-                TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                try
+                {
+                    Plan.Save(path);
+                    MainWindow.ContainsUnsavedChanges = false;
+                    TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                }
+                catch(Exception ex)
+                {
+                    TUI.Log.Error(ex);
+                }
+            }
+            else
+            {
+                TUI.Log.Error("Invalid filepath, path cannot be empty.");
             }
         }
         
