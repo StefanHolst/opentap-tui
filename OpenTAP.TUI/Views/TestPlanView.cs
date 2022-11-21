@@ -382,11 +382,22 @@ namespace OpenTap.Tui.Views
                     path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
             }
 
-            if (string.IsNullOrWhiteSpace(path) == false)
+            if (string.IsNullOrWhiteSpace(path) == false && File.GetAttributes(path).HasFlag(FileAttributes.Directory) == false)
             {
-                Plan.Save(path);
-                MainWindow.ContainsUnsavedChanges = false;
-                TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                try
+                {
+                    Plan.Save(path);
+                    MainWindow.ContainsUnsavedChanges = false;
+                    TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                }
+                catch(Exception ex)
+                {
+                    TUI.Log.Error(ex);
+                }
+            }
+            else
+            {
+                TUI.Log.Error("Invalid filepath, path cannot be empty or point to a directory.");
             }
         }
         
