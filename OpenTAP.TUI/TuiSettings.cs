@@ -176,17 +176,15 @@ namespace OpenTap.Tui
 
         [Browsable(true)]
         [XmlIgnore]
-        [Display("Restore Key map", Group: "Key Mapping")]
+        [Display("Restore Key Map", Group: "Key Mapping")]
         public Action ResetKeyMapping { get; set; }
 
 
-        [Browsable(true)]
-        [Display("Scrollback limit", Group: "Log Panel")]
-        public Enabled<int> LogScrollbackLimit { get; set; } = new Enabled<int>() { IsEnabled = false, Value = 500 };
+        [Display("Scrollback Limit", Group: "Log Panel")]
+        public Enabled<int> LogScrollbackLimit { get; set; } = new Enabled<int>() { IsEnabled = true, Value = 100000 };
 
-        [Browsable(true)]
         [Display("Clear on Run", Group: "Log Panel")]
-        public bool ClearOnRun { get; set; } = true;
+        public bool ClearOnRun { get; set; }
 
         public TuiSettings()
         {
