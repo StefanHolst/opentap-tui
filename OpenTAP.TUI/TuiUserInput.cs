@@ -37,7 +37,7 @@ namespace OpenTap.Tui
                 Width = Dim.Fill(),
                 Height = Dim.Fill()
             };
-            propertiesView.LoadProperties(dataObject);
+            propertiesView.LoadProperties(dataObject, true);
             propertiesView.Submit += () => { Application.Current.Running = false; };
             
             // Create dialog

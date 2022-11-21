@@ -264,22 +264,22 @@ namespace OpenTap.Tui.Views
             _expandedStepProperties[node.Item?.Get<DisplayAttribute>().Name ?? node.Title] = expanded;
         }
 
-        List<Button> getSubmitButtons()
+        List<Button> getSubmitButtons(bool mustIncludeSubmit)
         {
             // Get submit buttons
             var buttons = new List<Button>();
             var members = annotations?.Get<IMembersAnnotation>()?.Members?.ToList();
             var submit = members?.FirstOrDefault(m => m.Get<IAccessAnnotation>().IsVisible && m.Get<IMemberAnnotation>()?.Member.GetAttribute<SubmitAttribute>() != null);
-            if (submit != null)
+            if (submit != null || mustIncludeSubmit)
             {
-                var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
+                var availableValuesAnnotation = submit?.Get<IAvailableValuesAnnotationProxy>() ?? null;
                 if (availableValuesAnnotation == null)
                 {
                     var button = new Button("Ok", true);
                     buttons.Add(button);
                     button.Clicked += () =>
                     {
-                        submit.Write();
+                        submit?.Write();
                         Submit();
                     };
                     return buttons;
@@ -356,7 +356,7 @@ namespace OpenTap.Tui.Views
             return output.ToString().Replace("\r", "");
         }
 
-        public void LoadProperties(object obj)
+        public void LoadProperties(object obj, bool mustIncludeSubmit = false)
         {
             this.obj = obj ?? new object();
             annotations = AnnotationCollection.Annotate(obj);
@@ -368,7 +368,7 @@ namespace OpenTap.Tui.Views
             descriptionFrame.Visible = members.Any(a => a.Get<DisplayAttribute>()?.Description != null || a.GetAll<IErrorAnnotation>().SelectMany(x => x.Errors).Any(x => string.IsNullOrWhiteSpace(x) == false));
 
             // Add submit buttons
-            var submitButtons = getSubmitButtons();
+            var submitButtons = getSubmitButtons(mustIncludeSubmit);
             if (submitButtons.Any())
             {
                 descriptionFrame.Height = Dim.Fill(1);
