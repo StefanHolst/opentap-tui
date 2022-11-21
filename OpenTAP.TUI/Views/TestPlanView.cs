@@ -157,6 +157,11 @@ namespace OpenTap.Tui.Views
                 insertParent.ChildTestSteps.Insert(insertIndex, step);
             }
 
+            if (inject)
+            {
+                treeView.ExpandObject(selectedObject);
+            }
+
             MainWindow.ContainsUnsavedChanges = true;
             moveSteps.Clear();
             ChildItemVisibility.SetVisibility(insertParent, ChildItemVisibility.Visibility.Visible);
