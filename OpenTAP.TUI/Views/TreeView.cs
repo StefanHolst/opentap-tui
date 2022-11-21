@@ -326,6 +326,8 @@ namespace OpenTap.Tui
         public bool IsExpanded { get; set; }
         public bool AlwaysDisplayExpandState { get; set; }
         public bool IsGroup { get; set; }
+        public bool IsSelected { get; set; }
+        public bool DisplayArrows { get; set; }
         public string Title { get; set; }
         public List<string> Groups { get; set; }
         public TreeViewNode<T> Parent { get; set; }
@@ -378,11 +380,19 @@ namespace OpenTap.Tui
             
             string text = new String(' ', indent);
             if (AlwaysDisplayExpandState || Children.Any())
-                text += IsExpanded || string.IsNullOrEmpty(Owner.Filter) == false ? "- " : "+ ";
+                text += IsExpanded || string.IsNullOrEmpty(Owner.Filter) == false ? "-" : "+";
             else
-                text += "  ";
-            
+                text += " ";
+
+            text += DisplayArrows ? "˲" : " ";
+
             text += Title;
+
+            text += DisplayArrows ? "˱" : " ";
+
+
+            if (IsSelected)
+                text += "*";
             
             return text;
         }

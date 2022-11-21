@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +16,6 @@ namespace OpenTap.Tui.Views
     public class TestPlanView : FrameView
     {
         private HashSet<ITestStep> moveSteps = new HashSet<ITestStep>();
-        private bool injectStep = false;
         private TreeView<ITestStep> treeView;
         private bool PlanIsRunning = false;
         private readonly Recovery recoveryFile;
@@ -42,10 +41,15 @@ namespace OpenTap.Tui.Views
             treeView.SetTreeViewSource(Plan.Steps);
             treeView.SelectedItemChanged += args =>
             {
-                if (moveSteps.Any())
-                    return;
-                UpdateHelperButtons();
+                ITestStep prevFocusedStep = focusedStep;
                 focusedStep = args.Value as ITestStep;
+                if (moveSteps.Any())
+                {
+                    treeView.GetNodeFromItem(prevFocusedStep).DisplayArrows = false;
+                    treeView.GetNodeFromItem(focusedStep).DisplayArrows = true;
+                    return;
+                }
+                UpdateHelperButtons();
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
             };
             treeView.EnableFilter = true;
@@ -142,10 +146,16 @@ namespace OpenTap.Tui.Views
             }
             if (anyImmoveableSteps)
                 return;
+            
+            if (inject)
+            {
+                treeView.ExpandObject(selectedObject);
+            }
 
             Dictionary<ITestStep, int> stepIndices = TestStepOrder();
             foreach (var step in moveSteps)
             {
+                treeView.GetNodeFromItem(step).IsSelected = false;
                 step.Parent.ChildTestSteps.Remove(step);
             }
             
@@ -158,9 +168,10 @@ namespace OpenTap.Tui.Views
 
             MainWindow.ContainsUnsavedChanges = true;
             moveSteps.Clear();
+            treeView.GetNodeFromItem(focusedStep).DisplayArrows = false;
             ChildItemVisibility.SetVisibility(insertParent, ChildItemVisibility.Visibility.Visible);
             Update(true);
-            treeView.SelectedObject = injectStep ? (ITestStep)insertParent : selectedObject;
+            treeView.SelectedObject = inject ? (ITestStep)insertParent : selectedObject;
             Update(true);
         }
 
@@ -186,14 +197,12 @@ namespace OpenTap.Tui.Views
             if (Plan.IsRunning)
                 return;
 
-            if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
-            {
-                injectStep = false;
-                Update(true);
-                kbEvent.Handled = true;
-            }
             if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel) && moveSteps.Any())
             {
+                foreach (var node in moveSteps)
+                {
+                    treeView.GetNodeFromItem(node).IsSelected = false;
+                }
                 moveSteps.Clear();
                 Update(true);
                 kbEvent.Handled = true;
@@ -203,10 +212,12 @@ namespace OpenTap.Tui.Views
                 if (moveSteps.Contains(treeView.SelectedObject))
                 {
                     moveSteps.Remove(treeView.SelectedObject);
+                    treeView.GetNodeFromItem(treeView.SelectedObject).IsSelected = false;
                 }
                 else
                 {
                     moveSteps.Add(treeView.SelectedObject);
+                    treeView.GetNodeFromItem(treeView.SelectedObject).IsSelected = true;
                 }
 
                 if (moveSteps.Any())
@@ -296,10 +307,6 @@ namespace OpenTap.Tui.Views
         string getTitle(ITestStep step)
         {
             string title = step.GetFormattedName();
-            if (moveSteps.Contains(step))
-                title += " *";
-            else if (injectStep && treeView.SelectedObject == step)
-                title += " >";
             return title;
         }
         List<ITestStep> getChildren(ITestStep step)
