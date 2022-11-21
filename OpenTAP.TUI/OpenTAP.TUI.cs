@@ -216,7 +216,7 @@ namespace OpenTap.Tui
                     Application.Run(helpWin);
                 })
             });
-            
+
             // Settings menu
             var settings = TypeData.GetDerivedTypes<ComponentSettings>()
                 .Where(x => x.CanCreateInstance && (x.GetAttribute<BrowsableAttribute>()?.Browsable ?? true));
@@ -227,7 +227,7 @@ namespace OpenTap.Tui
                 try
                 {
                     obj = ComponentSettings.GetCurrent(setting.Load());
-                    if(obj == null) continue;
+                    if (obj == null) continue;
 
                     var setgroup = setting.GetAttribute<SettingsGroupAttribute>()?.GroupName ?? "Settings";
                     var name = setting.GetDisplayAttribute().Name;
@@ -241,7 +241,7 @@ namespace OpenTap.Tui
                         }
                         else if (setting.DescendsTo(TypeData.FromType(typeof(ComponentSettingsList<,>))))
                         {
-                            settingsView = new ResourceSettingsWindow(name,(IList)obj);
+                            settingsView = new ResourceSettingsWindow(name, (IList)obj);
                         }
                         else
                         {
@@ -264,7 +264,7 @@ namespace OpenTap.Tui
                 Application.Run(profileWindow);
             });
             groupItems[settingsProfile] = "Bench";
-            
+
             // Create list of all menu items, used in menu bar
             List<MenuBarItem> menuBars = new List<MenuBarItem>();
             menuBars.Add(filemenu);
@@ -296,7 +296,7 @@ namespace OpenTap.Tui
                 StepSettingsView = StepSettingsView,
                 TestPlanView = TestPlanView,
             };
-            
+
             // Add menu bar
             win.Add(menuLabel);
             win.Add(menu);
@@ -324,7 +324,11 @@ namespace OpenTap.Tui
                 Width = Dim.Fill(),
                 Height = Dim.Fill(1)
             };
-            LogFrame.Add(new LogPanelView());
+            LogPanelView logPanelView = new LogPanelView();
+            LogFrame.Add(logPanelView);
+            TestPlanView.RunStarted += () => {
+                if (TuiSettings.Current.ClearOnRun) logPanelView.ClearLog();
+            };
             win.Add(LogFrame);
             win.LogFrame = LogFrame;
 
