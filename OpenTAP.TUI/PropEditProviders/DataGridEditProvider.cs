@@ -90,12 +90,11 @@ namespace OpenTap.Tui.PropEditProviders
             return name;
         }
 
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var collectionAnnotation = annotation.Get<ICollectionAnnotation>();
             if (collectionAnnotation == null) return null;
             if (annotation.Get<ReadOnlyMemberAnnotation>() != null) return null;
-            var isReadOnly = annotation.Get<IAccessAnnotation>()?.IsReadOnly == true;
             var fixedSize = annotation.Get<IFixedSizeCollectionAnnotation>()?.IsFixedSize ?? false;
             if (fixedSize == false)
                 fixedSize = annotation.Get<IMemberAnnotation>()?.Member.Attributes.Any(a => a is FixedSizeAttribute) ?? false;
@@ -171,7 +170,7 @@ namespace OpenTap.Tui.PropEditProviders
                 if (cell == null) return;
 
                 // Find edit provider
-                var propEditor = PropEditProvider.GetProvider(cell, out var provider);
+                var propEditor = PropEditProvider.GetProvider(cell, isReadOnly, out var provider);
                 if (propEditor == null)
                     TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>()?.ReflectionInfo.Name}");
                 else
@@ -278,7 +277,16 @@ namespace OpenTap.Tui.PropEditProviders
                     if (members == null) cell = item;
                     else cell = members.FirstOrDefault(x2 => calcMemberName(x2.Get<IMemberAnnotation>().Member) == Columns[i]);
 
-                    var cellValue = cell?.Get<IStringReadOnlyValueAnnotation>()?.Value ?? cell?.Get<IObjectValueAnnotation>().Value?.ToString();
+                    string cellValue;
+                    // Allows us to override what is displayed for keys, ex. turns the space key from " " into "Space"
+                    if (cell?.Get<IObjectValueAnnotation>().Value is KeyEvent key)
+                    {
+                        cellValue = KeyMapHelper.KeyToString(key.Key);
+                    }
+                    else
+                    {
+                        cellValue = cell?.Get<IStringReadOnlyValueAnnotation>()?.Value ?? cell?.Get<IObjectValueAnnotation>().Value?.ToString();
+                    }
 
                     if (string.IsNullOrEmpty(cellValue))
                         row[i] = DBNull.Value;

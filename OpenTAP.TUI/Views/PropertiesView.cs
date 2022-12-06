@@ -20,6 +20,8 @@ namespace OpenTap.Tui.Views
         private View submitView { get; set; }
         internal bool DisableHelperButtons { get; set; }
 
+        public Func<bool> IsReadOnly { get; set; } = () => false;
+
         public Action<string> TreeViewFilterChanged { get; set; }
 
         static readonly TraceSource log = Log.CreateSource("tui");
@@ -130,12 +132,12 @@ namespace OpenTap.Tui.Views
         private void OpenSelectedItem(ListViewItemEventArgs listViewItemEventArgs)
         {
             var members = getMembers();
-            if (members == null)
+            var member = treeView.SelectedObject;
+            if (members == null || member == null)
                 return;
 
             // Find edit provider
-            var member = treeView.SelectedObject;
-            var propEditor = PropEditProvider.GetProvider(member, out var provider);
+            var propEditor = PropEditProvider.GetProvider(member, IsReadOnly.Invoke(), out var provider);
             if (propEditor == null)
                 TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
             else
@@ -164,56 +166,56 @@ namespace OpenTap.Tui.Views
 
             try
             {
+                var nameBuilder = new StringBuilder();
+                string value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value 
+                                ?? x.Get<IStringValueAnnotation>()?.Value 
+                                ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value
+                                ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() 
+                                ?? x.Get<IObjectValueAnnotation>()?.Value)?.ToString() 
+                            ?? "...";
+                // replace new lines with spaces for viewing.
+                value = value.Replace("\n", " ").Replace("\r", "");
 
-            var nameBuilder = new StringBuilder();
-            var value = ((x.Get<IAvailableValuesAnnotation>() as IStringReadOnlyValueAnnotation)?.Value 
-                         ?? x.Get<IStringReadOnlyValueAnnotation>()?.Value 
-                         ?? x.Get<IAvailableValuesAnnotationProxy>()?.SelectedValue?.Source?.ToString() 
-                         ?? x.Get<IObjectValueAnnotation>()?.Value)?.ToString() 
-                        ?? "...";
-            // replace new lines with spaces for viewing.
-            value = value.Replace("\n", " ").Replace("\r", "");
+                if (x.Get<IObjectValueAnnotation>()?.Value is Action)
+                    return $"[ {x.Get<DisplayAttribute>().Name} ]";
 
-            if (x.Get<IObjectValueAnnotation>()?.Value is Action)
-                return $"[ {x.Get<DisplayAttribute>().Name} ]";
+                // Don't show member name if layout is fullrow
+                if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
+                    return value;
+                var icons = x.GetAll<IIconAnnotation>().ToArray();
+                var icons2 = new HashSet<string>(icons.Select(y => y.IconName));
+                bool icon(string name) => icons2.Contains(name);
+                nameBuilder.Clear();
+                if (icon(IconNames.OutputAssigned))
+                    nameBuilder.Append((char)Driver.Selected); // ●
+                else if (icon(IconNames.Output))
+                    nameBuilder.Append((char)Driver.UnSelected); // ⃝
+                if (icon(IconNames.Input))
+                {
+                    nameBuilder.Append((char)Driver.Selected); // ●
+                    nameBuilder.Append((char)Driver.RightArrow); // →
+                }
+                if(icon(IconNames.Parameterized))
+                    nameBuilder.Append((char)Driver.Lozenge);// ♦
+                if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
+                    nameBuilder.Append((char)Driver.Diamond);// ◊
 
-            // Don't show member name if layout is fullrow
-            if (x.Get<IMemberAnnotation>()?.Member.GetAttribute<LayoutAttribute>()?.Mode == LayoutMode.FullRow)
-                return value;
-            var icons = x.GetAll<IIconAnnotation>().ToArray();
-            var icons2 = new HashSet<string>(icons.Select(y => y.IconName));
-            bool icon(string name) => icons2.Contains(name);
-            nameBuilder.Clear();
-            if (icon(IconNames.OutputAssigned))
-                nameBuilder.Append((char)Driver.Selected); // ●
-            else if (icon(IconNames.Output))
-                nameBuilder.Append((char)Driver.UnSelected); // ⃝
-            if (icon(IconNames.Input))
-            {
-                nameBuilder.Append((char)Driver.Selected); // ●
-                nameBuilder.Append((char)Driver.RightArrow); // →
-            }
-            if(icon(IconNames.Parameterized))
-                nameBuilder.Append((char)Driver.Lozenge);// ♦
-            if (x.Get<IMemberAnnotation>()?.Member is IParameterMemberData)
-                nameBuilder.Append((char)Driver.Diamond);// ◊
-
-            if (nameBuilder.Length > 0)
-                nameBuilder.Append(" ");
+                if (nameBuilder.Length > 0)
+                    nameBuilder.Append(" ");
             
-            nameBuilder.Append(x.Get<DisplayAttribute>().Name);
-            nameBuilder.Append(": ");
-            nameBuilder.Append(value);
+                nameBuilder.Append(x.Get<DisplayAttribute>().Name);
+                nameBuilder.Append(": ");
+                nameBuilder.Append(value);
 
-            // Check validation rules
-            var step = x.Source as IValidatingObject;
-            var propertyName = x.Get<IMemberAnnotation>()?.Member?.Name;
-            var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
-            if (rule != null)
-                nameBuilder.Append(" !");
+                // Check validation rules
+                var step = x.Source as IValidatingObject;
+                var propertyName = x.Get<IMemberAnnotation>()?.Member?.Name;
+                var rule = step?.Rules.FirstOrDefault(r => r.PropertyName == propertyName && r?.IsValid() == false);
+                if (rule != null)
+                    nameBuilder.Append(" !");
             
-            return nameBuilder.ToString();
-            }
+                return nameBuilder.ToString();
+                }
             catch
             {
                 return "";
@@ -262,22 +264,22 @@ namespace OpenTap.Tui.Views
             _expandedStepProperties[node.Item?.Get<DisplayAttribute>().Name ?? node.Title] = expanded;
         }
 
-        List<Button> getSubmitButtons()
+        List<Button> getSubmitButtons(bool mustIncludeSubmit)
         {
             // Get submit buttons
             var buttons = new List<Button>();
             var members = annotations?.Get<IMembersAnnotation>()?.Members?.ToList();
             var submit = members?.FirstOrDefault(m => m.Get<IAccessAnnotation>().IsVisible && m.Get<IMemberAnnotation>()?.Member.GetAttribute<SubmitAttribute>() != null);
-            if (submit != null)
+            if (submit != null || mustIncludeSubmit)
             {
-                var availableValuesAnnotation = submit.Get<IAvailableValuesAnnotationProxy>();
+                var availableValuesAnnotation = submit?.Get<IAvailableValuesAnnotationProxy>() ?? null;
                 if (availableValuesAnnotation == null)
                 {
                     var button = new Button("Ok", true);
                     buttons.Add(button);
                     button.Clicked += () =>
                     {
-                        submit.Write();
+                        submit?.Write();
                         Submit();
                     };
                     return buttons;
@@ -354,7 +356,7 @@ namespace OpenTap.Tui.Views
             return output.ToString().Replace("\r", "");
         }
 
-        public void LoadProperties(object obj)
+        public void LoadProperties(object obj, bool mustIncludeSubmit = false)
         {
             this.obj = obj ?? new object();
             annotations = AnnotationCollection.Annotate(obj);
@@ -366,7 +368,7 @@ namespace OpenTap.Tui.Views
             descriptionFrame.Visible = members.Any(a => a.Get<DisplayAttribute>()?.Description != null || a.GetAll<IErrorAnnotation>().SelectMany(x => x.Errors).Any(x => string.IsNullOrWhiteSpace(x) == false));
 
             // Add submit buttons
-            var submitButtons = getSubmitButtons();
+            var submitButtons = getSubmitButtons(mustIncludeSubmit);
             if (submitButtons.Any())
             {
                 descriptionFrame.Height = Dim.Fill(1);

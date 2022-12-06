@@ -20,7 +20,8 @@ namespace OpenTap.Tui.Views
         private TreeView<ITestStep> treeView;
         private bool PlanIsRunning = false;
         private readonly Recovery recoveryFile;
-        
+        public event Action RunStarted;
+
         ///<summary> Keeps track of the most recently focused step - even when the test plan is selected. </summary>
         ITestStep focusedStep;
 
@@ -156,6 +157,11 @@ namespace OpenTap.Tui.Views
                 insertParent.ChildTestSteps.Insert(insertIndex, step);
             }
 
+            if (inject)
+            {
+                treeView.ExpandObject(selectedObject);
+            }
+
             MainWindow.ContainsUnsavedChanges = true;
             moveSteps.Clear();
             ChildItemVisibility.SetVisibility(insertParent, ChildItemVisibility.Visibility.Visible);
@@ -189,6 +195,12 @@ namespace OpenTap.Tui.Views
             if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
             {
                 injectStep = false;
+                Update(true);
+                kbEvent.Handled = true;
+            }
+            if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel) && moveSteps.Any())
+            {
+                moveSteps.Clear();
                 Update(true);
                 kbEvent.Handled = true;
             }
@@ -374,13 +386,39 @@ namespace OpenTap.Tui.Views
                 Application.Run(dialog);
                 if (dialog.FileName != null)
                     path = Path.Combine(dialog.DirectoryPath.ToString(), dialog.FilePath.ToString());
+
+                if (File.Exists(path))
+                {
+                    // Open dialog to ask the user if they want to override the file.
+                    if (MessageBox.Query("Override existing file?", $"Are you sure you want to override\n{Path.GetFileName(path)}", "Override", "Cancel") == 1)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            if (Directory.Exists(path))
+            {
+                TUI.Log.Error("Invalid filepath, path cannot be a directory.");
+                return;
             }
 
             if (string.IsNullOrWhiteSpace(path) == false)
             {
-                Plan.Save(path);
-                MainWindow.ContainsUnsavedChanges = false;
-                TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                try
+                {
+                    Plan.Save(path);
+                    MainWindow.ContainsUnsavedChanges = false;
+                    TUI.Log.Info($"Saved test plan to '{Plan.Path}'.");
+                }
+                catch(Exception ex)
+                {
+                    TUI.Log.Error(ex);
+                }
+            }
+            else
+            {
+                TUI.Log.Error("Invalid filepath, path cannot be empty.");
             }
         }
         
@@ -452,6 +490,7 @@ namespace OpenTap.Tui.Views
         }
         
         private TapThread testPlanThread;
+
         private void AbortTestPlan()
         {
             if (Plan.IsRunning)
@@ -463,6 +502,7 @@ namespace OpenTap.Tui.Views
         private void RunTestPlan(bool runSelection)
         {
             PlanIsRunning = true;
+            RunStarted?.Invoke();
             Update();
             this.Plan.PrintTestPlanRunSummary = true;
             testPlanThread = TapThread.Start(() =>

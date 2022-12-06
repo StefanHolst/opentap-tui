@@ -13,6 +13,6 @@ namespace OpenTap.Tui.PropEditProviders
         /// </summary>
         /// <param name="annotation"></param>
         /// <returns></returns>
-        View Edit(AnnotationCollection annotation);
+        View Edit(AnnotationCollection annotation, bool isReadOnly);
     }
 }

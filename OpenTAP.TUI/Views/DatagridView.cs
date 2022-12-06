@@ -226,7 +226,7 @@ namespace OpenTap.Tui.Views
                             
                             // Find edit provider
                             var cell = cells[(i, listview.SelectedItem)];
-                            var propEditor = PropEditProvider.GetProvider(cell, out var provider);
+                            var propEditor = PropEditProvider.GetProvider(cell, isReadOnly, out var provider);
                             if (propEditor == null)
                                 TUI.Log.Warning($"Cannot edit properties of type: {cell.Get<IMemberAnnotation>()?.ReflectionInfo.Name}");
                             else

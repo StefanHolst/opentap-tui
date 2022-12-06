@@ -7,7 +7,7 @@ namespace OpenTap.Tui.PropEditProviders
     public class KeyEventProvider : IPropEditProvider
     {
         public int Order { get; }
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
             var keyMapSetting = annotation.Get<IObjectValueAnnotation>();
             if (keyMapSetting.Value is KeyEvent keyEvent)

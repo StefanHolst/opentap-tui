@@ -7,27 +7,25 @@ namespace OpenTap.Tui.PropEditProviders
     public class EnabledEditProvider : IPropEditProvider
     {
         public int Order => 5;
-        public View Edit(AnnotationCollection annotation)
+        public View Edit(AnnotationCollection annotation, bool isReadOnly)
         {
-            var members = annotation.Get<IMembersAnnotation>()?.Members.ToArray();
-            if (members == null || members.Length != 2)
+            var enabledValueAnnotation = annotation.Get<IEnabledValueAnnotation>();
+            if (enabledValueAnnotation == null)
                 return null;
-            int enabledIndex = members[0].Get<IMemberAnnotation>().Member.Name == "IsEnabled" ? 0 : 1;
 
-            if (members[enabledIndex].Any(a => a.GetType().Name == "BooleanValueAnnotation") == false)
-                return null;
-            
-            var enabled = members[enabledIndex];
-            var value = members[enabledIndex == 0 ? 1 : 0];
+            var enabled = enabledValueAnnotation.IsEnabled;
+            var value = enabledValueAnnotation.Value;
             var check = new CheckBox(annotation.Get<DisplayAttribute>().Name, enabled.Get<IObjectValueAnnotation>()?.Value != null && (bool)enabled.Get<IObjectValueAnnotation>().Value);
-            
+            check.Height = 1;
             var viewbox = new View();
             viewbox.Add(check);
             
-            var valuebox = PropEditProvider.GetProvider(value, out var _);
+            var valuebox = PropEditProvider.GetProvider(value, isReadOnly, out var _);
             if (valuebox == null) return null;
-            valuebox.Y = Pos.Bottom(check) + 1;
+            valuebox.Y = Pos.Bottom(check);
+            valuebox.X = 1;
             valuebox.Width = Dim.Fill();
+            valuebox.Height = Dim.Fill();
             valuebox.Enabled = check.Checked;
             viewbox.Add(valuebox);
             
