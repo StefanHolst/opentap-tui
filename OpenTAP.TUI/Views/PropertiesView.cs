@@ -20,7 +20,7 @@ namespace OpenTap.Tui.Views
         private View submitView { get; set; }
         internal bool DisableHelperButtons { get; set; }
 
-        public bool IsReadOnly { get; set; }
+        public Func<bool> IsReadOnly { get; set; } = () => false;
 
         public Action<string> TreeViewFilterChanged { get; set; }
 
@@ -137,7 +137,7 @@ namespace OpenTap.Tui.Views
                 return;
 
             // Find edit provider
-            var propEditor = PropEditProvider.GetProvider(member, IsReadOnly, out var provider);
+            var propEditor = PropEditProvider.GetProvider(member, IsReadOnly.Invoke(), out var provider);
             if (propEditor == null)
                 TUI.Log.Warning($"Cannot edit properties of type: {member.Get<IMemberAnnotation>().ReflectionInfo.Name}");
             else

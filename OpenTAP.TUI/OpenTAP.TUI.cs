@@ -167,6 +167,7 @@ namespace OpenTap.Tui
                 Height = Dim.Percent(gridHeight)
             };
             StepSettingsView = new PropertiesView(true);
+            StepSettingsView.IsReadOnly = () => TestPlanView.Plan.Locked;
 
             var filemenu = new MenuBarItem("File", new MenuItem[]
             {
