@@ -19,6 +19,7 @@ Either build it from source or install it from the OpenTAP package repository ([
 - Build: `dotnet build`
 - Run: `OpenTAP.TUI/bin/Debug/tap tui`
 - Run Package Manager: `OpenTAP.TUI/bin/Debug/tap tui-pm`
+- Run Results Viewer: `OpenTAP.TUI/bin/Debug/tap tui-results`
 
 ### Via Docker
 - See https://hub.docker.com/r/opentapio/opentap/tags for available OpenTap Docker images, the following example uses `9.15-ubuntu18.04`.
