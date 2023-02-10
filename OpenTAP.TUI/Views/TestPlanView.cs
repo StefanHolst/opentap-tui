@@ -14,7 +14,6 @@ namespace OpenTap.Tui.Views
     public class TestPlanView : FrameView
     {
         private HashSet<ITestStep> moveSteps = new HashSet<ITestStep>();
-        private bool injectStep = false;
         private TreeView<ITestStep> treeView;
         private bool PlanIsRunning = false;
         private readonly Recovery recoveryFile;
@@ -173,7 +172,7 @@ namespace OpenTap.Tui.Views
             moveSteps.Clear();
             ChildItemVisibility.SetVisibility(insertParent, ChildItemVisibility.Visibility.Visible);
             Update(true);
-            treeView.SelectedObject = injectStep ? (ITestStep)insertParent : selectedObject;
+            treeView.SelectedObject = inject ? (ITestStep)insertParent : selectedObject;
             Update(true);
         }
 
@@ -199,12 +198,6 @@ namespace OpenTap.Tui.Views
             if (Plan.IsRunning)
                 return;
 
-            if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
-            {
-                injectStep = false;
-                Update(true);
-                kbEvent.Handled = true;
-            }
             if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel) && moveSteps.Any())
             {
                 moveSteps.Clear();
@@ -311,8 +304,6 @@ namespace OpenTap.Tui.Views
             string title = step.GetFormattedName();
             if (moveSteps.Contains(step))
                 title += " *";
-            else if (injectStep && treeView.SelectedObject == step)
-                title += " >";
             return title;
         }
         List<ITestStep> getChildren(ITestStep step)
