@@ -43,3 +43,4 @@ Launching the TUI with mono instead of dotnet, seems to work:
 * @StefanHolst - stefan.holst@keysight.com
 * @frederikja163 - frederik.andreasen@keysight.com
 * @rmadsen-ks - rolf_madsen@keysight.com
+* @alnlarsen - alexander.larsen@keysight.com
