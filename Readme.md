@@ -40,4 +40,6 @@ Launching the TUI with mono instead of dotnet, seems to work:
 `mono OpenTAP.TUI/bin/Debug/tap.dll tui`
 
 ## Maintainers
-@StefanHolst - stefan.holst@keysight.com
+* @StefanHolst - stefan.holst@keysight.com
+* @frederikja163 - frederik.andreasen@keysight.com
+* @rmadsen-ks - rolf_madsen@keysight.com
