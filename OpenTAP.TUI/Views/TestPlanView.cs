@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -57,7 +58,7 @@ namespace OpenTap.Tui.Views
             };
             treeView.NodeVisibilityChanged += (node, expanded) => ChildItemVisibility.SetVisibility(node.Item, expanded ? ChildItemVisibility.Visibility.Visible : ChildItemVisibility.Visibility.Collapsed);
             treeView.KeyPress += TreeviewKeyPress;
-
+            
             Add(treeView);
             
             MainWindow.UnsavedChangesCreated += UpdateTitle;
@@ -72,13 +73,13 @@ namespace OpenTap.Tui.Views
                 SelectionChanged.Invoke(Plan);
             }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TestPlanSettings)));
             
-            if (moveSteps.Any())
+            if (!moveSteps.Any())
             {
-                actions.Add(new MenuItem("Move Selection", "", () => MoveSelection(false), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedSteps)));
-                actions.Add(new MenuItem("Move Selection As Children", "", () => MoveSelection(true), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedStepsAsChildren)));
-            }
-            else 
-            {
+            //    actions.Add(new MenuItem("Move Selection", "", () => MoveSelection(false), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedSteps)));
+            //    actions.Add(new MenuItem("Move Selection As Children", "", () => MoveSelection(true), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedStepsAsChildren)));
+            //}
+            //else 
+            //{
                 actions.Add(new MenuItem("Insert New Step", "", showAddStep, () => !moveSteps.Any(), shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.AddNewStep)));
                 actions.Add(new MenuItem("Insert New Step Child", "", showInsertStep,
                     () =>
@@ -169,6 +170,7 @@ namespace OpenTap.Tui.Views
             }
 
             MainWindow.ContainsUnsavedChanges = true;
+            treeView.GhostNode = null;
             moveSteps.Clear();
             ChildItemVisibility.SetVisibility(insertParent, ChildItemVisibility.Visibility.Visible);
             Update(true);
@@ -201,6 +203,7 @@ namespace OpenTap.Tui.Views
             if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel) && moveSteps.Any())
             {
                 moveSteps.Clear();
+                treeView.GhostNode = null;
                 Update(true);
                 kbEvent.Handled = true;
             }
@@ -216,10 +219,25 @@ namespace OpenTap.Tui.Views
                 }
 
                 if (moveSteps.Any())
+                {
                     SelectionChanged?.Invoke(moveSteps.ToArray());
+                    string steps = string.Join(", ", moveSteps.Select(t => t.GetFormattedName()));
+                    if (steps.Length > 23)
+                        steps = steps.Substring(0, 20) + "...";
+                    treeView.GhostNode = $">> [F2] Insert \"{steps}\" here <<";
+                }
                 else
+                {
                     SelectionChanged?.Invoke(treeView.SelectedObject);
+                    treeView.GhostNode = null;
+                }
                 Update(true);
+                kbEvent.Handled = true;
+            }
+
+            if (KeyMapHelper.IsKey(kb, KeyTypes.InsertSelectedSteps) && moveSteps.Any())
+            {
+                MoveSelection(treeView.IsGhostNodeChild);
                 kbEvent.Handled = true;
             }
 
