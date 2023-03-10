@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenTap.Plugins;
@@ -42,7 +43,9 @@ namespace OpenTap.Tui.Views
             treeView.SelectedItemChanged += args =>
             {
                 if (moveSteps.Any())
+                {
                     return;
+                }
                 UpdateHelperButtons();
                 focusedStep = args.Value as ITestStep;
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
@@ -142,11 +145,17 @@ namespace OpenTap.Tui.Views
             ITestStep selectedObject = treeView.SelectedObject;
             ITestStepParent insertParent = inject ? selectedObject : selectedObject.Parent;
 
+            if (moveSteps.Contains(insertParent))
+            {
+                TUI.Log.Warning("Cannot move a step into itself");
+                return;
+            }
+
             bool anyImmoveableSteps = false;
             foreach (var immoveableStep in moveSteps.Where(s => !TestStepList.AllowChild(TypeData.GetTypeData(insertParent), TypeData.GetTypeData(s))))
             {
                 anyImmoveableSteps = true;
-                TUI.Log.Warning($"{((ITestStep)insertParent).Name} cannot have children of type: {immoveableStep.TypeName}. De-select {immoveableStep.Name} to move steps.");
+                TUI.Log.Warning($"{((ITestStep)insertParent).Name} cannot have children of type: {immoveableStep.TypeName}. De-select {immoveableStep.GetFormattedName()} to move steps.");
             }
             if (anyImmoveableSteps)
                 return;
@@ -170,7 +179,7 @@ namespace OpenTap.Tui.Views
             }
 
             MainWindow.ContainsUnsavedChanges = true;
-            treeView.GhostNode = null;
+            treeView.GhostNodes.Clear();
             moveSteps.Clear();
             ChildItemVisibility.SetVisibility(insertParent, ChildItemVisibility.Visibility.Visible);
             Update(true);
@@ -203,7 +212,7 @@ namespace OpenTap.Tui.Views
             if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel) && moveSteps.Any())
             {
                 moveSteps.Clear();
-                treeView.GhostNode = null;
+                treeView.GhostNodes.Clear();
                 Update(true);
                 kbEvent.Handled = true;
             }
@@ -221,15 +230,14 @@ namespace OpenTap.Tui.Views
                 if (moveSteps.Any())
                 {
                     SelectionChanged?.Invoke(moveSteps.ToArray());
-                    string steps = string.Join(", ", moveSteps.Select(t => t.GetFormattedName()));
-                    if (steps.Length > 23)
-                        steps = steps.Substring(0, 20) + "...";
-                    treeView.GhostNode = $">> [F2] Insert \"{steps}\" here <<";
+                    treeView.GhostNodes.Clear();
+                    treeView.GhostNodes.Add($">> [F2] Insert steps <<");
+                    treeView.GhostNodes.AddRange(moveSteps.Select(m => $"{m.GetFormattedName()}"));
                 }
                 else
                 {
                     SelectionChanged?.Invoke(treeView.SelectedObject);
-                    treeView.GhostNode = null;
+                    treeView.GhostNodes.Clear();
                 }
                 Update(true);
                 kbEvent.Handled = true;

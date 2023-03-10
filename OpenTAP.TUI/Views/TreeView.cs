@@ -23,7 +23,7 @@ namespace OpenTap.Tui
         internal event Action<TreeViewNode<T>, bool> NodeVisibilityChanged;
 
         public bool IsGhostNodeChild { get; private set; }
-        public string GhostNode { get; set; } = null;
+        public List<string> GhostNodes { get; } = new List<string>();
         
         public T SelectedObject
         {
@@ -214,36 +214,43 @@ namespace OpenTap.Tui
             
             // Save old selected indexes to keep layout
             var index = SelectedItem;
+            int newIndex;
             var oldTop = TopItem;
+            int newTop;
             listSource = renderedItems.Select(n => n.ToString()).ToList();
-            if (GhostNode != null && renderedItems.Any())
+
+
+            // check if the saved selected index can still be used
+            if (index >= listSource.Count)
+                newIndex = listSource.Count - 1;
+            else
+                newIndex = index;
+
+            // check if the saved top index can still be used
+            if (listSource.Count == 0)
+                newTop = 0;
+            else if (oldTop > 0 && oldTop >= listSource.Count)
+                newTop = listSource.Count - 1;
+            else
+                newTop = oldTop;
+
+            if (GhostNodes.Any() && renderedItems.Any())
             {
                 int insertIndex = SelectedItem + 1;
-                string indent = new string(' ', renderedItems[SelectedItem].Indent + (IsGhostNodeChild ? 3 : 2));
+                string indent = new string(' ', renderedItems[newIndex].Indent + (IsGhostNodeChild ? 3 : 2));
                 if (insertIndex >= listSource.Count)
                 {
-                    listSource.Add(indent + GhostNode);
+                    listSource.AddRange(GhostNodes.Select(g => indent + g));
                 }
                 else
                 {
-                    listSource.Insert(insertIndex, indent + GhostNode);
+                    listSource.InsertRange(insertIndex, GhostNodes.Select(g => indent + g));
                 }
             }
             SetSource(listSource);
 
-            // check if the saved selected index can still be used
-            if (index >= listSource.Count)
-                SelectedItem = listSource.Count - 1;
-            else
-                SelectedItem = index;
-
-            // check if the saved top index can still be used
-            if (listSource.Count == 0)
-                TopItem = 0;
-            else if (oldTop > 0 && oldTop >= listSource.Count)
-                TopItem = listSource.Count - 1;
-            else
-                TopItem = oldTop;
+            SelectedItem = newIndex;
+            TopItem = newTop;
 
             OnSelectedChanged();
         }
@@ -254,14 +261,12 @@ namespace OpenTap.Tui
             var current = ColorScheme.Focus;
             Driver.SetAttribute(current);
             Move(0, 0);
-            var f = Frame;
             var item = top;
-            bool focused = HasFocus;
             int start = Bounds.Left;
 
-            for (int row = 0; row < f.Height; row++, item++)
+            for (int row = 0; row < Frame.Height; row++, item++)
             {
-                bool isGhostNode = (row == selected + 1 && GhostNode != null);
+                bool isGhostNode = row > selected && row <= selected + GhostNodes.Count;
                 bool isSelected = item == selected;
 
 
@@ -288,7 +293,7 @@ namespace OpenTap.Tui
                 Move(0, row);
                 if (listSource == null || item >= listSource.Count)
                 {
-                    for (int c = 0; c < f.Width; c++)
+                    for (int c = 0; c < Frame.Width; c++)
                         Driver.AddRune(' ');
                 }
                 else
@@ -300,7 +305,7 @@ namespace OpenTap.Tui
                         current = (Terminal.Gui.Attribute)rowEventArgs.RowAttribute;
                         Driver.SetAttribute(current);
                     }
-                    Source.Render(this, Driver, isSelected, item, 0, row, f.Width, start);
+                    Source.Render(this, Driver, isSelected, item, 0, row, Frame.Width, start);
                 }
             }
         }
@@ -315,15 +320,19 @@ namespace OpenTap.Tui
 
                 if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
                 {
-                    string ghostNode = GhostNode;
-                    GhostNode = null;
+                    IEnumerable<string> ghostNode = GhostNodes.ToList();
+                    GhostNodes.Clear();
                     RenderTreeView(true);
+                    GhostNodes.AddRange(ghostNode);
                     if (kb.Key == Key.CursorUp)
                         MoveUp();
                     else if (kb.Key == Key.CursorDown)
                         MoveDown();
-                    GhostNode = ghostNode;
-                    IsGhostNodeChild = false;
+
+                    selectedNode = renderedItems[SelectedItem];
+                    hasChildren = selectedNode.AlwaysDisplayExpandState || selectedNode.Children.Any();
+
+                    IsGhostNodeChild = hasChildren && selectedNode.IsExpanded;
                     RenderTreeView(true);
                     return true;
                 }
