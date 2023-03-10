@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "vuepress build",
-    "dev": "vuepress dev"
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "vuepress": "^1.9.9"
+  "devDependencies": {
+    "vitepress": "^1.0.0-alpha.51",
+    "vue": "3"
   }
 }
