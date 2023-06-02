@@ -9,17 +9,17 @@ using System.Threading;
 using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
-using System.Diagnostics;
 
 namespace OpenTap.Tui
 {
     public class MainWindow : BaseWindow
     {
+        internal static MainWindow Current;
 
         public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
-        public static HelperButtons helperButtons { get; private set; }
+        static HelperButtons helperButtons { get; set; }
 
         public static event Action UnsavedChangesCreated;
         private static bool _containsUnsavedChanges;
@@ -32,6 +32,7 @@ namespace OpenTap.Tui
                 UnsavedChangesCreated?.Invoke();
             }
         }
+        public MenuBarItem FileMenu { get; set; }
 
         public MainWindow(string title) : base(title)
         {
@@ -139,6 +140,11 @@ namespace OpenTap.Tui
             
             return base.ProcessKey(keyEvent);
         }
+        public static void SetActions(List<MenuItem> list, View owner)
+        {
+            helperButtons.SetActions(list, owner);
+            Current.FileMenu.Children = list.ToArray();
+        }
     }
 
     [Display("tui", "View, edit and run test plans using TUI.")]
@@ -180,6 +186,14 @@ namespace OpenTap.Tui
                 new MenuItem("Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
                 new MenuItem("Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
                 new MenuItem("Quit", "", () => Application.RequestStop())
+            });
+            var editMenu = new MenuBarItem("Edit", new MenuItem[]
+            {
+                new MenuItem("New", "", () =>
+                {
+                    TestPlanView.NewTestPlan();
+                    StepSettingsView.LoadProperties(null);
+                }),
             });
             var toolsmenu = new MenuBarItem("Tools", new MenuItem[]
             {
@@ -269,6 +283,7 @@ namespace OpenTap.Tui
             // Create list of all menu items, used in menu bar
             List<MenuBarItem> menuBars = new List<MenuBarItem>();
             menuBars.Add(filemenu);
+            menuBars.Add(editMenu);
             foreach (var group in groupItems.GroupBy(x => x.Value))
             {
                 var m = new MenuBarItem(group.Key,
@@ -296,7 +311,9 @@ namespace OpenTap.Tui
                 Height = Dim.Fill(),
                 StepSettingsView = StepSettingsView,
                 TestPlanView = TestPlanView,
+                FileMenu = editMenu
             };
+            MainWindow.Current = win;
 
             // Add menu bar
             win.Add(menuLabel);

@@ -37,7 +37,7 @@ namespace OpenTap.Tui.Views
             var menu = selectedMember?.Get<MenuAnnotation>();
             if (menu == null)
             {
-                MainWindow.helperButtons?.SetActions(list, this);
+                MainWindow.SetActions(list, this);
                 return;
             }
 
@@ -72,7 +72,7 @@ namespace OpenTap.Tui.Views
                 list.Add(item);
             }
 
-            MainWindow.helperButtons.SetActions(list, this);
+            MainWindow.SetActions(list, this);
         }
 
         public event Action PropertiesChanged;
@@ -215,7 +215,7 @@ namespace OpenTap.Tui.Views
                     nameBuilder.Append(" !");
             
                 return nameBuilder.ToString();
-                }
+            }
             catch
             {
                 return "";
