@@ -1,17 +1,16 @@
 {
-  "name": "opentap-tui-docs",
+  "name": "opentap-python-docs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
-    "preview": "vitepress preview"
+    "build": "vuepress build",
+    "dev": "vuepress dev"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "vitepress": "^1.0.0-alpha.51",
-    "vue": "3"
+  "dependencies": {
+    "vuepress": "^1.9.8",
+    "vuepress-plugin-export": "^0.2.0"
   }
 }
