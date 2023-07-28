@@ -67,7 +67,7 @@ namespace OpenTap.Tui.Views
 
         public override bool OnEnter(View view)
         {
-            MainWindow.helperButtons.SetActions(new List<MenuItem>() { new MenuItem("Clear Log", "", ClearLog, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.HelperButton1)) }, this);
+            MainWindow.SetActions(new List<MenuItem>() { new MenuItem("Clear Log", "", ClearLog, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.HelperButton1)) }, this);
             return base.OnEnter(view);
         }
 

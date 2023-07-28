@@ -72,10 +72,12 @@ namespace OpenTap.Tui
         private void BuildGroupTree(TreeViewNode<T> node)
         {
             TreeViewNode<T> lastGroup = null;
+            string groupKey = null;
             foreach (var group in node.Groups)
             {
+                groupKey = string.IsNullOrEmpty(groupKey) ? group : (groupKey + "." + group);
                 TreeViewNode<T> groupNode = null;
-                if (groups.TryGetValue(group, out groupNode) == false)
+                if (groups.TryGetValue(groupKey, out groupNode) == false)
                 {
                     // add the group
                     groupNode = createGroupNode?.Invoke(node, group) ?? new TreeViewNode<T>(default(T), this)
@@ -83,7 +85,7 @@ namespace OpenTap.Tui
                         Title = group,
                     };
                     groupNode.IsGroup = true;
-                    groups[group] = groupNode;
+                    groups[groupKey] = groupNode;
                 }
                     
                 if (lastGroup != null)

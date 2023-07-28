@@ -125,7 +125,7 @@ namespace OpenTap.Tui.Views
                     RunTestPlan(false);
                 }
             }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.RunTestPlan)));
-            MainWindow.helperButtons.SetActions(actions, this);
+            MainWindow.SetActions(actions, this);
         }
 
         private void UpdateTitle()
