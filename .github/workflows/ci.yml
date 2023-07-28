@@ -52,6 +52,9 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: doc
+        env:
+          # Newer versions of ssl no longer supports the hashing used by vuepress(webpack).
+          NODE_OPTIONS: --openssl-legacy-provider
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main' || contains(github.ref, 'refs/heads/release') || contains(github.ref, 'refs/tags/v')
