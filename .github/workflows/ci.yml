@@ -24,7 +24,7 @@ jobs:
         with:
          dotnet-version: '6.0.x'
       - name: Build
-        run: dotnet publish -c Release
+        run: dotnet publish -f netstandard2.0 -c Release
       - name: Copy TapPackage
         run: cp OpenTAP.TUI/bin/Release/TUI*.TapPackage .
       - name: Upload build
