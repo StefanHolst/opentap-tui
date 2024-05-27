@@ -160,9 +160,35 @@ namespace OpenTap.Tui
         public PropertiesView StepSettingsView { get; set; }
         public FrameView LogFrame { get; set; }
 
+        private bool TryGetBufferHeight(out int bh)
+        {
+            try
+            {
+                bh = Console.BufferHeight;
+                return true;
+            }
+            catch
+            {
+                bh = 0;
+                return false;
+            }
+        }
+
+        private void SetBufferHeight(int h)
+        {
+            try
+            {
+                Console.BufferHeight = h;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         public override int TuiExecute(CancellationToken cancellationToken)
         {
-            int bufferHeight = Console.BufferHeight;
+            bool canGetHeight = TryGetBufferHeight(out var bufferHeight);
 
             var gridWidth = TuiSettings.Current.TestPlanGridWidth;
             var gridHeight = TuiSettings.Current.TestPlanGridHeight;
@@ -179,22 +205,27 @@ namespace OpenTap.Tui
             {
                 new MenuItem("New", "", () =>
                 {
-                    TestPlanView.NewTestPlan();
-                    StepSettingsView.LoadProperties(null);
+                    if (TestPlanView.SaveOrDiscard())
+                    {
+                        TestPlanView.NewTestPlan();
+                        StepSettingsView.LoadProperties(null);
+                    }
                 }),
-                new MenuItem("Open", "", TestPlanView.LoadTestPlan),
+                new MenuItem("Open", "", () => 
+                {
+                    if (TestPlanView.SaveOrDiscard())
+                        TestPlanView.LoadTestPlan();
+                }),
                 new MenuItem("Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
                 new MenuItem("Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                new MenuItem("Quit", "", () => Application.RequestStop())
-            });
-            var editMenu = new MenuBarItem("Edit", new MenuItem[]
-            {
-                new MenuItem("New", "", () =>
+                new MenuItem("Quit", "", () => 
                 {
-                    TestPlanView.NewTestPlan();
-                    StepSettingsView.LoadProperties(null);
+                    if (TestPlanView.SaveOrDiscard()) 
+                        Application.RequestStop();
                 }),
             });
+            // This menu is populated later
+            var editMenu = new MenuBarItem("Edit", Array.Empty<MenuItem>());
             var toolsmenu = new MenuBarItem("Tools", new MenuItem[]
             {
                 new MenuItem("Results Viewer (Experimental)", "", () =>
@@ -408,7 +439,8 @@ namespace OpenTap.Tui
 
             Application.Shutdown();
             TestPlanView.RemoveRecoveryfile();
-            Console.BufferHeight = bufferHeight;
+            if (canGetHeight)
+                SetBufferHeight(bufferHeight);
 
             return 0;
         }
