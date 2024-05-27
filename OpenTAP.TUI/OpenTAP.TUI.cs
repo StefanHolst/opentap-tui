@@ -160,9 +160,35 @@ namespace OpenTap.Tui
         public PropertiesView StepSettingsView { get; set; }
         public FrameView LogFrame { get; set; }
 
+        private bool TryGetBufferHeight(out int bh)
+        {
+            try
+            {
+                bh = Console.BufferHeight;
+                return true;
+            }
+            catch
+            {
+                bh = 0;
+                return false;
+            }
+        }
+
+        private void SetBufferHeight(int h)
+        {
+            try
+            {
+                Console.BufferHeight = h;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         public override int TuiExecute(CancellationToken cancellationToken)
         {
-            int bufferHeight = Console.BufferHeight;
+            bool canGetHeight = TryGetBufferHeight(out var bufferHeight);
 
             var gridWidth = TuiSettings.Current.TestPlanGridWidth;
             var gridHeight = TuiSettings.Current.TestPlanGridHeight;
@@ -408,7 +434,8 @@ namespace OpenTap.Tui
 
             Application.Shutdown();
             TestPlanView.RemoveRecoveryfile();
-            Console.BufferHeight = bufferHeight;
+            if (canGetHeight)
+                SetBufferHeight(bufferHeight);
 
             return 0;
         }
