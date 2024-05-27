@@ -224,14 +224,8 @@ namespace OpenTap.Tui
                         Application.RequestStop();
                 }),
             });
-            var editMenu = new MenuBarItem("Edit", new MenuItem[]
-            {
-                new MenuItem("New", "", () =>
-                {
-                    TestPlanView.NewTestPlan();
-                    StepSettingsView.LoadProperties(null);
-                }),
-            });
+            // This menu is populated later
+            var editMenu = new MenuBarItem("Edit", Array.Empty<MenuItem>());
             var toolsmenu = new MenuBarItem("Tools", new MenuItem[]
             {
                 new MenuItem("Results Viewer (Experimental)", "", () =>
