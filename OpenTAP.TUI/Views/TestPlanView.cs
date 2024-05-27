@@ -380,12 +380,30 @@ namespace OpenTap.Tui.Views
             treeView.SetTreeViewSource(Plan.Steps);
             UpdateTitle();
         }
+        public bool SaveOrDiscard()
+        {
+            if (MainWindow.ContainsUnsavedChanges)
+            {
+                switch (MessageBox.Query(50, 7, "Unsaved changes!", "Do you want to save before exiting?", "Save", "Don't save", "Cancel"))
+                {
+                    case 0:
+                        // Save.
+                        SaveTestPlan(Plan.Path);
+                        return true;
+                    case 1:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            return true;
+        }
         
         public void NewTestPlan()
         {
             recoveryFile.Plan = new TestPlan();
             treeView.SetTreeViewSource(Plan.Steps);
-            MainWindow.ContainsUnsavedChanges = true;
+            MainWindow.ContainsUnsavedChanges = false;
         }
         public void SaveTestPlan(string path)
         {

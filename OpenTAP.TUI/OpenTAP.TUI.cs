@@ -205,13 +205,24 @@ namespace OpenTap.Tui
             {
                 new MenuItem("New", "", () =>
                 {
-                    TestPlanView.NewTestPlan();
-                    StepSettingsView.LoadProperties(null);
+                    if (TestPlanView.SaveOrDiscard())
+                    {
+                        TestPlanView.NewTestPlan();
+                        StepSettingsView.LoadProperties(null);
+                    }
                 }),
-                new MenuItem("Open", "", TestPlanView.LoadTestPlan),
+                new MenuItem("Open", "", () => 
+                {
+                    if (TestPlanView.SaveOrDiscard())
+                        TestPlanView.LoadTestPlan();
+                }),
                 new MenuItem("Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
                 new MenuItem("Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                new MenuItem("Quit", "", () => Application.RequestStop())
+                new MenuItem("Quit", "", () => 
+                {
+                    if (TestPlanView.SaveOrDiscard()) 
+                        Application.RequestStop();
+                }),
             });
             var editMenu = new MenuBarItem("Edit", new MenuItem[]
             {
