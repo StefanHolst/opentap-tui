@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -103,10 +104,22 @@ namespace OpenTap.Tui.Windows
             bool running = true;
             Task.Run(() =>
             {
-                versions = GetVersions();
-                UpdateVersions();
-                running = false;
-            });
+                try
+                {
+                    versions = GetVersions();
+                    UpdateVersions();
+                }
+                catch (Exception ex)
+                {
+                    var log = Log.CreateSource("Package Manager");
+                    log.Error($"Error getting package versions: '{ex.Message}'"); 
+                    log.Debug(ex);
+                }
+                finally
+                {
+                    running = false;
+                }
+            }).GetAwaiter().GetResult();
             Task.Run(() =>
             {
                 while (running)
@@ -131,7 +144,7 @@ namespace OpenTap.Tui.Windows
                         Application.RequestStop();
                     }
                 });
-            });
+            }).GetAwaiter().GetResult();
         }
 
         void InstallButtonClicked(bool force)

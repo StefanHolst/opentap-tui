@@ -46,7 +46,7 @@ namespace OpenTap.Tui.Views
 
         public PackageListView()
         {
-            installation = new Installation(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            installation = Installation.Current;
             installedOpentap = installation.GetOpenTapPackage();
             installedPackages = installation.GetPackages();
             
