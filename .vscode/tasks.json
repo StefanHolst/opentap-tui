@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/OpenTAP.TUI/OpenTAP.TUI.csproj"
+                "${workspaceFolder}/OpenTAP.TUI/OpenTap.Tui.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/OpenTAP.TUI/OpenTAP.TUI.csproj"
+                "${workspaceFolder}/OpenTAP.TUI/OpenTap.Tui.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/OpenTAP.TUI/OpenTAP.TUI.csproj"
+                "${workspaceFolder}/OpenTAP.TUI/OpenTap.Tui.csproj"
             ],
             "problemMatcher": "$tsc"
         }
