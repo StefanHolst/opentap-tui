@@ -101,8 +101,7 @@ namespace OpenTap.Tui.Windows
             Add(logFrame);
             
             // Load packages in parallel
-            bool running = true;
-            Task.Run(() =>
+            var t1 = Task.Run(() =>
             {
                 try
                 {
@@ -115,28 +114,24 @@ namespace OpenTap.Tui.Windows
                     log.Error($"Error getting package versions: '{ex.Message}'"); 
                     log.Debug(ex);
                 }
-                finally
-                {
-                    running = false;
-                }
-            }).GetAwaiter().GetResult();
+            });
             Task.Run(() =>
             {
-                while (running)
+                while (!t1.IsCompleted)
                 {
                     Application.MainLoop.Invoke(() => versionsFrame.Title = $"Versions ");
-                    Thread.Sleep(100);
-                    
-                    for (int i = 0; i < 3 && running; i++)
+                    t1.Wait(100);
+
+                    for (int i = 0; i < 3 && !t1.IsCompleted; i++)
                     {
                         Application.MainLoop.Invoke(() => versionsFrame.Title += ".");
-                        Thread.Sleep(100);
+                        t1.Wait(100);
                     }
                 }
                 Application.MainLoop.Invoke(() =>
                 {
                     versionsFrame.Title = $"Versions";
-                    
+
                     if (versions.Count == 0)
                     {  // this occurs if the architecture or OS does not match any of the packages.
                         MessageBox.Query("No Plugin Packages Available", "No compatible plugin packages available.",
@@ -144,7 +139,7 @@ namespace OpenTap.Tui.Windows
                         Application.RequestStop();
                     }
                 });
-            }).GetAwaiter().GetResult();
+            });
         }
 
         void InstallButtonClicked(bool force)
@@ -152,7 +147,7 @@ namespace OpenTap.Tui.Windows
             var selectedPackage = versions?.FirstOrDefault();
             if (selectedPackage == null)
                 return;
-            
+
             for (int i = 0; i < versionsView.Source.Count; i++)
             {
                 if (versionsView.Source.IsMarked(i))
@@ -165,12 +160,12 @@ namespace OpenTap.Tui.Windows
                 runningThread.Abort();
                 return;
             }
-            
+
             if ((installedVersion != null && installedVersion.Version == selectedPackage.Version) == false)
             {
                 var installAction = new PackageInstallAction()
                 {
-                    Packages = new[] {package.Name},
+                    Packages = new[] { package.Name },
                     Version = selectedPackage.Version.ToString(),
                     Force = force
                 };
@@ -178,13 +173,13 @@ namespace OpenTap.Tui.Windows
                 {
                     Application.MainLoop.Invoke(() => MessageBox.ErrorQuery(50, 7, "Installation Error", exception.Message, "Ok"));
                 };
-                
+
                 installButton.Text = "Cancel";
                 runningThread = TapThread.Start(() =>
                 {
                     // Add tui user input
                     UserInput.SetInterface(new TuiUserInput());
-                    
+
                     installAction.Execute(TapThread.Current.AbortToken);
                     Application.MainLoop.Invoke(UpdateVersions);
                     runningThread = null;
@@ -194,33 +189,33 @@ namespace OpenTap.Tui.Windows
             {
                 var uninstallAction = new PackageUninstallAction()
                 {
-                    Packages = new []{ package.Name },
+                    Packages = new[] { package.Name },
                     Force = force
                 };
-                
+
                 uninstallAction.Error += exception =>
                 {
                     Application.MainLoop.Invoke(() => MessageBox.ErrorQuery(50, 7, "Uninstallation Error", exception.Message, "Ok"));
                 };
-                
+
                 installButton.Text = "Cancel";
                 runningThread = TapThread.Start(() =>
                 {
                     // Add tui user input
                     UserInput.SetInterface(new TuiUserInput());
-                    
+
                     uninstallAction.Execute(TapThread.Current.AbortToken);
                     Application.MainLoop.Invoke(UpdateVersions);
                     runningThread = null;
                 });
-            }   
+            }
         }
 
         List<PackageViewModel> GetVersions()
         {
             var list = new List<PackageViewModel>();
             var semvers = new HashSet<SemanticVersion>();
-            
+
             var repos = PackageManagerSettings.Current.Repositories.Where(r => r.IsEnabled).OrderByDescending(r => r.Manager is FilePackageRepository);
             foreach (var repository in repos)
             {
@@ -247,7 +242,7 @@ namespace OpenTap.Tui.Windows
         {
             TuiPm.Log.Info("Loading packages from: " + repository.Url);
             var list = new List<PackageViewModel>();
-            
+
             var versions = repository.GetPackageVersions(package.Name, TuiPm.CancellationToken, installedOpentap);
             foreach (var version in versions)
             {
@@ -255,14 +250,14 @@ namespace OpenTap.Tui.Windows
                 if (packageDef != null)
                     list.Add(new PackageViewModel(packageDef));
             }
-            
+
             return list;
         }
 
         List<PackageViewModel> GetHttpPackages(HttpPackageRepository repository)
         {
             var list = new List<PackageViewModel>();
-            
+
             TuiPm.Log.Info("Loading packages from: " + repository.Url);
             HttpClient hc = new HttpClient();
             hc.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -282,10 +277,10 @@ namespace OpenTap.Tui.Windows
             }");
             var response = hc.PostAsync("http://packages.opentap.io/3.1/Query", content, TuiPm.CancellationToken).Result;
             var jsonData = response.Content.ReadAsStringAsync().Result;
-    
+
             // Remove unicode chars
             jsonData = Regex.Replace(jsonData, @"[^\u0000-\u007F]+", string.Empty);
-    
+
             // Parse the json response data
             var jsonPackages = (JsonElement)JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData)["packages"];
             foreach (var item in jsonPackages.EnumerateArray())
@@ -302,23 +297,23 @@ namespace OpenTap.Tui.Windows
         void UpdateVersions()
         {
             installedVersion = installation.GetPackages().FirstOrDefault(p => p.Name == package.Name);
-            
+
             versionsView.SetSource(versions.Select(p => $"{p.Version}{(installedVersion?.Version == p.Version ? " (Installed)" : "")}").ToList());
             versionsView.Source.SetMark(0, true);
             versionsView.SelectedItem = 0;
-            
+
             installButton.Text = versions.FirstOrDefault()?.Version == installedVersion?.Version ? "Uninstall" : "Install";
         }
-        
-        public override bool ProcessKey (KeyEvent keyEvent)
+
+        public override bool ProcessKey(KeyEvent keyEvent)
         {
             if (KeyMapHelper.IsKey(keyEvent, KeyTypes.Cancel))
             {
                 Running = false;
                 return true;
             }
-            
-            return base.ProcessKey (keyEvent);
+
+            return base.ProcessKey(keyEvent);
         }
     }
 }
