@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenTap.Plugins;
@@ -14,7 +16,6 @@ namespace OpenTap.Tui.Views
     public class TestPlanView : FrameView
     {
         private HashSet<ITestStep> moveSteps = new HashSet<ITestStep>();
-        private bool injectStep = false;
         private TreeView<ITestStep> treeView;
         private bool PlanIsRunning = false;
         private readonly Recovery recoveryFile;
@@ -42,7 +43,9 @@ namespace OpenTap.Tui.Views
             treeView.SelectedItemChanged += args =>
             {
                 if (moveSteps.Any())
+                {
                     return;
+                }
                 UpdateHelperButtons();
                 focusedStep = args.Value as ITestStep;
                 SelectionChanged?.Invoke(args.Value as ITestStepParent);
@@ -58,7 +61,7 @@ namespace OpenTap.Tui.Views
             };
             treeView.NodeVisibilityChanged += (node, expanded) => ChildItemVisibility.SetVisibility(node.Item, expanded ? ChildItemVisibility.Visibility.Visible : ChildItemVisibility.Visibility.Collapsed);
             treeView.KeyPress += TreeviewKeyPress;
-
+            
             Add(treeView);
             
             MainWindow.UnsavedChangesCreated += UpdateTitle;
@@ -73,13 +76,13 @@ namespace OpenTap.Tui.Views
                 SelectionChanged.Invoke(Plan);
             }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.TestPlanSettings)));
             
-            if (moveSteps.Any())
+            if (!moveSteps.Any())
             {
-                actions.Add(new MenuItem("Move Selection", "", () => MoveSelection(false), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedSteps)));
-                actions.Add(new MenuItem("Move Selection As Children", "", () => MoveSelection(true), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedStepsAsChildren)));
-            }
-            else 
-            {
+            //    actions.Add(new MenuItem("Move Selection", "", () => MoveSelection(false), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedSteps)));
+            //    actions.Add(new MenuItem("Move Selection As Children", "", () => MoveSelection(true), moveSteps.Any, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertSelectedStepsAsChildren)));
+            //}
+            //else 
+            //{
                 actions.Add(new MenuItem("Insert New Step", "", showAddStep, () => !moveSteps.Any(), shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.AddNewStep)));
                 actions.Add(new MenuItem("Insert New Step Child", "", showInsertStep,
                     () =>
@@ -142,11 +145,17 @@ namespace OpenTap.Tui.Views
             ITestStep selectedObject = treeView.SelectedObject;
             ITestStepParent insertParent = inject ? selectedObject : selectedObject.Parent;
 
+            if (moveSteps.Contains(insertParent))
+            {
+                TUI.Log.Warning("Cannot move a step into itself");
+                return;
+            }
+
             bool anyImmoveableSteps = false;
             foreach (var immoveableStep in moveSteps.Where(s => !TestStepList.AllowChild(TypeData.GetTypeData(insertParent), TypeData.GetTypeData(s))))
             {
                 anyImmoveableSteps = true;
-                TUI.Log.Warning($"{((ITestStep)insertParent).Name} cannot have children of type: {immoveableStep.TypeName}. De-select {immoveableStep.Name} to move steps.");
+                TUI.Log.Warning($"{((ITestStep)insertParent).Name} cannot have children of type: {immoveableStep.TypeName}. De-select {immoveableStep.GetFormattedName()} to move steps.");
             }
             if (anyImmoveableSteps)
                 return;
@@ -170,10 +179,11 @@ namespace OpenTap.Tui.Views
             }
 
             MainWindow.ContainsUnsavedChanges = true;
+            treeView.GhostNodes.Clear();
             moveSteps.Clear();
             ChildItemVisibility.SetVisibility(insertParent, ChildItemVisibility.Visibility.Visible);
             Update(true);
-            treeView.SelectedObject = injectStep ? (ITestStep)insertParent : selectedObject;
+            treeView.SelectedObject = inject ? (ITestStep)insertParent : selectedObject;
             Update(true);
         }
 
@@ -199,15 +209,10 @@ namespace OpenTap.Tui.Views
             if (Plan.IsRunning)
                 return;
 
-            if ((kb.Key == Key.CursorUp || kb.Key == Key.CursorDown) && injectStep)
-            {
-                injectStep = false;
-                Update(true);
-                kbEvent.Handled = true;
-            }
             if (KeyMapHelper.IsKey(kb, KeyTypes.Cancel) && moveSteps.Any())
             {
                 moveSteps.Clear();
+                treeView.GhostNodes.Clear();
                 Update(true);
                 kbEvent.Handled = true;
             }
@@ -223,10 +228,24 @@ namespace OpenTap.Tui.Views
                 }
 
                 if (moveSteps.Any())
+                {
                     SelectionChanged?.Invoke(moveSteps.ToArray());
+                    treeView.GhostNodes.Clear();
+                    treeView.GhostNodes.Add($">> [F2] Insert steps <<");
+                    treeView.GhostNodes.AddRange(moveSteps.Select(m => $"{m.GetFormattedName()}"));
+                }
                 else
+                {
                     SelectionChanged?.Invoke(treeView.SelectedObject);
+                    treeView.GhostNodes.Clear();
+                }
                 Update(true);
+                kbEvent.Handled = true;
+            }
+
+            if (KeyMapHelper.IsKey(kb, KeyTypes.InsertSelectedSteps) && moveSteps.Any())
+            {
+                MoveSelection(treeView.IsGhostNodeChild);
                 kbEvent.Handled = true;
             }
 
@@ -311,8 +330,6 @@ namespace OpenTap.Tui.Views
             string title = step.GetFormattedName();
             if (moveSteps.Contains(step))
                 title += " *";
-            else if (injectStep && treeView.SelectedObject == step)
-                title += " >";
             return title;
         }
         List<ITestStep> getChildren(ITestStep step)
