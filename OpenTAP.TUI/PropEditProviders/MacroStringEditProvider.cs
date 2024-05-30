@@ -16,9 +16,14 @@ namespace OpenTap.Tui.PropEditProviders
             if (!(annotation.Get<IObjectValueAnnotation>().Value is MacroString ms))
                 return null;
 
-            var textField = new TextField(ms.Text);
+            var textField = new Views.TextViewWithEnter()
+            {
+                Text = ms.Text,
+                Height = Dim.Fill(1),
+                CloseOnEnter = true
+            };
 
-            textField.Removed += view =>
+            textField.Closing += () =>
             {
                 try
                 {
