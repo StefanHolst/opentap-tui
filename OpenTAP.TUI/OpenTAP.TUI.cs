@@ -251,6 +251,18 @@ namespace OpenTap.Tui
                     // Run application
                     Application.Run(pmwin);
                     TestPlanView.Update(); // make sure the helperbuttons have been refreshed
+                }),
+                new MenuItem("Metrics (Experimental)", "", () =>
+                {
+                    var metricsWin = new MetricsWindow()
+                    {
+                        Width = Dim.Fill(),
+                        Height = Dim.Fill(),
+                    };
+                    
+                    // Run application
+                    Application.Run(metricsWin);
+                    TestPlanView.Update(); // make sure the helperbuttons have been refreshed
                 })
             });
 
