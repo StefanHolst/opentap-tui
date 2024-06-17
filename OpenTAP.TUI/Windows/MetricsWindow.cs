@@ -18,7 +18,7 @@ namespace OpenTap.Tui.Windows
         private PathAnnotation annotation;
     
         private MetricInfo selectedMetric = null;
-        private Dictionary<string, MetricViewModel> subscribedMetrics = new Dictionary<string, MetricViewModel>();
+        private Dictionary<MetricInfo, MetricViewModel> subscribedMetrics = new Dictionary<MetricInfo, MetricViewModel>();
         private List<MenuItem> helperActions;
         private HelperButtons helperButtons;
 
@@ -29,7 +29,7 @@ namespace OpenTap.Tui.Windows
 
         private string getTitle((MetricInfo metric, object source) metricInfo)
         {
-            return $"{(subscribedMetrics.ContainsKey(metricInfo.metric.MetricFullName) ? "[x]" : "[ ]")} {metricInfo.metric.Name} ({metricInfo.metric.Kind} - {(metricInfo.metric.Ephemeral ? "Ephemeral" : "Persistent")})";
+            return $"{(subscribedMetrics.ContainsKey(metricInfo.metric) ? "[x]" : "[ ]")} {metricInfo.metric.Name} ({metricInfo.metric.Kind} - {(metricInfo.metric.Ephemeral ? "Ephemeral" : "Persistent")})";
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -104,10 +104,10 @@ namespace OpenTap.Tui.Windows
                 if (selectedMetric == null)
                     return;
                 
-                if (subscribedMetrics.ContainsKey(selectedMetric.MetricFullName))
-                    subscribedMetrics.Remove(selectedMetric.MetricFullName);
+                if (subscribedMetrics.ContainsKey(selectedMetric))
+                    subscribedMetrics.Remove(selectedMetric);
                 else
-                    subscribedMetrics[selectedMetric.MetricFullName] = new MetricViewModel();
+                    subscribedMetrics[selectedMetric] = new MetricViewModel();
                 
                 metricsTreeView.RenderTreeView(true);
                 
@@ -132,7 +132,7 @@ namespace OpenTap.Tui.Windows
             if (metrics.Count < 10)
             {
                 foreach (var metric in metrics)
-                    subscribedMetrics[metric.metric.MetricFullName] = new MetricViewModel();
+                    subscribedMetrics[metric.metric] = new MetricViewModel();
                 
                 metricsTreeView.RenderTreeView(true);
             }
@@ -171,7 +171,7 @@ namespace OpenTap.Tui.Windows
             {
                 selectedMetric = metric.Item1;
                 if (selectedMetric != null)
-                    helperActions[0].Title = subscribedMetrics.ContainsKey(selectedMetric.MetricFullName) ? "Unsubscribe" : "Subscribe";
+                    helperActions[0].Title = subscribedMetrics.ContainsKey(selectedMetric) ? "Unsubscribe" : "Subscribe";
             }
             else
                 selectedMetric = null;
@@ -187,7 +187,7 @@ namespace OpenTap.Tui.Windows
         {
             Application.MainLoop.Invoke(() =>
             {
-                if (selectedMetric == null || subscribedMetrics.ContainsKey(selectedMetric.MetricFullName) == false)
+                if (selectedMetric == null || subscribedMetrics.ContainsKey(selectedMetric) == false)
                 {
                     metricHistoryView.Table = new DataTable();
                     series.Points = new List<PointF>();
@@ -195,7 +195,7 @@ namespace OpenTap.Tui.Windows
                     return;
                 }
                 
-                if (subscribedMetrics.TryGetValue(selectedMetric.MetricFullName, out var history) == false)
+                if (subscribedMetrics.TryGetValue(selectedMetric, out var history) == false)
                     return;
 
                 // Update history
@@ -209,13 +209,13 @@ namespace OpenTap.Tui.Windows
         
         public void OnPushMetric(IMetric table)
         {
-            if (table.Info != null && subscribedMetrics.ContainsKey(table.Info.MetricFullName))
-                subscribedMetrics[table.Info.MetricFullName].AddMetric(table);
+            if (table.Info != null && subscribedMetrics.ContainsKey(table.Info))
+                subscribedMetrics[table.Info].AddMetric(table);
         }
 
         public IEnumerable<MetricInfo> GetInterest(IEnumerable<MetricInfo> allMetrics)
         {
-            return allMetrics.Where(m => subscribedMetrics.ContainsKey(m.MetricFullName));
+            return allMetrics.Where(m => subscribedMetrics.ContainsKey(m));
         }
     }
 }
