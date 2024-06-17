@@ -21,7 +21,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <OpenTapPackageReference Include="Metrics" Version="any" />
+    <OpenTapPackageReference Include="Metrics" Version="0.1.0-beta.8+fc7dba5f" />
   </ItemGroup>
 
   <ItemGroup>

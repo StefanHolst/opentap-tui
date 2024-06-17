@@ -122,7 +122,7 @@ namespace OpenTap.Tui.Windows
             helperButtons.CanFocus = false;
 
             // Register as consumer
-            MetricManager.RegisterConsumer(this);
+            MetricManager.RegisterListener(this);
             
             // load available metrics
             var metrics = MetricManager.GetMetricInfos().ToList();
@@ -215,14 +215,13 @@ namespace OpenTap.Tui.Windows
 
         public IEnumerable<MetricInfo> GetInterest(IEnumerable<MetricInfo> allMetrics)
         {
-            return subscribedMetrics.Values.Select(m => m.Info);
+            return allMetrics.Where(m => subscribedMetrics.ContainsKey(m.MetricFullName));
         }
     }
 }
 
 public class MetricViewModel
 {
-    public MetricInfo Info { get; set; }
     public List<PointF> GraphMetrics { get; } = new List<PointF>();
     public List<IMetric> Metrics { get; set; } = new List<IMetric>();
     public DataTable MetricsTable { get; set; } = new DataTable();
