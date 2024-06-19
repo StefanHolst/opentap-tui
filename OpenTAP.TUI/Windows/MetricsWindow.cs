@@ -11,7 +11,7 @@ namespace OpenTap.Tui.Windows
 {
     public class MetricsWindow : BaseWindow, IMetricListener
     {
-        private TreeView<(MetricInfo, object)> metricsTreeView;
+        private TreeView<MetricInfo> metricsTreeView;
         private TableView metricHistoryView;
         private GraphView metricGraphView;
         private ScatterSeries series;
@@ -22,14 +22,14 @@ namespace OpenTap.Tui.Windows
         private List<MenuItem> helperActions;
         private HelperButtons helperButtons;
 
-        private List<string> getGroups((MetricInfo metric, object source) arg)
+        private List<string> getGroups(MetricInfo metric)
         {
-            return [arg.metric.GroupName];
+            return [metric.GroupName];
         }
 
-        private string getTitle((MetricInfo metric, object source) metricInfo)
+        private string getTitle(MetricInfo metric)
         {
-            return $"{(subscribedMetrics.ContainsKey(metricInfo.metric) ? "[x]" : "[ ]")} {metricInfo.metric.Name} ({metricInfo.metric.Kind} - {(metricInfo.metric.Ephemeral ? "Ephemeral" : "Persistent")})";
+            return $"{(subscribedMetrics.ContainsKey(metric) ? "[x]" : "[ ]")} {metric.Name} ({metric.Type} - {metric.Kind})";
         }
 
         public override bool ProcessKey(KeyEvent keyEvent)
@@ -49,7 +49,7 @@ namespace OpenTap.Tui.Windows
         {
             Modal = true;
 
-            metricsTreeView = new TreeView<(MetricInfo, object)>(getTitle, getGroups);
+            metricsTreeView = new TreeView<MetricInfo>(getTitle, getGroups);
             metricsTreeView.SelectedItemChanged += SelectedItemChanged;
             
             // Add metrics list
@@ -108,7 +108,8 @@ namespace OpenTap.Tui.Windows
                     subscribedMetrics.Remove(selectedMetric);
                 else
                     subscribedMetrics[selectedMetric] = new MetricViewModel();
-                
+
+                MetricManager.Subscribe(this, subscribedMetrics.Keys.ToArray());
                 metricsTreeView.RenderTreeView(true);
                 
             }, shortcut: Key.F1);
@@ -120,9 +121,6 @@ namespace OpenTap.Tui.Windows
             
             helperButtons.SetActions(helperActions, this);
             helperButtons.CanFocus = false;
-
-            // Register as consumer
-            MetricManager.RegisterListener(this);
             
             // load available metrics
             var metrics = MetricManager.GetMetricInfos().ToList();
@@ -132,8 +130,9 @@ namespace OpenTap.Tui.Windows
             if (metrics.Count < 10)
             {
                 foreach (var metric in metrics)
-                    subscribedMetrics[metric.metric] = new MetricViewModel();
-                
+                    subscribedMetrics[metric] = new MetricViewModel();
+
+                MetricManager.Subscribe(this, subscribedMetrics.Keys.ToArray());
                 metricsTreeView.RenderTreeView(true);
             }
 
@@ -167,11 +166,14 @@ namespace OpenTap.Tui.Windows
 
         private void SelectedItemChanged(ListViewItemEventArgs obj)
         {
-            if (obj.Value is ValueTuple<MetricInfo, object> metric)
+            if (obj.Value is MetricInfo metric)
             {
-                selectedMetric = metric.Item1;
-                if (selectedMetric != null)
+                selectedMetric = metric;
+                if (selectedMetric != null && helperActions.Count > 0 && helperActions[0] != null)
+                {
                     helperActions[0].Title = subscribedMetrics.ContainsKey(selectedMetric) ? "Unsubscribe" : "Subscribe";
+                    metricsTreeView.RenderTreeView(true);
+                }
             }
             else
                 selectedMetric = null;
@@ -209,13 +211,8 @@ namespace OpenTap.Tui.Windows
         
         public void OnPushMetric(IMetric table)
         {
-            if (table.Info != null && subscribedMetrics.ContainsKey(table.Info))
-                subscribedMetrics[table.Info].AddMetric(table);
-        }
-
-        public IEnumerable<MetricInfo> GetInterest(IEnumerable<MetricInfo> allMetrics)
-        {
-            return allMetrics.Where(m => subscribedMetrics.ContainsKey(m));
+            if (table.Info != null && subscribedMetrics.TryGetValue(table.Info, out var map))
+                map.AddMetric(table);
         }
     }
 }
@@ -241,7 +238,7 @@ public class MetricViewModel
         row[1] = metric.Value;
         MetricsTable.Rows.InsertAt(row, 0);
         
-        if (metric.Info.Kind == MetricKind.Double)
+        if (metric.Info.Type == MetricType.Double)
             GraphMetrics.Add(new PointF(Metrics.Count, (float)(double)metric.Value));
     }
 }

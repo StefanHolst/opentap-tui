@@ -6,6 +6,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputType>Library</OutputType>
     <OpenTapVersion>9.18.3</OpenTapVersion>
+    <MetricsVersion>0.1.0-beta.15+a5a56991</MetricsVersion>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -21,7 +22,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <OpenTapPackageReference Include="Metrics" Version="0.1.0-beta.8+fc7dba5f" />
+    <OpenTapPackageReference Include="Metrics" Version="$(MetricsVersion)" />
   </ItemGroup>
 
   <ItemGroup>
