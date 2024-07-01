@@ -170,10 +170,7 @@ namespace OpenTap.Tui.Windows
             {
                 selectedMetric = metric;
                 if (selectedMetric != null && helperActions.Count > 0 && helperActions[0] != null)
-                {
                     helperActions[0].Title = subscribedMetrics.ContainsKey(selectedMetric) ? "Unsubscribe" : "Subscribe";
-                    metricsTreeView.RenderTreeView(true);
-                }
             }
             else
                 selectedMetric = null;
@@ -187,6 +184,15 @@ namespace OpenTap.Tui.Windows
 
         private void updateHistory()
         {
+            // Poll the metrics
+            var metrics = MetricManager.PollMetrics(subscribedMetrics.Keys);
+            foreach (var metric in metrics)
+            {
+                if (metric.Info != null && subscribedMetrics.TryGetValue(metric.Info, out var map))
+                    map.AddMetric(metric);
+            }
+            
+            // Update the UI
             Application.MainLoop.Invoke(() =>
             {
                 if (selectedMetric == null || subscribedMetrics.ContainsKey(selectedMetric) == false)
@@ -233,17 +239,20 @@ public class MetricViewModel
     {
         Metrics.Insert(0, metric);
 
-        var row = MetricsTable.NewRow();
-        row[0] = metric.Time;
-        row[1] = metric.Value;
-        MetricsTable.Rows.InsertAt(row, 0);
+        lock (MetricsTable)
+        {
+            var row = MetricsTable.NewRow();
+            row[0] = metric.Time;
+            row[1] = metric.Value;
+            MetricsTable.Rows.InsertAt(row, 0);
+        }
         
         if (metric.Info.Type == MetricType.Double)
             GraphMetrics.Add(new PointF(Metrics.Count, (float)(double)metric.Value));
     }
 }
 
-public class MetricsTestInstrument : Instrument, IMetricSource
+public class MetricsTestInstrument : Instrument, IMetricSource, IOnPollMetricsCallback
 {
     [Metric]
     [Unit("I")] 
@@ -279,5 +288,14 @@ public class MetricsTestInstrument : Instrument, IMetricSource
                 MetricManager.PushMetric(onOffMetric, _offset % 2 == 0);
             }
         });
+    }
+
+    public void OnPollMetrics(IEnumerable<MetricInfo> metrics)
+    {
+        _offset += 1;
+        X = _offset;
+        Y = Math.Sin(_offset * 0.1);
+        Z = $"Value: {_offset}";
+        OnOff = _offset % 2 == 0;
     }
 }
