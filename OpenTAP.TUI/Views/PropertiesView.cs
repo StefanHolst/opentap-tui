@@ -37,7 +37,7 @@ namespace OpenTap.Tui.Views
             var menu = selectedMember?.Get<MenuAnnotation>();
             if (menu == null)
             {
-                MainWindow.helperButtons?.SetActions(list, this);
+                MainWindow.SetActions(list, this);
                 return;
             }
 
@@ -46,6 +46,8 @@ namespace OpenTap.Tui.Views
             {
                 var member = _member;
                 if (member.Get<IAccessAnnotation>()?.IsVisible == false)
+                    continue;
+                if (member.Get<IEnabledAnnotation>()?.IsEnabled == false)
                     continue;
                 
                 var item = new MenuItem(KeyMapHelper.GetShortcutKey((KeyTypes)((int)KeyTypes.HelperButton1 + keyNum++)));
@@ -72,7 +74,7 @@ namespace OpenTap.Tui.Views
                 list.Add(item);
             }
 
-            MainWindow.helperButtons.SetActions(list, this);
+            MainWindow.SetActions(list, this);
         }
 
         public event Action PropertiesChanged;
@@ -215,7 +217,7 @@ namespace OpenTap.Tui.Views
                     nameBuilder.Append(" !");
             
                 return nameBuilder.ToString();
-                }
+            }
             catch
             {
                 return "";
@@ -390,6 +392,8 @@ namespace OpenTap.Tui.Views
 
         public static bool FilterMember(IMemberData member)
         {
+            if (member.DeclaringType.DescendsTo(resourceTypeData) && member.Name == nameof(Resource.Name))
+                return true;
             if (member.GetAttribute<BrowsableAttribute>() is BrowsableAttribute attr)
                  return attr.Browsable;
             if (member.HasAttribute<OutputAttribute>())
@@ -397,10 +401,19 @@ namespace OpenTap.Tui.Views
             return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
         }
     
+        static ITypeData resourceTypeData = TypeData.FromType(typeof(IResource));
+        
         AnnotationCollection[] getMembers()
         {
             return annotations?.Get<IMembersAnnotation>()?.Members
-                .Where(x => x.Get<IAccessAnnotation>()?.IsVisible ?? false)
+                .Where(x =>
+                {
+                    var member = x.Get<IMemberAnnotation>().Member;
+                    if (member.DeclaringType.DescendsTo(resourceTypeData) && member.Name == nameof(Resource.Name))
+                        return true;
+                    
+                    return x.Get<IAccessAnnotation>()?.IsVisible ?? false;
+                })
                 .Where(x => 
                 {
                     var member = x.Get<IMemberAnnotation>()?.Member;

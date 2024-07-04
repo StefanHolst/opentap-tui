@@ -9,17 +9,17 @@ using System.Threading;
 using OpenTap.Tui.Views;
 using OpenTap.Tui.Windows;
 using Terminal.Gui;
-using System.Diagnostics;
 
 namespace OpenTap.Tui
 {
     public class MainWindow : BaseWindow
     {
+        internal static MainWindow Current;
 
         public PropertiesView StepSettingsView { get; set; }
         public TestPlanView TestPlanView { get; set; }
         public View LogFrame { get; set; }
-        public static HelperButtons helperButtons { get; private set; }
+        static HelperButtons helperButtons { get; set; }
 
         public static event Action UnsavedChangesCreated;
         private static bool _containsUnsavedChanges;
@@ -32,6 +32,7 @@ namespace OpenTap.Tui
                 UnsavedChangesCreated?.Invoke();
             }
         }
+        public MenuBarItem FileMenu { get; set; }
 
         public MainWindow(string title) : base(title)
         {
@@ -139,6 +140,11 @@ namespace OpenTap.Tui
             
             return base.ProcessKey(keyEvent);
         }
+        public static void SetActions(List<MenuItem> list, View owner)
+        {
+            helperButtons.SetActions(list, owner);
+            Current.FileMenu.Children = list.ToArray();
+        }
     }
 
     [Display("tui", "View, edit and run test plans using TUI.")]
@@ -154,9 +160,35 @@ namespace OpenTap.Tui
         public PropertiesView StepSettingsView { get; set; }
         public FrameView LogFrame { get; set; }
 
+        private bool TryGetBufferHeight(out int bh)
+        {
+            try
+            {
+                bh = Console.BufferHeight;
+                return true;
+            }
+            catch
+            {
+                bh = 0;
+                return false;
+            }
+        }
+
+        private void SetBufferHeight(int h)
+        {
+            try
+            {
+                Console.BufferHeight = h;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         public override int TuiExecute(CancellationToken cancellationToken)
         {
-            int bufferHeight = Console.BufferHeight;
+            bool canGetHeight = TryGetBufferHeight(out var bufferHeight);
 
             var gridWidth = TuiSettings.Current.TestPlanGridWidth;
             var gridHeight = TuiSettings.Current.TestPlanGridHeight;
@@ -173,14 +205,27 @@ namespace OpenTap.Tui
             {
                 new MenuItem("New", "", () =>
                 {
-                    TestPlanView.NewTestPlan();
-                    StepSettingsView.LoadProperties(null);
+                    if (TestPlanView.SaveOrDiscard())
+                    {
+                        TestPlanView.NewTestPlan();
+                        StepSettingsView.LoadProperties(null);
+                    }
                 }),
-                new MenuItem("Open", "", TestPlanView.LoadTestPlan),
+                new MenuItem("Open", "", () => 
+                {
+                    if (TestPlanView.SaveOrDiscard())
+                        TestPlanView.LoadTestPlan();
+                }),
                 new MenuItem("Save", "", () => { TestPlanView.SaveTestPlan(TestPlanView.Plan.Path); }),
                 new MenuItem("Save As", "", () => { TestPlanView.SaveTestPlan(null); }),
-                new MenuItem("Quit", "", () => Application.RequestStop())
+                new MenuItem("Quit", "", () => 
+                {
+                    if (TestPlanView.SaveOrDiscard()) 
+                        Application.RequestStop();
+                }),
             });
+            // This menu is populated later
+            var editMenu = new MenuBarItem("Edit", Array.Empty<MenuItem>());
             var toolsmenu = new MenuBarItem("Tools", new MenuItem[]
             {
                 new MenuItem("Results Viewer (Experimental)", "", () =>
@@ -248,6 +293,11 @@ namespace OpenTap.Tui
                         {
                             settingsView = new ComponentSettingsWindow(obj);
                         }
+
+                        settingsView.Height = Dim.Fill(2);
+                        settingsView.X = 1;
+                        settingsView.Width = Dim.Fill(1);
+                        
                         Application.Run(settingsView);
                         TestPlanView.UpdateHelperButtons();
                     });
@@ -269,6 +319,7 @@ namespace OpenTap.Tui
             // Create list of all menu items, used in menu bar
             List<MenuBarItem> menuBars = new List<MenuBarItem>();
             menuBars.Add(filemenu);
+            menuBars.Add(editMenu);
             foreach (var group in groupItems.GroupBy(x => x.Value))
             {
                 var m = new MenuBarItem(group.Key,
@@ -296,7 +347,9 @@ namespace OpenTap.Tui
                 Height = Dim.Fill(),
                 StepSettingsView = StepSettingsView,
                 TestPlanView = TestPlanView,
+                FileMenu = editMenu
             };
+            MainWindow.Current = win;
 
             // Add menu bar
             win.Add(menuLabel);
@@ -391,7 +444,8 @@ namespace OpenTap.Tui
 
             Application.Shutdown();
             TestPlanView.RemoveRecoveryfile();
-            Console.BufferHeight = bufferHeight;
+            if (canGetHeight)
+                SetBufferHeight(bufferHeight);
 
             return 0;
         }

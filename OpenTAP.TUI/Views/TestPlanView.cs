@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using OpenTap;
 using OpenTap.Plugins;
 using OpenTap.Plugins.BasicSteps;
 using OpenTap.Tui.Windows;
@@ -84,9 +82,18 @@ namespace OpenTap.Tui.Views
             {
                 actions.Add(new MenuItem("Insert New Step", "", showAddStep, () => !moveSteps.Any(), shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.AddNewStep)));
                 actions.Add(new MenuItem("Insert New Step Child", "", showInsertStep,
-                    () => (treeView.SelectedObject?.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null ||
-                    treeView.SelectedObject?.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null) &&
-                    moveSteps.Any() == false, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertNewStep)));
+                    () =>
+                    {
+                        if (moveSteps.Any())
+                            return false;
+                        if (treeView.SelectedObject is TestStep step)
+                        {
+                            var type = TypeData.GetTypeData(step);
+                            return type.HasAttribute<AllowAnyChildAttribute>() ||
+                                   type.HasAttribute<AllowChildrenOfTypeAttribute>();
+                        }
+                        return false;
+                    }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.InsertNewStep)));
             }
             
             actions.Add(new MenuItem(PlanIsRunning ? "Abort Test Plan" : "Run Test Plan", "", () =>
@@ -115,7 +122,7 @@ namespace OpenTap.Tui.Views
                     RunTestPlan(false);
                 }
             }, shortcut: KeyMapHelper.GetShortcutKey(KeyTypes.RunTestPlan)));
-            MainWindow.helperButtons.SetActions(actions, this);
+            MainWindow.SetActions(actions, this);
         }
 
         private void UpdateTitle()
@@ -318,10 +325,12 @@ namespace OpenTap.Tui.Views
         }
         TreeViewNode<ITestStep> createNode(ITestStep step)
         {
+            var type = TypeData.GetTypeData(step);
             return new TreeViewNode<ITestStep>(step, treeView)
             {
                 IsExpanded = ChildItemVisibility.GetVisibility(step) == ChildItemVisibility.Visibility.Visible,
-                AlwaysDisplayExpandState = step.GetType().GetCustomAttribute<AllowAnyChildAttribute>() != null || step.GetType().GetCustomAttribute<AllowChildrenOfTypeAttribute>() != null,
+                AlwaysDisplayExpandState = type.HasAttribute<AllowAnyChildAttribute>() 
+                                           || type.HasAttribute<AllowChildrenOfTypeAttribute>()
             };
         }
 
@@ -371,12 +380,30 @@ namespace OpenTap.Tui.Views
             treeView.SetTreeViewSource(Plan.Steps);
             UpdateTitle();
         }
+        public bool SaveOrDiscard()
+        {
+            if (MainWindow.ContainsUnsavedChanges)
+            {
+                switch (MessageBox.Query(50, 7, "Unsaved changes!", "Do you want to save before exiting?", "Save", "Don't save", "Cancel"))
+                {
+                    case 0:
+                        // Save.
+                        SaveTestPlan(Plan.Path);
+                        return true;
+                    case 1:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            return true;
+        }
         
         public void NewTestPlan()
         {
             recoveryFile.Plan = new TestPlan();
             treeView.SetTreeViewSource(Plan.Steps);
-            MainWindow.ContainsUnsavedChanges = true;
+            MainWindow.ContainsUnsavedChanges = false;
         }
         public void SaveTestPlan(string path)
         {

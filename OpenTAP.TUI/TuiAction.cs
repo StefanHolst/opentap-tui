@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using OpenTap.Cli;
 using Terminal.Gui;
@@ -51,7 +52,21 @@ namespace OpenTap.Tui
 
             try
             {
-                Application.Init();
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    // This fixes an issue causing resizing not to work on Linux. The issue can be reproduced in
+                    // the default gui-cs template by running `Console.WriteLine()` before running `Application.Init()`.
+                    // I guess dotnet alters the tty state in a way the gui-cs default Linux terminal driver doesn't expect.
+                    // Unfortunately, this also breaks the mouse completely.
+                    Application.UseSystemConsole = true;
+                    Application.Init();
+                    // For some reason this is also required.
+                    Console.Out.Write(EscSeqUtils.DisableMouseEvents);
+                } 
+                else 
+                {
+                    Application.Init();
+                }
                 TuiSettings.Current.LoadSettings();
 
                 return TuiExecute(cancellationToken);
