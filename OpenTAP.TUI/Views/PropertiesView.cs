@@ -390,6 +390,8 @@ namespace OpenTap.Tui.Views
 
         public static bool FilterMember(IMemberData member)
         {
+            if (member.DeclaringType.Equals(resourceTypeData) && member.Name == nameof(Resource.Name))
+                return true;
             if (member.GetAttribute<BrowsableAttribute>() is BrowsableAttribute attr)
                  return attr.Browsable;
             if (member.HasAttribute<OutputAttribute>())
@@ -397,10 +399,19 @@ namespace OpenTap.Tui.Views
             return member.Attributes.Any(a => a is XmlIgnoreAttribute) == false && member.Writable;
         }
     
+        static ITypeData resourceTypeData = TypeData.FromType(typeof(Resource));
+        
         AnnotationCollection[] getMembers()
         {
             return annotations?.Get<IMembersAnnotation>()?.Members
-                .Where(x => x.Get<IAccessAnnotation>()?.IsVisible ?? false)
+                .Where(x =>
+                {
+                    var member = x.Get<IMemberAnnotation>().Member;
+                    if (member.DeclaringType.Equals(resourceTypeData) && member.Name == nameof(Resource.Name))
+                        return true;
+                    
+                    return x.Get<IAccessAnnotation>()?.IsVisible ?? false;
+                })
                 .Where(x => 
                 {
                     var member = x.Get<IMemberAnnotation>()?.Member;
