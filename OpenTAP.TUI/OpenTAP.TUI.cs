@@ -293,6 +293,11 @@ namespace OpenTap.Tui
                         {
                             settingsView = new ComponentSettingsWindow(obj);
                         }
+
+                        settingsView.Height = Dim.Fill(2);
+                        settingsView.X = 1;
+                        settingsView.Width = Dim.Fill(1);
+                        
                         Application.Run(settingsView);
                         TestPlanView.UpdateHelperButtons();
                     });
