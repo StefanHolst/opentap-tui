@@ -6,6 +6,8 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputType>Library</OutputType>
     <OpenTapVersion>9.18.3</OpenTapVersion>
+    <MetricsVersion>0.1.0</MetricsVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +19,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\gui.cs\Terminal.Gui\Terminal.Gui.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <OpenTapPackageReference Include="Metrics" Version="$(MetricsVersion)" />
   </ItemGroup>
 
   <ItemGroup>
