@@ -21,6 +21,9 @@ namespace OpenTap.Tui
         public string Filter { get; set; } = "";
         public Action<string> FilterChanged { get; set; }
         internal event Action<TreeViewNode<T>, bool> NodeVisibilityChanged;
+
+        public bool IsGhostNodeChild { get; private set; }
+        public List<string> GhostNodes { get; } = new List<string>();
         
         public T SelectedObject
         {
@@ -188,6 +191,8 @@ namespace OpenTap.Tui
             return list;
         }
 
+        private List<string> listSource;
+
         public void RenderTreeView(bool noCache = false)
         {
             if (items == null)
@@ -211,50 +216,154 @@ namespace OpenTap.Tui
             
             // Save old selected indexes to keep layout
             var index = SelectedItem;
+            int newIndex;
             var oldTop = TopItem;
-            SetSource(renderedItems);
-            
+            int newTop;
+            listSource = renderedItems.Select(n => n.ToString()).ToList();
+
+
             // check if the saved selected index can still be used
-            if (index >= renderedItems.Count)
-                SelectedItem = renderedItems.Count - 1;
+            if (index >= listSource.Count)
+                newIndex = listSource.Count - 1;
             else
-                SelectedItem = index;
+                newIndex = index;
 
             // check if the saved top index can still be used
-            if (renderedItems.Count == 0)
-                TopItem = 0;
-            else if (oldTop > 0 && oldTop >= renderedItems.Count)
-                TopItem = renderedItems.Count - 1;
+            if (listSource.Count == 0)
+                newTop = 0;
+            else if (oldTop > 0 && oldTop >= listSource.Count)
+                newTop = listSource.Count - 1;
             else
-                TopItem = oldTop;
-            
+                newTop = oldTop;
+
+            if (GhostNodes.Any() && renderedItems.Any())
+            {
+                int insertIndex = SelectedItem + 1;
+                string indent = new string(' ', renderedItems[newIndex].Indent + (IsGhostNodeChild ? 3 : 2));
+                if (insertIndex >= listSource.Count)
+                {
+                    listSource.AddRange(GhostNodes.Select(g => indent + g));
+                }
+                else
+                {
+                    listSource.InsertRange(insertIndex, GhostNodes.Select(g => indent + g));
+                }
+            }
+            SetSource(listSource);
+
+            SelectedItem = newIndex;
+            TopItem = newTop;
+
             OnSelectedChanged();
         }
-        
+
+        // Redraw is re-implemented here to draw the ghostnode in a seperate color to the rest of the nodes.
+        public override void Redraw(Rect bounds)
+        {
+            var current = ColorScheme.Focus;
+            Driver.SetAttribute(current);
+            Move(0, 0);
+            var item = top;
+            int start = Bounds.Left;
+
+            for (int row = 0; row < Frame.Height; row++, item++)
+            {
+                bool isGhostNode = row > selected && row <= selected + GhostNodes.Count;
+                bool isSelected = item == selected;
+
+
+                Terminal.Gui.Attribute newcolor;
+                if (isSelected)
+                {
+                    newcolor = ColorScheme.Focus;
+                }
+                else if (isGhostNode)
+                {
+                    newcolor = ColorScheme.HotNormal;
+                }
+                else
+                { 
+                    newcolor = GetNormalColor(); 
+                }
+
+                if (newcolor != current)
+                {
+                    Driver.SetAttribute(newcolor);
+                    current = newcolor;
+                }
+
+                Move(0, row);
+                if (listSource == null || item >= listSource.Count)
+                {
+                    for (int c = 0; c < Frame.Width; c++)
+                        Driver.AddRune(' ');
+                }
+                else
+                {
+                    var rowEventArgs = new ListViewRowEventArgs(item);
+                    OnRowRender(rowEventArgs);
+                    if (rowEventArgs.RowAttribute != null && current != rowEventArgs.RowAttribute)
+                    {
+                        current = (Terminal.Gui.Attribute)rowEventArgs.RowAttribute;
+                        Driver.SetAttribute(current);
+                    }
+                    Source.Render(this, Driver, isSelected, item, 0, row, Frame.Width, start);
+                }
+            }
+        }
+
         public override bool ProcessKey(KeyEvent kb)
         {
-            if (renderedItems != null && renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft))
+
+            if (renderedItems != null && renderedItems.Any() && (kb.Key == Key.Enter || kb.Key == Key.CursorRight || kb.Key == Key.CursorLeft || kb.Key == Key.CursorUp || kb.Key == Key.CursorDown))
             {
                 var selectedNode = renderedItems[SelectedItem];
                 var hasChildren = selectedNode.AlwaysDisplayExpandState || selectedNode.Children.Any();
+
+                if (kb.Key == Key.CursorUp || kb.Key == Key.CursorDown)
+                {
+                    IEnumerable<string> ghostNode = GhostNodes.ToList();
+                    GhostNodes.Clear();
+                    RenderTreeView(true);
+                    GhostNodes.AddRange(ghostNode);
+                    if (kb.Key == Key.CursorUp)
+                        MoveUp();
+                    else if (kb.Key == Key.CursorDown)
+                        MoveDown();
+
+                    selectedNode = renderedItems[SelectedItem];
+                    hasChildren = selectedNode.AlwaysDisplayExpandState || selectedNode.Children.Any();
+
+                    IsGhostNodeChild = hasChildren && selectedNode.IsExpanded;
+                    RenderTreeView(true);
+                    return true;
+                }
+
                 if (hasChildren && kb.Key == Key.CursorLeft && selectedNode.IsExpanded)
                 {
                     selectedNode.IsExpanded = false;
+                    IsGhostNodeChild = false;
                     NodeVisibilityChanged?.Invoke(selectedNode, false);
                 }
-                else if (hasChildren && kb.Key == Key.CursorRight && !selectedNode.IsExpanded)
+                else if (hasChildren && kb.Key == Key.CursorRight)
                 {
-                    selectedNode.IsExpanded = true;
-                    NodeVisibilityChanged?.Invoke(selectedNode, true);
+                    IsGhostNodeChild = true;
+                    if (!selectedNode.IsExpanded)
+                    {
+                        selectedNode.IsExpanded = true;
+                        NodeVisibilityChanged?.Invoke(selectedNode, true);
+                    }
                 }
                 else if (selectedNode.Parent != null && kb.Key == Key.CursorLeft)
                 {
                     SelectedItem = renderedItems.FindIndex(s => s == selectedNode.Parent);
+                    IsGhostNodeChild = false;
                     OnSelectedChanged();
                 }
                 else if (SelectedItem != 0 && kb.Key == Key.CursorLeft)
                 {
                     SelectedItem = 0;
+                    IsGhostNodeChild = false;
                     OnSelectedChanged();
                 }
 
@@ -362,23 +471,32 @@ namespace OpenTap.Tui
             Groups = new List<string>();
         }
 
+        public int Indent
+        {
+            get
+            {
+
+                int indent = 0;
+
+                if (Groups?.Any() == true)
+                    indent = Groups.Count;
+                else
+                {
+                    var parent = Parent;
+                    while (parent != null)
+                    {
+                        indent++;
+                        parent = parent.Parent;
+                    }
+                }
+
+                return indent;
+            }
+        }
+
         public override string ToString()
         {
-            int indent = 0;
-
-            if (Groups?.Any() == true)
-                indent = Groups.Count;
-            else
-            {
-                var parent = Parent;
-                while (parent != null)
-                {
-                    indent++;
-                    parent = parent.Parent;
-                }
-            }
-            
-            string text = new String(' ', indent);
+            string text = new String(' ', Indent);
             if (AlwaysDisplayExpandState || Children.Any())
                 text += IsExpanded || string.IsNullOrEmpty(Owner.Filter) == false ? "- " : "+ ";
             else
